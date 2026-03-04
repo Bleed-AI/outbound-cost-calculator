@@ -1,6 +1,7 @@
 'use client'
 
 import { EPP_OPTIONS } from '@/lib/pricing'
+import { PRICING } from '@/lib/pricing.config'
 import { SectionCard } from '@/components/SectionCard'
 import type { LeadsPerMonth, EmailsPerProspect } from '@/lib/types'
 
@@ -8,14 +9,16 @@ const SLIDER_MIN = 2000
 const SLIDER_MAX = 50000
 const SLIDER_STEP = 500
 
-// Discount milestone tick marks
-const DISCOUNT_TIERS = [
-  { leads: 4000, label: '4k', pct: 3 },
-  { leads: 7500, label: '7.5k', pct: 8 },
-  { leads: 10000, label: '10k', pct: 10 },
-  { leads: 20000, label: '20k', pct: 15 },
-  { leads: 40000, label: '40k', pct: 20 },
-]
+// Derive discount milestone ticks directly from config so they never drift
+const DISCOUNT_TIERS = Object.entries(PRICING.volumeDiscounts)
+  .filter(([k, v]) => Number(k) > SLIDER_MIN && (v as number) > 0)
+  .map(([k, v]) => {
+    const leads = Number(k)
+    const pct = Math.round((v as number) * 1000) / 10  // e.g. 0.075 → 7.5
+    const label = leads >= 1000 ? `${leads / 1000}k` : String(leads)
+    return { leads, label, pct }
+  })
+  .sort((a, b) => a.leads - b.leads)
 
 interface CampaignVolumeSectionProps {
   leads: LeadsPerMonth
