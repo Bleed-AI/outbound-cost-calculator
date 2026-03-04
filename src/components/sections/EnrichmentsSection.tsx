@@ -16,19 +16,19 @@ const OPTIONS: {
   {
     value: 'none',
     label: 'No additional enrichments needed',
-    description: 'My data is clean and complete — no extra enrichment required.',
+    description: 'Data is already clean and complete — no extra enrichment required.',
   },
   {
     value: 'standard',
-    label: 'Standard enrichments — website, AI personalisation & others',
+    label: 'Standard Enrichments',
     description:
-      'We enrich leads with website data, generate AI-driven personalisation snippets, and apply other standard Clay enrichments.',
+      'BleedAI enriches leads with website data, generates AI-driven personalisation snippets, and applies standard Clay enrichments.',
   },
   {
     value: 'advanced',
-    label: 'Advanced signal-based or custom Clay enrichments',
+    label: 'Advanced Signal-Based or Custom Clay Enrichments',
     description:
-      'Complex enrichment workflows using live signals, custom Clay tables, or other advanced data sources.',
+      'BleedAI builds complex enrichment workflows using live signals, custom Clay tables, or other advanced data sources.',
   },
 ]
 
@@ -36,7 +36,7 @@ export function EnrichmentsSection({ value, onChange }: EnrichmentsSectionProps)
   return (
     <SectionCard
       title="Additional Enrichments"
-      description="Does your lead data need enrichment before the campaign can launch?"
+      description="Does the lead data need enrichment before the campaign can launch?"
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {

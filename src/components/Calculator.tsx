@@ -43,6 +43,22 @@ function CalculatorContent() {
     router.replace(newUrl, { scroll: false })
   }, [paramStr, router])
 
+  // Auto-check infraManagement when client uses their own Instantly account
+  useEffect(() => {
+    if (state.inboxOwnership === 'user_domains_instantly') {
+      setState((prev) => ({
+        ...prev,
+        addOns: { ...prev.addOns, infraManagement: true },
+      }))
+    } else {
+      setState((prev) => ({
+        ...prev,
+        addOns: { ...prev.addOns, infraManagement: false },
+      }))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.inboxOwnership])
+
   const update = useCallback(
     <K extends keyof SelectionState>(key: K, value: SelectionState[K]) =>
       setState((prev) => ({ ...prev, [key]: value })),
@@ -82,7 +98,11 @@ function CalculatorContent() {
         <SectionDivider label="Campaign Strategy" />
 
         <CopywritingSection value={state.copywriting} onChange={(v) => update('copywriting', v)} />
-        <CampaignsSection value={state.campaigns} onChange={(v) => update('campaigns', v)} />
+        <CampaignsSection
+          value={state.campaigns}
+          leads={state.leadsPerMonth}
+          onChange={(v) => update('campaigns', v)}
+        />
 
         <SectionDivider label="Operations" />
 
@@ -90,11 +110,20 @@ function CalculatorContent() {
           value={state.replyHandling}
           onChange={(v) => update('replyHandling', v)}
         />
-        <SupportSection value={state.support} onChange={(v) => update('support', v)} />
+        <SupportSection
+          value={state.support}
+          baseTotal={result.baseTotal}
+          onChange={(v) => update('support', v)}
+        />
 
         <SectionDivider label="Optional Add-Ons" />
 
-        <AddOnsSection value={state.addOns} onChange={updateAddOn} />
+        <AddOnsSection
+          value={state.addOns}
+          totalEmails={result.totalEmails}
+          baseTotal={result.baseTotal}
+          onChange={updateAddOn}
+        />
 
         <SectionDivider label="Summary" />
 
@@ -112,6 +141,7 @@ function CalculatorContent() {
         <OrderModal
           result={result}
           shareUrl={shareUrl}
+          coupon={state.coupon}
           onClose={() => setShowOrder(false)}
         />
       )}

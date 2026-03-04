@@ -14,20 +14,22 @@ const OPTIONS: {
   description: string
 }[] = [
   {
+    value: 'dfy',
+    label: "BleedAI's Warm Infrastructure (DFY)",
+    description:
+      "BleedAI provides all sending domains, inboxes, and infrastructure. Zero operational overhead — best for clients who want us to own and manage everything.",
+  },
+  {
     value: 'user_domains',
-    label: 'I will provide my branded domains & inboxes',
-    description: 'Deliverability is solid. You manage your own infrastructure.',
+    label: "Client's Branded Domains & Inboxes",
+    description:
+      "Client provides their own branded domains and inboxes. BleedAI manages campaigns on the client's infrastructure.",
   },
   {
     value: 'user_domains_instantly',
-    label: 'I will provide my branded domains, inboxes + Instantly.ai account',
-    description: 'You own everything; we use your Instantly.ai seat to run campaigns.',
-  },
-  {
-    value: 'dfy',
-    label: 'DFY — Use your warm domains, inboxes & infrastructure',
+    label: "Client's Domains, Inboxes + Instantly.ai Account",
     description:
-      'We handle all infrastructure. Best for those who want zero operational overhead.',
+      "Client provides the full infrastructure including a dedicated Instantly.ai seat. BleedAI operates the client's account to run campaigns.",
   },
 ]
 

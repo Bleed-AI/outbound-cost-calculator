@@ -5,6 +5,7 @@ interface RadioOptionProps {
   description?: string
   price?: string
   priceNote?: string
+  strikePrice?: string  // original price to show with strikethrough when item is free/included
   badge?: string
   selected: boolean
   onSelect: () => void
@@ -18,6 +19,7 @@ export function RadioOption({
   description,
   price,
   priceNote,
+  strikePrice,
   badge,
   selected,
   onSelect,
@@ -71,7 +73,10 @@ export function RadioOption({
 
       {price !== undefined && (
         <div className="flex-shrink-0 text-right">
-          <div className={`font-semibold text-sm ${selected ? 'text-[#e84040]' : 'text-gray-400'}`}>
+          {strikePrice && (
+            <div className="text-gray-600 text-xs line-through">{strikePrice}</div>
+          )}
+          <div className={`font-semibold text-sm ${selected ? 'text-[#e84040]' : strikePrice ? 'text-green-400' : 'text-gray-400'}`}>
             {price}
           </div>
           {priceNote && <div className="text-gray-600 text-xs mt-0.5">{priceNote}</div>}

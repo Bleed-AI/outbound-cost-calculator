@@ -9,11 +9,11 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Cold Outreach Campaign Builder | BleedAI',
+  title: 'Cold Outreach Cost Calculator | BleedAI',
   description:
     'Configure your cold outreach campaign and get an instant price. BleedAI — We Install Revenue Systems that Scale B2B Firms in Weeks.',
   openGraph: {
-    title: 'Cold Outreach Campaign Builder | BleedAI',
+    title: 'Cold Outreach Cost Calculator | BleedAI',
     description: 'Configure and price your campaign in minutes.',
     siteName: 'BleedAI',
   },

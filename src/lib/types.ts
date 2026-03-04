@@ -54,4 +54,9 @@ export interface PricingResult {
   discountPercent: number
   total: number
   totalEmails: number
+  baseTotal: number        // total before support cost (used for support waiver logic)
+  supportIsFree: boolean
+  supportThreshold: number // threshold that triggered the waiver (0 if not free)
+  couponDiscountAmount: number
+  couponDiscountPercent: number
 }

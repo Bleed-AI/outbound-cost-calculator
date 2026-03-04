@@ -14,38 +14,40 @@ const OPTIONS: {
   description: string
 }[] = [
   {
+    value: 'dfy_scrape',
+    label: 'Full DFY — BleedAI Sources, Scrapes & Validates',
+    description:
+      'Client provides targeting criteria. BleedAI sources leads from LinkedIn, Apollo, Google Maps, and Instagram, then validates and enriches all emails.',
+  },
+  {
     value: 'full_list',
-    label: 'I will provide the full target list (email validation included)',
-    description: 'You supply a complete list of contacts. We validate emails before sending.',
+    label: 'Client Provides Full Target List',
+    description:
+      "Client supplies a complete list of contacts. BleedAI validates all emails before sending — no sourcing needed.",
   },
   {
     value: 'full_list_validate',
-    label: 'I provide the list — you validate + find missing / invalid emails',
+    label: "Client's List — BleedAI Validates & Recovers Missing Emails",
     description:
-      'You supply the list; we validate with multiple providers and scrape missing emails from websites.',
-  },
-  {
-    value: 'dfy_scrape',
-    label: 'Full DFY — I have targeting criteria, you scrape + validate + enrich',
-    description:
-      'We source leads from LinkedIn, Apollo, Google Maps, Instagram, then validate and find missing emails with multiple providers.',
+      "Client provides the list. BleedAI validates with multiple providers and scrapes missing email addresses from the web.",
   },
   {
     value: 'directory',
-    label: 'Data is in a specific directory — scrape, clean & enrich from there',
-    description: 'We pull from your specified data directory, clean the data, and enrich it.',
+    label: 'BleedAI Scrapes From a Specific Directory',
+    description:
+      "Client specifies a data directory or source. BleedAI pulls, cleans, and enriches all records from it.",
   },
   {
     value: 'live_signal',
-    label: 'Data needs to come from a custom live signal-based campaign',
+    label: 'BleedAI Builds a Custom Live Signal Campaign',
     description:
-      'We build and run a signal-based campaign to source highly targeted, real-time leads.',
+      'BleedAI builds and runs a signal-based sourcing campaign to generate highly targeted, real-time leads.',
   },
   {
     value: 'multi_platform',
-    label: 'Data is fully scattered — you need to build a custom sourcing system',
+    label: 'BleedAI Builds a Custom Multi-Platform Sourcing System',
     description:
-      'Leads are across multiple platforms; we architect and build a custom system to aggregate and clean the data.',
+      'Leads are scattered across multiple platforms. BleedAI architects and builds a custom aggregation and cleaning system.',
   },
 ]
 
@@ -53,7 +55,7 @@ export function DataSection({ value, onChange }: DataSectionProps) {
   return (
     <SectionCard
       title="Lead Data Source"
-      description="Who will provide (or source) the list of people to target?"
+      description="Who will source and provide the list of people to target?"
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {

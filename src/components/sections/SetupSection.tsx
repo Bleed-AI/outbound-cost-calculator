@@ -11,7 +11,7 @@ const OPTIONS: { value: SetupOption; label: string; description: string; price: 
   {
     value: 'none',
     label: 'No setup help needed',
-    description: 'I already have my infrastructure ready to go.',
+    description: "I don't need to build custom infrastructure.",
     price: '$0',
     priceNote: '',
   },
@@ -19,7 +19,7 @@ const OPTIONS: { value: SetupOption; label: string; description: string; price: 
     value: 'full_dfy',
     label: 'Full DFY Instantly System Setup',
     description:
-      'We build your Instantly.ai setup: create branded domains/inboxes, configure DKIM, SPF, DMARC, profile names, photos, signatures, integrate on Instantly, warm up all new accounts, and provide SOPs on running the system.',
+      'BleedAI builds your complete Instantly.ai setup: branded domains and inboxes, DKIM/SPF/DMARC configuration, profile names, photos, signatures, account warm-up, and SOPs for running the system.',
     price: '$400',
     priceNote: 'one-time',
   },
@@ -27,7 +27,7 @@ const OPTIONS: { value: SetupOption; label: string; description: string; price: 
     value: 'branded_only',
     label: 'Branded Domains & Inboxes Only',
     description:
-      'We create your branded domains and inboxes, configure DKIM, SPF, DMARC, profile names, photos, and signatures. Infrastructure is ready to use.',
+      'BleedAI creates your branded domains and inboxes with full DKIM/SPF/DMARC, profile names, photos, and signatures. Infrastructure is ready to use — Instantly.ai integration not included.',
     price: '$250',
     priceNote: 'one-time',
   },
@@ -37,7 +37,7 @@ export function SetupSection({ value, onChange }: SetupSectionProps) {
   return (
     <SectionCard
       title="Infrastructure Setup"
-      description="Do you need help setting up your sending infrastructure?"
+      description="Does BleedAI need to build your sending infrastructure, or do you already have it?"
       optional
     >
       <div className="space-y-2">

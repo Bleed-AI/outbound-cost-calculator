@@ -14,16 +14,16 @@ const OPTIONS: {
   description: string
 }[] = [
   {
-    value: 'finalized',
-    label: 'I have a finalised copywriting strategy',
+    value: 'full_strategy',
+    label: 'Build my strategy from scratch + A/B test variants',
     description:
-      'Your messaging is ready. We still review and optimise all copy for maximum deliverability and response rates.',
+      'BleedAI researches your ICP, crafts the optimal copy and personalisation angles for your specific offer, and runs A/B tests across multiple approaches to find the highest-performing variant.',
   },
   {
-    value: 'full_strategy',
-    label: 'Build my strategy from scratch + run A/B tests',
+    value: 'finalized',
+    label: 'I have a finalised strategy — optimise for deliverability only',
     description:
-      'We research your ICP, craft the best copy and personalisation angles for your specific case, and A/B test multiple approaches to find the highest-performing variant.',
+      'Your messaging is already defined. BleedAI reviews and optimises all copy for maximum deliverability and response rates.',
   },
 ]
 
@@ -31,7 +31,7 @@ export function CopywritingSection({ value, onChange }: CopywritingSectionProps)
   return (
     <SectionCard
       title="Copywriting Strategy"
-      description="Do you have a finalised messaging strategy, or do you need us to build it?"
+      description="Do you have a finalised messaging strategy, or should BleedAI build it from scratch?"
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {

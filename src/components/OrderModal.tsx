@@ -7,19 +7,31 @@ import type { PricingResult } from '@/lib/types'
 interface OrderModalProps {
   result: PricingResult
   shareUrl: string
+  coupon: string
   onClose: () => void
 }
 
 type SubmitState = 'idle' | 'loading' | 'success' | 'error'
 
-export function OrderModal({ result, shareUrl, onClose }: OrderModalProps) {
-  const [name, setName] = useState('')
-  const [company, setCompany] = useState('')
+function isValidDomain(value: string): boolean {
+  const v = value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+  return v.length > 0 && v.includes('.') && !v.includes(' ')
+}
+
+export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProps) {
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [companyDomain, setCompanyDomain] = useState('')
   const [email, setEmail] = useState('')
+  const [description, setDescription] = useState('')
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const isValid = name.trim() && company.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const isValid =
+    firstName.trim() &&
+    lastName.trim() &&
+    isValidDomain(companyDomain) &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,13 +45,19 @@ export function OrderModal({ result, shareUrl, onClose }: OrderModalProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
-          company: company.trim(),
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          companyDomain: companyDomain.trim(),
           email: email.trim(),
+          description: description.trim(),
           total: result.total,
           lineItems: result.lineItems,
           discountAmount: result.discountAmount,
           discountPercent: result.discountPercent,
+          couponDiscountAmount: result.couponDiscountAmount,
+          couponDiscountPercent: result.couponDiscountPercent,
+          couponCode: coupon,
+          totalEmails: result.totalEmails,
           shareUrl,
         }),
       })
@@ -93,13 +111,20 @@ export function OrderModal({ result, shareUrl, onClose }: OrderModalProps) {
                 </svg>
               </div>
               <h4 className="text-white font-semibold text-lg mb-2">Order Sent!</h4>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Your proposal has been submitted. Check your inbox for a confirmation email.
-                We&apos;ll be in touch shortly.
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                Your proposal has been submitted. Check your inbox for a confirmation email with your full breakdown and next steps.
               </p>
+              <a
+                href="https://calendly.com/bleedai/pilot-campaign-launch"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-[#B1130F] hover:bg-[#d41510] text-white font-semibold py-3 px-6 rounded-xl transition-colors text-sm text-center mb-3"
+              >
+                Book Your Onboarding Call →
+              </a>
               <button
                 onClick={onClose}
-                className="mt-6 px-6 py-2.5 rounded-lg bg-[#B1130F] text-white text-sm font-medium hover:bg-[#d41510] transition-colors"
+                className="w-full px-6 py-2.5 rounded-lg border border-white/10 text-gray-400 text-sm hover:text-white hover:border-white/20 transition-colors"
               >
                 Close
               </button>
@@ -107,28 +132,42 @@ export function OrderModal({ result, shareUrl, onClose }: OrderModalProps) {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <p className="text-gray-400 text-sm">
-                Enter your details and we&apos;ll send a full breakdown to your inbox and follow up with next steps.
+                Enter your details and we&apos;ll send a full breakdown to your inbox with next steps.
               </p>
 
-              <div>
-                <label className="text-gray-400 text-xs font-medium block mb-1.5">Full Name *</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Smith"
-                  className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors"
-                  required
-                />
+              {/* First + Last name */}
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-gray-400 text-xs font-medium block mb-1.5">First Name *</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="Jane"
+                    className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors"
+                    required
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-gray-400 text-xs font-medium block mb-1.5">Last Name *</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Smith"
+                    className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors"
+                    required
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="text-gray-400 text-xs font-medium block mb-1.5">Company Name *</label>
+                <label className="text-gray-400 text-xs font-medium block mb-1.5">Company Website *</label>
                 <input
                   type="text"
-                  value={company}
-                  onChange={(e) => setCompany(e.target.value)}
-                  placeholder="Acme Corp"
+                  value={companyDomain}
+                  onChange={(e) => setCompanyDomain(e.target.value)}
+                  placeholder="acmecorp.com"
                   className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors"
                   required
                 />
@@ -143,6 +182,20 @@ export function OrderModal({ result, shareUrl, onClose }: OrderModalProps) {
                   placeholder="jane@acmecorp.com"
                   className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="text-gray-400 text-xs font-medium block mb-1.5">
+                  Brief Project Description
+                  <span className="text-gray-600 ml-1">(optional)</span>
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Briefly describe your offer and target market..."
+                  rows={3}
+                  className="w-full bg-[#050508] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/60 transition-colors resize-none"
                 />
               </div>
 

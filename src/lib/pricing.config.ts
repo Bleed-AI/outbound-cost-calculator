@@ -71,8 +71,18 @@ export const PRICING = {
     crm_monthly:       97,   // $/month
     drip_onetime:      180,  // one-time setup
     drip_monthly:      120,  // $/month
-    infra_management:  250,  // one-time
+    infra_management:  25,   // $/1k emails (monthly) — waived if total > $2,000
   },
+
+  // Support waiver thresholds — support is free when baseTotal meets threshold
+  supportWaiverThresholds: {
+    email:       500,   // free if baseTotal >= $500
+    slack_light: 1000,  // free if baseTotal >= $1,000
+    slack_full:  2000,  // free if baseTotal >= $2,000
+  },
+
+  // Infra management waiver — waived if baseTotal (without infra) >= this
+  infraWaiverThreshold: 2000,
 
   hourlyRate: 37,  // Additional work rate (displayed as a note)
 } as const

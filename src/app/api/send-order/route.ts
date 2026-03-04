@@ -4,6 +4,7 @@ import type { LineItem } from '@/lib/types'
 
 const OWNER_EMAIL = 'owner@bleedai.com'
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'BleedAI <onboarding@resend.dev>'
+const CALENDLY_URL = 'https://calendly.com/bleedai/pilot-campaign-launch'
 
 // Lazily initialized so build doesn't fail without RESEND_API_KEY
 let _resend: Resend | null = null
@@ -18,13 +19,19 @@ function getResend(): Resend {
 }
 
 interface OrderPayload {
-  name: string
-  company: string
+  firstName: string
+  lastName: string
+  companyDomain: string
   email: string
+  description?: string
   total: number
   lineItems: LineItem[]
   discountAmount: number
   discountPercent: number
+  couponDiscountAmount: number
+  couponDiscountPercent: number
+  couponCode: string
+  totalEmails: number
   shareUrl: string
 }
 
@@ -37,16 +44,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { name, company, email, total, lineItems, discountAmount, discountPercent, shareUrl } =
-    payload
+  const {
+    firstName,
+    lastName,
+    companyDomain,
+    email,
+    description,
+    total,
+    lineItems,
+    discountAmount,
+    discountPercent,
+    couponDiscountAmount,
+    couponDiscountPercent,
+    couponCode,
+    totalEmails,
+    shareUrl,
+  } = payload
 
-  if (!name || !company || !email || typeof total !== 'number') {
+  if (!firstName || !lastName || !companyDomain || !email || typeof total !== 'number') {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
   }
+
+  const fullName = `${firstName} ${lastName}`
 
   const formattedTotal = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -55,29 +78,59 @@ export async function POST(req: NextRequest) {
     maximumFractionDigits: 2,
   }).format(total)
 
+  const fmt = (n: number) =>
+    new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(n)
+
   const lineItemsHtml = lineItems
     .map(
       (item) =>
         `<tr>
           <td style="padding:6px 0;color:#aaaaaa;font-size:13px;border-bottom:1px solid #1a1a2a;">${item.label}</td>
           <td style="padding:6px 0;color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;white-space:nowrap;">
-            ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(item.amount)}
+            ${fmt(item.amount)}
             <span style="color:#555;font-size:11px;"> ${item.period === 'one-time' ? '' : item.period === 'monthly' ? '/mo' : '/campaign'}</span>
           </td>
         </tr>`
     )
     .join('\n')
 
+  const volumeStatsHtml = `
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tr>
+        <td style="padding:8px 0 4px;color:#777;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;" colspan="2">Campaign Volume</td>
+      </tr>
+      <tr>
+        <td style="padding:4px 0;color:#aaaaaa;font-size:13px;border-bottom:1px solid #1a1a2a;">Total Emails</td>
+        <td style="padding:4px 0;color:#ffffff;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #1a1a2a;">${totalEmails.toLocaleString()}</td>
+      </tr>
+    </table>
+  `
+
   const clientHtml = buildEmail({
     title: 'Your BleedAI Campaign Order',
     body: `
       <p style="color:#aaaaaa;font-size:14px;line-height:1.6;margin:0 0 20px;">
-        Hi ${name}, thanks for submitting your campaign configuration. Here&rsquo;s a full
+        Hi ${firstName}, thanks for submitting your campaign configuration. Here&rsquo;s a full
         summary of your selections. We&rsquo;ll review and be in touch shortly.
       </p>
-      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent)}
-      <div style="margin:24px 0;">
-        <a href="${shareUrl}" style="display:inline-block;background:#B1130F;color:#ffffff;font-weight:600;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      ${volumeStatsHtml}
+      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
+      <div style="margin:24px 0;background:#150505;border:1px solid #B1130F;border-radius:10px;padding:20px;">
+        <p style="color:#ffffff;font-size:14px;font-weight:700;margin:0 0 6px;">Next Step: Book Your Onboarding Call</p>
+        <p style="color:#aaaaaa;font-size:13px;margin:0 0 16px;line-height:1.5;">
+          Schedule a quick call so we can review your configuration and get your campaign launched.
+        </p>
+        <a href="${CALENDLY_URL}" style="display:inline-block;background:#B1130F;color:#ffffff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
+          Book Your Onboarding Call &rarr;
+        </a>
+      </div>
+      <div style="margin:16px 0;">
+        <a href="${shareUrl}" style="display:inline-block;background:#222;color:#aaaaaa;font-weight:500;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none;">
           View Your Configuration
         </a>
       </div>
@@ -88,14 +141,16 @@ export async function POST(req: NextRequest) {
   })
 
   const ownerHtml = buildEmail({
-    title: `New Order — ${company}`,
+    title: `New Order — ${companyDomain}`,
     body: `
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;">Name</td><td style="color:#ffffff;font-size:13px;text-align:right;">${name}</td></tr>
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;">Company</td><td style="color:#ffffff;font-size:13px;text-align:right;">${company}</td></tr>
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;">Email</td><td style="color:#ffffff;font-size:13px;text-align:right;"><a href="mailto:${email}" style="color:#e84040;">${email}</a></td></tr>
+        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Name</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${fullName}</td></tr>
+        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Company</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${companyDomain}</td></tr>
+        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Email</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;"><a href="mailto:${email}" style="color:#e84040;">${email}</a></td></tr>
+        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Total Emails</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${totalEmails.toLocaleString()}</td></tr>
+        ${description ? `<tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;vertical-align:top;">Description</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${description}</td></tr>` : ''}
       </table>
-      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent)}
+      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
       <div style="margin:24px 0;">
         <a href="${shareUrl}" style="display:inline-block;background:#B1130F;color:#ffffff;font-weight:600;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
           View Their Configuration
@@ -115,7 +170,7 @@ export async function POST(req: NextRequest) {
       getResend().emails.send({
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
-        subject: `New Order — ${company} — ${formattedTotal}`,
+        subject: `New Order — ${companyDomain} — ${formattedTotal}`,
         html: ownerHtml,
       }),
     ])
@@ -131,22 +186,37 @@ function buildBreakdownTable(
   lineItemsHtml: string,
   formattedTotal: string,
   discountAmount: number,
-  discountPercent: number
+  discountPercent: number,
+  couponDiscountAmount: number,
+  couponDiscountPercent: number,
+  couponCode: string
 ): string {
+  const fmtCur = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
   return `
     <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
       ${lineItemsHtml}
     </table>
     ${
       discountAmount > 0
-        ? `<p style="color:#4ade80;font-size:13px;margin:0 0 8px;">
-            Volume discount (${discountPercent}% off): -${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(discountAmount)}
+        ? `<p style="color:#4ade80;font-size:13px;margin:0 0 6px;">
+            Volume discount (${discountPercent}% off): -${fmtCur(discountAmount)}
           </p>`
         : ''
     }
-    <div style="border-top:2px solid #B1130F;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="color:#ffffff;font-size:16px;font-weight:700;">Campaign Total</span>
-      <span style="color:#ffffff;font-size:22px;font-weight:800;">${formattedTotal}</span>
+    ${
+      couponDiscountAmount > 0
+        ? `<p style="color:#4ade80;font-size:13px;margin:0 0 8px;">
+            Coupon <span style="font-family:monospace;background:#1a1a2a;padding:2px 6px;border-radius:4px;">${couponCode}</span> (${couponDiscountPercent}% off): -${fmtCur(couponDiscountAmount)}
+          </p>`
+        : ''
+    }
+    <div style="border-top:2px solid #B1130F;padding-top:12px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="color:#ffffff;font-size:16px;font-weight:700;">Campaign Total</td>
+          <td style="color:#ffffff;font-size:22px;font-weight:800;text-align:right;">${formattedTotal}</td>
+        </tr>
+      </table>
     </div>
   `
 }

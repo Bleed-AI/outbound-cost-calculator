@@ -17,22 +17,23 @@ const OPTIONS: {
 }[] = [
   {
     value: 'none',
-    label: 'Forward positive replies — I will handle communications',
-    description: "We flag positive replies and route them to you. You take it from there.",
+    label: 'Client Handles Replies',
+    description:
+      'BleedAI flags all positive replies and routes them to the client. The client takes conversations and bookings from there.',
     priceDisplay: '$0',
   },
   {
     value: 'ai_instantly',
-    label: 'Build an AI reply agent in Instantly.ai',
+    label: 'AI Reply Agent (Instantly.ai)',
     description:
-      'AI handles replies, books calls, routes them to a Google Sheet and Slack. Includes a human-in-the-loop option.',
+      'BleedAI builds an AI agent that handles replies, books calls, and routes leads to your Slack channel and Google Sheet. Includes a human-in-the-loop option.',
     priceDisplay: `$${PRICING.replyHandling.ai_instantly}/1k emails`,
   },
   {
     value: 'custom_n8n',
-    label: 'Custom n8n reply agent with advanced automations',
+    label: 'Custom n8n Reply Agent',
     description:
-      'Highly custom n8n workflow to create reverse lead magnets or take bespoke actions when replying to leads.',
+      'BleedAI builds a fully custom n8n workflow with advanced automations, reverse lead magnets, and bespoke actions tailored to your sales process.',
     priceDisplay: `$${PRICING.replyHandling.custom_n8n}/1k emails`,
     priceNote: `+ $${PRICING.replyHandling.n8n_setup} one-time build fee`,
   },

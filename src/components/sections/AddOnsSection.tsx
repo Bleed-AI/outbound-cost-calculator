@@ -4,6 +4,8 @@ import type { AddOns } from '@/lib/types'
 
 interface AddOnsSectionProps {
   value: AddOns
+  totalEmails: number
+  baseTotal: number
   onChange: (key: keyof AddOns, v: boolean) => void
 }
 
@@ -11,8 +13,10 @@ interface AddOnItem {
   key: keyof AddOns
   label: string
   description: string
-  price: string
-  priceNote: string
+  getPrice: (totalEmails: number, baseTotal: number) => string
+  getPriceNote: (totalEmails: number, baseTotal: number) => string
+  isWaived?: (totalEmails: number, baseTotal: number) => boolean
+  getOriginalPrice?: (totalEmails: number) => string
 }
 
 const ADDONS: AddOnItem[] = [
@@ -20,41 +24,55 @@ const ADDONS: AddOnItem[] = [
     key: 'linkedin',
     label: 'LinkedIn Connection Requests',
     description:
-      'Send customised LinkedIn connection requests to leads who reply on email, and create custom follow-up actions.',
-    price: `$${PRICING.addOns.linkedin_monthly}`,
-    priceNote: '/month',
+      'BleedAI sends customised LinkedIn connection requests to leads who reply by email, and creates custom follow-up actions.',
+    getPrice: () => `$${PRICING.addOns.linkedin_monthly}`,
+    getPriceNote: () => '/month',
   },
   {
     key: 'crm',
     label: 'CRM Integration',
-    description: 'All positive leads automatically pushed into your CRM.',
-    price: `$${PRICING.addOns.crm_monthly}`,
-    priceNote: '/month',
+    description:
+      'All positive leads are automatically pushed into your CRM, Slack channels, and other integrations.',
+    getPrice: () => `$${PRICING.addOns.crm_monthly}`,
+    getPriceNote: () => '/month',
   },
   {
     key: 'dripSequence',
     label: 'Custom Drip Sequence',
     description:
-      'Nurture leads after a positive response with a custom-built drip sequence.',
-    price: `$${PRICING.addOns.drip_onetime} setup`,
-    priceNote: `+ $${PRICING.addOns.drip_monthly}/month`,
+      'BleedAI builds a custom drip sequence to nurture leads after a positive response, keeping your brand top of mind.',
+    getPrice: () => `$${PRICING.addOns.drip_onetime} setup`,
+    getPriceNote: () => `+ $${PRICING.addOns.drip_monthly}/month`,
   },
   {
     key: 'infraManagement',
     label: 'Infrastructure Management & Domain Rotation',
     description:
-      'Ongoing management of your Instantly infrastructure, domain/inbox rotation protocols, reporting, and domain health monitoring. Required when using your own branded domains in your Instantly account.',
-    price: `$${PRICING.addOns.infra_management}`,
-    priceNote: 'one-time',
+      "Ongoing management of the client's Instantly infrastructure: domain/inbox rotation, health monitoring, and reporting. Required when using the client's own Instantly.ai account.",
+    getPrice: (totalEmails, baseTotal) => {
+      const cost = Math.round((totalEmails / 1000) * PRICING.addOns.infra_management)
+      return baseTotal >= PRICING.infraWaiverThreshold ? '$0' : `$${cost}`
+    },
+    getPriceNote: (totalEmails, baseTotal) =>
+      baseTotal >= PRICING.infraWaiverThreshold ? 'included' : '/month',
+    isWaived: (_, baseTotal) => baseTotal >= PRICING.infraWaiverThreshold,
+    getOriginalPrice: (totalEmails) => {
+      const cost = Math.round((totalEmails / 1000) * PRICING.addOns.infra_management)
+      return `$${cost}`
+    },
   },
 ]
 
-export function AddOnsSection({ value, onChange }: AddOnsSectionProps) {
+export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOnsSectionProps) {
   return (
-    <SectionCard title="Custom Add-Ons" description="Optional extras to enhance your campaign.">
+    <SectionCard title="Optional Add-Ons" description="Extras to enhance your campaign.">
       <div className="space-y-2">
         {ADDONS.map((addon) => {
           const isSelected = value[addon.key]
+          const waived = addon.isWaived?.(totalEmails, baseTotal) ?? false
+          const price = addon.getPrice(totalEmails, baseTotal)
+          const priceNote = addon.getPriceNote(totalEmails, baseTotal)
+          const originalPrice = waived ? addon.getOriginalPrice?.(totalEmails) : undefined
           return (
             <label
               key={addon.key}
@@ -93,10 +111,15 @@ export function AddOnsSection({ value, onChange }: AddOnsSectionProps) {
               </div>
 
               <div className="flex-shrink-0 text-right">
-                <div className={`font-semibold text-sm ${isSelected ? 'text-[#e84040]' : 'text-gray-400'}`}>
-                  {addon.price}
+                {originalPrice && (
+                  <div className="text-gray-600 text-xs line-through">{originalPrice}</div>
+                )}
+                <div className={`font-semibold text-sm ${
+                  waived ? 'text-green-400' : isSelected ? 'text-[#e84040]' : 'text-gray-400'
+                }`}>
+                  {price}
                 </div>
-                <div className="text-gray-600 text-xs mt-0.5">{addon.priceNote}</div>
+                <div className="text-gray-600 text-xs mt-0.5">{priceNote}</div>
               </div>
             </label>
           )

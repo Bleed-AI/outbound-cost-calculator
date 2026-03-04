@@ -1,3 +1,5 @@
+'use client'
+
 import { SectionCard } from '@/components/SectionCard'
 import { LEADS_OPTIONS, EPP_OPTIONS } from '@/lib/pricing'
 import { PRICING } from '@/lib/pricing.config'
@@ -26,51 +28,70 @@ export function CampaignVolumeSection({
 }: CampaignVolumeSectionProps) {
   const discount = PRICING.volumeDiscounts[leads]
   const discountPct = Math.round(discount * 100)
+  const leadsIndex = LEADS_OPTIONS.indexOf(leads)
 
   return (
     <SectionCard
       title="Campaign Volume"
       description="How many leads do you want to reach per month, and how many follow-up emails per prospect?"
     >
-      {/* Leads per month */}
-      <div className="mb-5">
-        <label className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2 block">
+      {/* Leads per month — slider */}
+      <div className="mb-6">
+        <label className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3 block">
           Leads per Month
         </label>
-        <div className="flex flex-wrap gap-2">
+
+        {/* Current value + discount badge */}
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-white text-2xl font-bold tabular-nums">
+            {leads.toLocaleString()}
+          </span>
+          <span className="text-gray-400 text-sm">leads / month</span>
+          {discountPct > 0 && (
+            <span className="ml-1 bg-green-500/15 text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+              -{discountPct}% volume discount
+            </span>
+          )}
+        </div>
+
+        {/* Slider */}
+        <input
+          type="range"
+          min={0}
+          max={LEADS_OPTIONS.length - 1}
+          step={1}
+          value={leadsIndex}
+          onChange={(e) => onLeadsChange(LEADS_OPTIONS[Number(e.target.value)])}
+          className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+          style={{
+            background: `linear-gradient(to right, #B1130F ${(leadsIndex / (LEADS_OPTIONS.length - 1)) * 100}%, rgba(255,255,255,0.1) ${(leadsIndex / (LEADS_OPTIONS.length - 1)) * 100}%)`,
+            accentColor: '#B1130F',
+          }}
+        />
+
+        {/* Step labels */}
+        <div className="flex justify-between mt-1.5">
           {LEADS_OPTIONS.map((opt) => {
             const d = PRICING.volumeDiscounts[opt]
             const pct = Math.round(d * 100)
             const isSelected = leads === opt
             return (
-              <button
+              <span
                 key={opt}
-                onClick={() => onLeadsChange(opt)}
-                className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all ${
-                  isSelected
-                    ? 'border-[#B1130F] bg-[#B1130F]/10 text-white'
-                    : 'border-white/10 bg-[#050508] text-gray-400 hover:border-white/20 hover:text-gray-200'
+                className={`text-[10px] font-medium transition-colors ${
+                  isSelected ? 'text-white' : 'text-gray-600'
                 }`}
               >
-                {opt.toLocaleString()}
+                {opt >= 1000 ? `${opt / 1000}k` : opt}
                 {pct > 0 && (
-                  <span
-                    className={`ml-1.5 text-[10px] font-semibold ${
-                      isSelected ? 'text-green-400' : 'text-gray-600'
-                    }`}
-                  >
+                  <span className={`block text-[9px] ${isSelected ? 'text-green-400' : 'text-gray-700'}`}>
                     -{pct}%
                   </span>
                 )}
-              </button>
+              </span>
             )
           })}
         </div>
-        {discountPct > 0 && (
-          <p className="text-green-400/80 text-xs mt-2">
-            ✓ {discountPct}% volume discount applied to all per-1k costs
-          </p>
-        )}
       </div>
 
       {/* Emails per prospect */}
