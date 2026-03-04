@@ -1,5 +1,5 @@
 import { DEFAULT_STATE } from './pricing'
-import type { SelectionState, LeadsPerMonth, EmailsPerProspect, CampaignsCount } from './types'
+import type { SelectionState, EmailsPerProspect, CampaignsCount } from './types'
 
 type SearchParamsLike = { get: (key: string) => string | null }
 
@@ -33,11 +33,10 @@ function validNum<T extends number>(val: string | null, allowed: T[], fallback: 
 export function parseState(params: SearchParamsLike): SelectionState {
   return {
     setup: valid(params.get(P.setup), ['none', 'full_dfy', 'branded_only'], DEFAULT_STATE.setup),
-    leadsPerMonth: validNum<LeadsPerMonth>(
-      params.get(P.leads),
-      [2000, 4000, 7500, 10000, 20000, 40000],
-      DEFAULT_STATE.leadsPerMonth
-    ),
+    leadsPerMonth: (() => {
+      const n = Number(params.get(P.leads))
+      return !isNaN(n) && n >= 2000 && n <= 50000 ? Math.round(n / 500) * 500 : DEFAULT_STATE.leadsPerMonth
+    })(),
     emailsPerProspect: validNum<EmailsPerProspect>(
       params.get(P.epp),
       [1, 2, 3],

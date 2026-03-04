@@ -1,5 +1,5 @@
 export type SetupOption = 'none' | 'full_dfy' | 'branded_only'
-export type LeadsPerMonth = 2000 | 4000 | 7500 | 10000 | 20000 | 40000
+export type LeadsPerMonth = number
 export type EmailsPerProspect = 1 | 2 | 3
 export type InboxOwnership = 'user_domains' | 'user_domains_instantly' | 'dfy'
 export type DataSource =

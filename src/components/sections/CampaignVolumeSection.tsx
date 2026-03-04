@@ -1,9 +1,21 @@
 'use client'
 
+import { EPP_OPTIONS } from '@/lib/pricing'
 import { SectionCard } from '@/components/SectionCard'
-import { LEADS_OPTIONS, EPP_OPTIONS } from '@/lib/pricing'
-import { PRICING } from '@/lib/pricing.config'
 import type { LeadsPerMonth, EmailsPerProspect } from '@/lib/types'
+
+const SLIDER_MIN = 2000
+const SLIDER_MAX = 50000
+const SLIDER_STEP = 500
+
+// Discount milestone tick marks
+const DISCOUNT_TIERS = [
+  { leads: 4000, label: '4k', pct: 3 },
+  { leads: 7500, label: '7.5k', pct: 8 },
+  { leads: 10000, label: '10k', pct: 10 },
+  { leads: 20000, label: '20k', pct: 15 },
+  { leads: 40000, label: '40k', pct: 20 },
+]
 
 interface CampaignVolumeSectionProps {
   leads: LeadsPerMonth
@@ -26,16 +38,16 @@ export function CampaignVolumeSection({
   onLeadsChange,
   onEmailsChange,
 }: CampaignVolumeSectionProps) {
-  const discount = PRICING.volumeDiscounts[leads]
-  const discountPct = Math.round(discount * 100)
-  const leadsIndex = LEADS_OPTIONS.indexOf(leads)
+  const activeTier = [...DISCOUNT_TIERS].reverse().find((t) => leads >= t.leads)
+  const discountPct = activeTier?.pct ?? 0
+  const fillPct = ((leads - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100
 
   return (
     <SectionCard
       title="Campaign Volume"
       description="How many leads do you want to reach per month, and how many follow-up emails per prospect?"
     >
-      {/* Leads per month — slider */}
+      {/* Leads per month — free-range slider */}
       <div className="mb-6">
         <label className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3 block">
           Leads per Month
@@ -57,38 +69,36 @@ export function CampaignVolumeSection({
         {/* Slider */}
         <input
           type="range"
-          min={0}
-          max={LEADS_OPTIONS.length - 1}
-          step={1}
-          value={leadsIndex}
-          onChange={(e) => onLeadsChange(LEADS_OPTIONS[Number(e.target.value)])}
+          min={SLIDER_MIN}
+          max={SLIDER_MAX}
+          step={SLIDER_STEP}
+          value={leads}
+          onChange={(e) => onLeadsChange(Number(e.target.value))}
           className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #B1130F ${(leadsIndex / (LEADS_OPTIONS.length - 1)) * 100}%, rgba(255,255,255,0.1) ${(leadsIndex / (LEADS_OPTIONS.length - 1)) * 100}%)`,
+            background: `linear-gradient(to right, #B1130F ${fillPct}%, rgba(255,255,255,0.1) ${fillPct}%)`,
             accentColor: '#B1130F',
           }}
         />
 
-        {/* Step labels */}
-        <div className="flex justify-between mt-1.5">
-          {LEADS_OPTIONS.map((opt) => {
-            const d = PRICING.volumeDiscounts[opt]
-            const pct = Math.round(d * 100)
-            const isSelected = leads === opt
+        {/* Discount milestone labels */}
+        <div className="relative mt-2" style={{ height: '28px' }}>
+          {DISCOUNT_TIERS.map((tier) => {
+            const pos = ((tier.leads - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100
+            const isUnlocked = leads >= tier.leads
             return (
-              <span
-                key={opt}
-                className={`text-[10px] font-medium transition-colors ${
-                  isSelected ? 'text-white' : 'text-gray-600'
-                }`}
+              <div
+                key={tier.leads}
+                className="absolute flex flex-col items-center"
+                style={{ left: `${pos}%`, transform: 'translateX(-50%)' }}
               >
-                {opt >= 1000 ? `${opt / 1000}k` : opt}
-                {pct > 0 && (
-                  <span className={`block text-[9px] ${isSelected ? 'text-green-400' : 'text-gray-700'}`}>
-                    -{pct}%
-                  </span>
-                )}
-              </span>
+                <span className={`text-[9px] font-semibold ${isUnlocked ? 'text-green-400' : 'text-gray-700'}`}>
+                  -{tier.pct}%
+                </span>
+                <span className={`text-[9px] ${isUnlocked ? 'text-gray-500' : 'text-gray-700'}`}>
+                  {tier.label}
+                </span>
+              </div>
             )
           })}
         </div>

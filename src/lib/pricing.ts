@@ -56,7 +56,11 @@ export function includedCampaignTier(leads: LeadsPerMonth): CampaignsCount {
 
 export function calculateTotal(state: SelectionState): PricingResult {
   const totalEmails = state.leadsPerMonth * state.emailsPerProspect
-  const discountPercent = PRICING.volumeDiscounts[state.leadsPerMonth] ?? 0
+  // Find the highest discount threshold that the lead count qualifies for
+  const discountPercent = Object.entries(PRICING.volumeDiscounts)
+    .filter(([k]) => Number(k) <= state.leadsPerMonth)
+    .reduce((best, [k, v]) => (Number(k) > best.k ? { k: Number(k), v: v as number } : best), { k: 0, v: 0 })
+    .v
   const multiplier = 1 - discountPercent
   const lineItems: LineItem[] = []
 
