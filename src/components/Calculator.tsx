@@ -76,7 +76,7 @@ function CalculatorContent() {
   return (
     <>
       <div className="max-w-3xl mx-auto px-4 pt-6 pb-28 space-y-3">
-        <SetupSection value={state.setup} onChange={(v) => update('setup', v)} />
+        <SetupSection value={state.setup} totalEmails={result.totalEmails} onChange={(v) => update('setup', v)} />
 
         <SectionDivider label="Campaign Configuration" />
 
