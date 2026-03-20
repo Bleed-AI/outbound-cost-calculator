@@ -7,8 +7,7 @@
 
 export const PRICING = {
   setup: {
-    full_dfy: 400,      // Full DFY Instantly system setup (one-time)
-    branded_only: 250,  // Branded domains/inboxes only (one-time)
+    instantly_setup: 150,  // Instantly account setup add-on (one-time, on top of branded setup)
   },
 
   // Volume discounts applied to all per-1k variable costs
@@ -83,6 +82,20 @@ export const PRICING = {
 
   // Infra management waiver — waived if baseTotal (without infra) >= this
   infraWaiverThreshold: 2000,
+
+  // Branded domains setup — per-inbox fee, discounted by variable monthly spend
+  brandedSetup: {
+    perInbox: 20,         // $/inbox one-time base
+    waiveAt: 500,         // variable monthly spend at which setup is fully waived
+  },
+
+  // Warmup parameters for month 1 estimate
+  warmup: {
+    setupDays: 14,        // warmup/setup period (no real sends)
+    rampDays: 14,         // ramp period
+    startPerDay: 2,       // emails per inbox on ramp day 1
+    dailyIncrement: 2,    // +N per day per inbox
+  },
 
   hourlyRate: 37,  // Additional work rate (displayed as a note)
 } as const

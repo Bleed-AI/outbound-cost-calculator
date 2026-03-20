@@ -21,6 +21,12 @@ npm run dev     # localhost:3000
 npm run build   # production build + TypeScript check (run before every push)
 ```
 
+## Git / Deploy Workflow
+
+**Always run `npm run build` after making changes to catch TypeScript errors.**
+
+**Do NOT push to GitHub until the user explicitly says so.** The user reviews changes locally first before deploying. Only commit and push when asked (e.g. "push it", "commit and push", "update github").
+
 ---
 
 ## File Map

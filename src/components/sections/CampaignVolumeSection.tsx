@@ -144,7 +144,7 @@ export function CampaignVolumeSection({
           </svg>
         </div>
         <div>
-          <div className="text-gray-500 text-xs">Total Emails to be Sent</div>
+          <div className="text-gray-500 text-xs">Monthly Email Capacity</div>
           <div className="text-white font-bold text-lg tabular-nums">
             {totalEmails.toLocaleString()}
           </div>

@@ -1,4 +1,4 @@
-export type SetupOption = 'none' | 'full_dfy' | 'branded_only'
+export type SetupOption = 'none' | 'branded_only'
 export type LeadsPerMonth = number
 export type EmailsPerProspect = 1 | 2 | 3
 export type InboxOwnership = 'user_domains' | 'user_domains_instantly' | 'dfy'
@@ -33,6 +33,7 @@ export interface SelectionState {
   campaigns: CampaignsCount
   replyHandling: ReplyHandling
   support: SupportTier
+  instantlySetup: boolean
   addOns: AddOns
   coupon: string
 }
@@ -59,4 +60,10 @@ export interface PricingResult {
   supportThreshold: number // threshold that triggered the waiver (0 if not free)
   couponDiscountAmount: number
   couponDiscountPercent: number
+  // Branded setup fields (only present when setup === 'branded_only')
+  month1Estimate?: number
+  brandedSetupBase?: number
+  brandedSetupDiscount?: number
+  inboxesNeeded?: number
+  domainsNeeded?: number
 }

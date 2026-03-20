@@ -18,6 +18,7 @@ const P = {
   crm: 'cr',
   drip: 'dr',
   infra: 'in',
+  instantly: 'is',
   coupon: 'cp',
 } as const
 
@@ -31,8 +32,12 @@ function validNum<T extends number>(val: string | null, allowed: T[], fallback: 
 }
 
 export function parseState(params: SearchParamsLike): SelectionState {
+  // Legacy: map old 'full_dfy' URLs to branded_only + instantlySetup
+  const rawSetup = params.get(P.setup)
+  const isLegacyFullDfy = rawSetup === 'full_dfy'
+
   return {
-    setup: valid(params.get(P.setup), ['none', 'full_dfy', 'branded_only'], DEFAULT_STATE.setup),
+    setup: isLegacyFullDfy ? 'branded_only' : valid(params.get(P.setup), ['none', 'branded_only'], DEFAULT_STATE.setup),
     leadsPerMonth: (() => {
       const n = Number(params.get(P.leads))
       return !isNaN(n) && n >= 2000 && n <= 50000 ? Math.round(n / 500) * 500 : DEFAULT_STATE.leadsPerMonth
@@ -65,6 +70,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
       ['email', 'slack_light', 'slack_full'],
       DEFAULT_STATE.support
     ),
+    instantlySetup: isLegacyFullDfy || params.get(P.instantly) === '1',
     addOns: {
       linkedin: params.get(P.li) === '1',
       crm: params.get(P.crm) === '1',
@@ -89,6 +95,7 @@ export function serializeState(state: SelectionState): string {
   if (state.campaigns !== d.campaigns) params.set(P.camps, String(state.campaigns))
   if (state.replyHandling !== d.replyHandling) params.set(P.reply, state.replyHandling)
   if (state.support !== d.support) params.set(P.support, state.support)
+  if (state.instantlySetup) params.set(P.instantly, '1')
   if (state.addOns.linkedin) params.set(P.li, '1')
   if (state.addOns.crm) params.set(P.crm, '1')
   if (state.addOns.dripSequence) params.set(P.drip, '1')

@@ -25,6 +25,7 @@ export const DEFAULT_STATE: SelectionState = {
   campaigns: 1,
   replyHandling: 'none',
   support: 'email',
+  instantlySetup: false,
   addOns: {
     linkedin: false,
     crm: false,
@@ -64,18 +65,61 @@ export function calculateTotal(state: SelectionState): PricingResult {
   const multiplier = 1 - discountPercent
   const lineItems: LineItem[] = []
 
+  // ── Pre-compute variable cost subtotal (needed for branded setup discount) ─
+  const inboxRate = PRICING.inboxOwnership[state.inboxOwnership as InboxOwnership]
+  const dataRate = PRICING.dataSource[state.dataSource as DataSource]
+  const enrichRate = PRICING.enrichments[state.enrichments as Enrichments]
+  const replyRate = state.replyHandling !== 'none'
+    ? (PRICING.replyHandling[state.replyHandling as ReplyHandling] as number)
+    : 0
+
+  const variableMonthlyRaw =
+    (totalEmails / 1000) * inboxRate +
+    (state.leadsPerMonth / 1000) * dataRate +
+    (enrichRate > 0 ? (state.leadsPerMonth / 1000) * enrichRate : 0) +
+    (replyRate > 0 ? (totalEmails / 1000) * replyRate : 0)
+  const variableMonthly = fmt(variableMonthlyRaw * multiplier)
+
+  // ── Branded setup extras (computed early, used later in result) ──────────
+  let brandedSetupBase: number | undefined
+  let brandedSetupDiscount: number | undefined
+  let brandedSetupFinal: number | undefined
+  let inboxesNeeded: number | undefined
+  let domainsNeeded: number | undefined
+  let month1Estimate: number | undefined
+
+  if (state.setup === 'branded_only') {
+    inboxesNeeded = Math.ceil(totalEmails / 500)
+    domainsNeeded = Math.ceil(totalEmails / 1500)
+    brandedSetupBase = inboxesNeeded * PRICING.brandedSetup.perInbox
+    const discPct = Math.min(1, variableMonthly / PRICING.brandedSetup.waiveAt)
+    brandedSetupFinal = Math.round(brandedSetupBase * (1 - discPct))
+    brandedSetupDiscount = brandedSetupBase - brandedSetupFinal
+
+    // Month 1 estimate: ramp period only (first setupDays are warmup with no sends)
+    const { rampDays, startPerDay, dailyIncrement } = PRICING.warmup
+    const month1PerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement)
+    month1Estimate = inboxesNeeded * month1PerInbox
+  }
+
   // ── Fixed costs (no volume discount) ─────────────────────────────────────
 
-  if (state.setup !== 'none') {
+  if (state.setup === 'branded_only') {
     lineItems.push({
-      label:
-        state.setup === 'full_dfy'
-          ? 'Full DFY Instantly System Setup'
-          : 'Branded Domains & Inboxes Setup',
-      amount: PRICING.setup[state.setup],
+      label: `Branded Domains & Inboxes Setup (${inboxesNeeded} inboxes)${brandedSetupFinal === 0 ? ' — Waived' : ''}`,
+      amount: brandedSetupFinal!,
       type: 'fixed',
       period: 'one-time',
     })
+
+    if (state.instantlySetup) {
+      lineItems.push({
+        label: 'Instantly Account Setup',
+        amount: PRICING.setup.instantly_setup,
+        type: 'fixed',
+        period: 'one-time',
+      })
+    }
   }
 
   lineItems.push({
@@ -115,7 +159,6 @@ export function calculateTotal(state: SelectionState): PricingResult {
 
   // ── Variable costs (volume discount applied) ──────────────────────────────
 
-  const inboxRate = PRICING.inboxOwnership[state.inboxOwnership as InboxOwnership]
   const inboxCostRaw = (totalEmails / 1000) * inboxRate
   lineItems.push({
     label: `Inbox & Infrastructure — $${inboxRate}/1k emails (${
@@ -130,7 +173,6 @@ export function calculateTotal(state: SelectionState): PricingResult {
     period: 'one-time',
   })
 
-  const dataRate = PRICING.dataSource[state.dataSource as DataSource]
   const dataCostRaw = (state.leadsPerMonth / 1000) * dataRate
   const dataLabels: Record<string, string> = {
     full_list: 'Lead Data — Client Provides Full List + Email Validation',
@@ -147,7 +189,6 @@ export function calculateTotal(state: SelectionState): PricingResult {
     period: 'one-time',
   })
 
-  const enrichRate = PRICING.enrichments[state.enrichments as Enrichments]
   if (enrichRate > 0) {
     const enrichCostRaw = (state.leadsPerMonth / 1000) * enrichRate
     lineItems.push({
@@ -163,15 +204,14 @@ export function calculateTotal(state: SelectionState): PricingResult {
   }
 
   if (state.replyHandling !== 'none') {
-    const replyRate = PRICING.replyHandling[state.replyHandling as ReplyHandling]
-    const replyCostRaw = (totalEmails / 1000) * (replyRate as number)
+    const replyCostRaw = (totalEmails / 1000) * replyRate
     lineItems.push({
       label: `Reply Handling — $${replyRate}/1k emails (${
         state.replyHandling === 'ai_instantly'
           ? 'AI Agent via Instantly.ai'
           : 'Custom n8n Agent'
       })`,
-      amount: fmt((replyCostRaw as number) * multiplier),
+      amount: fmt(replyCostRaw * multiplier),
       type: 'variable',
       period: 'one-time',
     })
@@ -227,13 +267,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
     .reduce((s, i) => s + i.amount, 0)
 
   // Raw variable cost before discount (for showing savings)
-  const variableSubtotalBeforeDiscount =
-    (totalEmails / 1000) * inboxRate +
-    (state.leadsPerMonth / 1000) * dataRate +
-    (state.replyHandling !== 'none'
-      ? (totalEmails / 1000) * (PRICING.replyHandling[state.replyHandling as ReplyHandling] as number)
-      : 0) +
-    (enrichRate > 0 ? (state.leadsPerMonth / 1000) * enrichRate : 0)
+  const variableSubtotalBeforeDiscount = variableMonthlyRaw
 
   // ── Infrastructure Management add-on (per-1k, waived if base > $2k) ───────
 
@@ -296,6 +330,14 @@ export function calculateTotal(state: SelectionState): PricingResult {
     supportThreshold,
     couponDiscountAmount,
     couponDiscountPercent: couponPercent,
+    // Branded setup extras
+    ...(state.setup === 'branded_only' && {
+      month1Estimate,
+      brandedSetupBase,
+      brandedSetupDiscount,
+      inboxesNeeded,
+      domainsNeeded,
+    }),
   }
 }
 
