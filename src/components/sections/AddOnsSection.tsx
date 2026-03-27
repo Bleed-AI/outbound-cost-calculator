@@ -48,7 +48,7 @@ const ADDONS: AddOnItem[] = [
     key: 'infraManagement',
     label: 'Infrastructure Management & Domain Rotation',
     description:
-      "Ongoing management of the client's Instantly infrastructure: domain/inbox rotation, health monitoring, and reporting. Required when using the client's own Instantly.ai account.",
+      "Ongoing management of your sending infrastructure: domain/inbox rotation, health monitoring, and reporting.",
     getPrice: (totalEmails, baseTotal) => {
       const cost = Math.round((totalEmails / 1000) * PRICING.addOns.infra_management)
       return baseTotal >= PRICING.infraWaiverThreshold ? '$0' : `$${cost}`
@@ -60,6 +60,14 @@ const ADDONS: AddOnItem[] = [
       const cost = Math.round((totalEmails / 1000) * PRICING.addOns.infra_management)
       return `$${cost}`
     },
+  },
+  {
+    key: 'instantlySetup',
+    label: 'Instantly Account Setup',
+    description:
+      'Full Instantly.ai integration: account setup, warm-up configuration, campaign structure, and SOPs for running the system.',
+    getPrice: () => `$${PRICING.setup.instantly_setup}`,
+    getPriceNote: () => 'one-time',
   },
 ]
 

@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { formatCurrency, COUPON_CODES } from '@/lib/pricing'
+import { formatCurrency, COUPON_CODES, getContractDates } from '@/lib/pricing'
 import { PRICING } from '@/lib/pricing.config'
 import type { PricingResult } from '@/lib/types'
+
+function formatDate(d: Date): string {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
 interface CostBreakdownProps {
   result: PricingResult
@@ -24,6 +28,8 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
   const fixedItems = lineItems.filter((i) => i.type === 'fixed')
   const variableItems = lineItems.filter((i) => i.type === 'variable')
   const addonItems = lineItems.filter((i) => i.type === 'addon')
+
+  const { start: contractStart, end: contractEnd } = getContractDates()
 
   // Local coupon input state (separate from applied coupon in URL state)
   const [typedCoupon, setTypedCoupon] = useState(coupon)
@@ -56,7 +62,15 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
       <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#B1130F]" />
 
       <div className="px-6 py-5 pl-8">
-        <h2 className="text-white font-semibold text-base mb-4">Cost Breakdown</h2>
+        <h2 className="text-white font-semibold text-base mb-3">Cost Breakdown</h2>
+
+        {/* Contract period */}
+        <div className="mb-4 rounded-lg bg-white/[0.02] border border-white/8 px-3 py-2 flex items-center justify-between">
+          <span className="text-gray-500 text-xs">Contract period</span>
+          <span className="text-gray-300 text-xs font-medium tabular-nums">
+            {formatDate(contractStart)} – {formatDate(contractEnd)}
+          </span>
+        </div>
 
         {/* Line items */}
         <div className="space-y-1 mb-4">
@@ -75,6 +89,11 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
             <>
               <div className="text-gray-600 text-[11px] font-medium uppercase tracking-widest pt-3 pb-1">
                 Variable Costs{discountPercent > 0 && ` (${discountPercent}% volume discount applied)`}
+                {result.isFirstMonthBranded && result.month1ActualEmails != null && (
+                  <span className="ml-1 normal-case tracking-normal font-normal text-gray-600">
+                    — {result.month1ActualEmails.toLocaleString()} emails billed (month 1 ramp)
+                  </span>
+                )}
               </div>
               {variableItems.map((item, i) => (
                 <LineItemRow key={i} item={item} />
@@ -196,10 +215,13 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
           )}
         </div>
 
-        {/* Note */}
-        <p className="text-gray-600 text-xs mb-5">
+        {/* Notes */}
+        <p className="text-gray-600 text-xs mb-1.5">
           Any additional work outside scope is charged at{' '}
           <span className="text-gray-500">${PRICING.hourlyRate}/hr</span>.
+        </p>
+        <p className="text-gray-600 text-xs mb-5">
+          Delays in invoice clearance do not extend the contract period.
         </p>
 
         {/* Submit button */}

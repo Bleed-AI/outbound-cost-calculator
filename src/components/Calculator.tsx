@@ -7,9 +7,8 @@ import { parseState, serializeState } from '@/lib/url-state'
 import { calculateTotal } from '@/lib/pricing'
 import type { SelectionState, AddOns } from '@/lib/types'
 
-import { SetupSection } from '@/components/sections/SetupSection'
+import { MonthTypeSection } from '@/components/sections/MonthTypeSection'
 import { CampaignVolumeSection } from '@/components/sections/CampaignVolumeSection'
-import { InboxSection } from '@/components/sections/InboxSection'
 import { DataSection } from '@/components/sections/DataSection'
 import { EnrichmentsSection } from '@/components/sections/EnrichmentsSection'
 import { CopywritingSection } from '@/components/sections/CopywritingSection'
@@ -43,22 +42,6 @@ function CalculatorContent() {
     router.replace(newUrl, { scroll: false })
   }, [paramStr, router])
 
-  // Auto-check infraManagement when client uses their own Instantly account
-  useEffect(() => {
-    if (state.inboxOwnership === 'user_domains_instantly') {
-      setState((prev) => ({
-        ...prev,
-        addOns: { ...prev.addOns, infraManagement: true },
-      }))
-    } else {
-      setState((prev) => ({
-        ...prev,
-        addOns: { ...prev.addOns, infraManagement: false },
-      }))
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.inboxOwnership])
-
   const update = useCallback(
     <K extends keyof SelectionState>(key: K, value: SelectionState[K]) =>
       setState((prev) => ({ ...prev, [key]: value })),
@@ -76,26 +59,32 @@ function CalculatorContent() {
   return (
     <>
       <div className="max-w-3xl mx-auto px-4 pt-6 pb-28 space-y-3">
-        <SetupSection
-          value={state.setup}
-          totalEmails={result.totalEmails}
-          pricingResult={result}
-          instantlySetup={state.instantlySetup}
-          onChange={(v) => update('setup', v)}
-          onInstantlyChange={(v) => update('instantlySetup', v)}
-        />
-
-        <SectionDivider label="Campaign Configuration" />
-
-        <CampaignVolumeSection
+        <MonthTypeSection
+          monthType={state.monthType}
+          inboxOwnership={state.inboxOwnership}
           leads={state.leadsPerMonth}
           emailsPerProspect={state.emailsPerProspect}
           totalEmails={result.totalEmails}
+          pricingResult={result}
+          onMonthTypeChange={(v) => update('monthType', v)}
+          onInboxChange={(v) => update('inboxOwnership', v)}
           onLeadsChange={(v) => update('leadsPerMonth', v)}
           onEmailsChange={(v) => update('emailsPerProspect', v)}
         />
 
-        <InboxSection value={state.inboxOwnership} onChange={(v) => update('inboxOwnership', v)} />
+        {/* Campaign Volume — hidden for Scenario 3 (First Month + Branded), controlled inside MonthTypeSection */}
+        {!result.isFirstMonthBranded && (
+          <>
+            <SectionDivider label="Campaign Volume" />
+            <CampaignVolumeSection
+              leads={state.leadsPerMonth}
+              emailsPerProspect={state.emailsPerProspect}
+              totalEmails={result.totalEmails}
+              onLeadsChange={(v) => update('leadsPerMonth', v)}
+              onEmailsChange={(v) => update('emailsPerProspect', v)}
+            />
+          </>
+        )}
 
         <SectionDivider label="Lead Data" />
 

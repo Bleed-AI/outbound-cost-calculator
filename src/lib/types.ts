@@ -1,7 +1,7 @@
-export type SetupOption = 'none' | 'branded_only'
+export type MonthType = 'first_month' | 'normal_month'
 export type LeadsPerMonth = number
 export type EmailsPerProspect = 1 | 2 | 3
-export type InboxOwnership = 'user_domains' | 'user_domains_instantly' | 'dfy'
+export type InboxOwnership = 'dfy' | 'user_domains'
 export type DataSource =
   | 'full_list'
   | 'full_list_validate'
@@ -20,10 +20,11 @@ export interface AddOns {
   crm: boolean
   dripSequence: boolean
   infraManagement: boolean
+  instantlySetup: boolean
 }
 
 export interface SelectionState {
-  setup: SetupOption
+  monthType: MonthType
   leadsPerMonth: LeadsPerMonth
   emailsPerProspect: EmailsPerProspect
   inboxOwnership: InboxOwnership
@@ -33,7 +34,6 @@ export interface SelectionState {
   campaigns: CampaignsCount
   replyHandling: ReplyHandling
   support: SupportTier
-  instantlySetup: boolean
   addOns: AddOns
   coupon: string
 }
@@ -54,16 +54,16 @@ export interface PricingResult {
   discountAmount: number
   discountPercent: number
   total: number
-  totalEmails: number
-  baseTotal: number        // total before support cost (used for support waiver logic)
+  totalEmails: number        // full capacity emails (leads × epp)
+  baseTotal: number          // total before support cost (used for support waiver logic)
   supportIsFree: boolean
-  supportThreshold: number // threshold that triggered the waiver (0 if not free)
+  supportThreshold: number   // threshold that triggered the waiver (0 if not free)
   couponDiscountAmount: number
   couponDiscountPercent: number
-  // Branded setup fields (only present when setup === 'branded_only')
-  month1Estimate?: number
-  brandedSetupBase?: number
-  brandedSetupDiscount?: number
+  // Scenario 3 fields (only present when monthType === 'first_month' && inboxOwnership === 'user_domains')
+  isFirstMonthBranded?: boolean
+  month1ActualEmails?: number
+  brandedSetupFee?: number
   inboxesNeeded?: number
   domainsNeeded?: number
 }

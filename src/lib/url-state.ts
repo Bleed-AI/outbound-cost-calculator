@@ -1,10 +1,10 @@
 import { DEFAULT_STATE } from './pricing'
-import type { SelectionState, EmailsPerProspect, CampaignsCount } from './types'
+import type { SelectionState, EmailsPerProspect, CampaignsCount, MonthType, InboxOwnership } from './types'
 
 type SearchParamsLike = { get: (key: string) => string | null }
 
 const P = {
-  setup: 's',
+  monthType: 'mt',
   leads: 'l',
   epp: 'e',
   inbox: 'i',
@@ -32,12 +32,33 @@ function validNum<T extends number>(val: string | null, allowed: T[], fallback: 
 }
 
 export function parseState(params: SearchParamsLike): SelectionState {
-  // Legacy: map old 'full_dfy' URLs to branded_only + instantlySetup
-  const rawSetup = params.get(P.setup)
-  const isLegacyFullDfy = rawSetup === 'full_dfy'
+  // Legacy: old 's' param (setup field) → derive monthType + inboxOwnership
+  const legacySetup = params.get('s')
+  const legacyInbox = params.get('i')
+
+  // Legacy full_dfy → first_month + user_domains + instantlySetup
+  const isLegacyFullDfy = legacySetup === 'full_dfy'
+  // Legacy branded_only → first_month + user_domains
+  const isLegacyBranded = legacySetup === 'branded_only' || isLegacyFullDfy
+  // Legacy user_domains_instantly → user_domains
+  const isLegacyInstantly = legacyInbox === 'user_domains_instantly'
+
+  // Determine monthType
+  let monthType: MonthType = DEFAULT_STATE.monthType
+  if (params.get(P.monthType)) {
+    monthType = valid(params.get(P.monthType), ['first_month', 'normal_month'], DEFAULT_STATE.monthType)
+  } else if (isLegacyBranded) {
+    monthType = 'first_month'
+  }
+
+  // Determine inboxOwnership — legacy user_domains_instantly maps to user_domains
+  const inboxParam = isLegacyInstantly ? 'user_domains' : params.get(P.inbox)
+  const inboxOwnership = isLegacyBranded && !params.get(P.inbox)
+    ? 'user_domains'
+    : valid(inboxParam, ['dfy', 'user_domains'], DEFAULT_STATE.inboxOwnership) as InboxOwnership
 
   return {
-    setup: isLegacyFullDfy ? 'branded_only' : valid(params.get(P.setup), ['none', 'branded_only'], DEFAULT_STATE.setup),
+    monthType,
     leadsPerMonth: (() => {
       const n = Number(params.get(P.leads))
       return !isNaN(n) && n >= 2000 && n <= 50000 ? Math.round(n / 500) * 500 : DEFAULT_STATE.leadsPerMonth
@@ -47,11 +68,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
       [1, 2, 3],
       DEFAULT_STATE.emailsPerProspect
     ),
-    inboxOwnership: valid(
-      params.get(P.inbox),
-      ['user_domains', 'user_domains_instantly', 'dfy'],
-      DEFAULT_STATE.inboxOwnership
-    ),
+    inboxOwnership,
     dataSource: valid(
       params.get(P.data),
       ['full_list', 'full_list_validate', 'dfy_scrape', 'directory', 'live_signal', 'multi_platform'],
@@ -70,12 +87,12 @@ export function parseState(params: SearchParamsLike): SelectionState {
       ['email', 'slack_light', 'slack_full'],
       DEFAULT_STATE.support
     ),
-    instantlySetup: isLegacyFullDfy || params.get(P.instantly) === '1',
     addOns: {
       linkedin: params.get(P.li) === '1',
       crm: params.get(P.crm) === '1',
       dripSequence: params.get(P.drip) === '1',
       infraManagement: params.get(P.infra) === '1',
+      instantlySetup: isLegacyFullDfy || params.get(P.instantly) === '1',
     },
     coupon: params.get(P.coupon) ?? '',
   }
@@ -85,7 +102,7 @@ export function serializeState(state: SelectionState): string {
   const d = DEFAULT_STATE
   const params = new URLSearchParams()
 
-  if (state.setup !== d.setup) params.set(P.setup, state.setup)
+  if (state.monthType !== d.monthType) params.set(P.monthType, state.monthType)
   if (state.leadsPerMonth !== d.leadsPerMonth) params.set(P.leads, String(state.leadsPerMonth))
   if (state.emailsPerProspect !== d.emailsPerProspect) params.set(P.epp, String(state.emailsPerProspect))
   if (state.inboxOwnership !== d.inboxOwnership) params.set(P.inbox, state.inboxOwnership)
@@ -95,11 +112,11 @@ export function serializeState(state: SelectionState): string {
   if (state.campaigns !== d.campaigns) params.set(P.camps, String(state.campaigns))
   if (state.replyHandling !== d.replyHandling) params.set(P.reply, state.replyHandling)
   if (state.support !== d.support) params.set(P.support, state.support)
-  if (state.instantlySetup) params.set(P.instantly, '1')
   if (state.addOns.linkedin) params.set(P.li, '1')
   if (state.addOns.crm) params.set(P.crm, '1')
   if (state.addOns.dripSequence) params.set(P.drip, '1')
   if (state.addOns.infraManagement) params.set(P.infra, '1')
+  if (state.addOns.instantlySetup) params.set(P.instantly, '1')
   if (state.coupon) params.set(P.coupon, state.coupon)
 
   return params.toString()

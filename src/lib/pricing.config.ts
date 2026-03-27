@@ -21,9 +21,8 @@ export const PRICING = {
   } as Record<number, number>,
 
   inboxOwnership: {
-    user_domains:           35,   // $ per 1k emails sent
-    user_domains_instantly: 30,   // $ per 1k emails sent
-    dfy:                    85,   // $ per 1k emails sent
+    user_domains: 35,   // $ per 1k emails sent
+    dfy:          85,   // $ per 1k emails sent
   },
 
   dataSource: {
@@ -83,18 +82,20 @@ export const PRICING = {
   // Infra management waiver — waived if baseTotal (without infra) >= this
   infraWaiverThreshold: 2000,
 
-  // Branded domains setup — per-inbox fee, discounted by variable monthly spend
+  // Branded domains setup — flat fee
   brandedSetup: {
-    perInbox: 20,         // $/inbox one-time base
-    waiveAt: 500,         // variable monthly spend at which setup is fully waived
+    baseSetupFee: 250,         // flat setup fee for up to extraInboxThreshold inboxes
+    extraInboxThreshold: 50,   // above this count, add extraPerInbox per inbox
+    extraPerInbox: 2,          // e.g. 100 inboxes → $250 + 50×$2 = $350
   },
 
-  // Warmup parameters for month 1 estimate
+  // Month 1 timeline (Scenario 3: First Month + Branded Domains)
+  // Day 1: infrastructure setup | Days 2-15: provider warmup (zero sends) | Days 16-29: outbound ramp
   warmup: {
-    setupDays: 14,        // warmup/setup period (no real sends)
-    rampDays: 14,         // ramp period
-    startPerDay: 2,       // emails per inbox on ramp day 1
-    dailyIncrement: 2,    // +N per day per inbox
+    providerWarmupDays: 14, // days 2-15: inbox warmup with provider — no outbound sending
+    rampDays: 14,           // days 16-29: outbound ramp (billed)
+    startPerDay: 2,         // emails per inbox on ramp day 1
+    dailyIncrement: 2,      // +N per day per inbox
   },
 
   hourlyRate: 37,  // Additional work rate (displayed as a note)
