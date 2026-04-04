@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatCurrency, COUPON_CODES, getContractDates } from '@/lib/pricing'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
@@ -32,7 +32,9 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
   const variableItems = lineItems.filter((i) => i.type === 'variable')
   const addonItems = lineItems.filter((i) => i.type === 'addon')
 
-  const { start: contractStart, end: contractEnd } = getContractDates()
+  // Defer contract dates to client to avoid hydration mismatch (new Date() differs server vs client)
+  const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)
+  useEffect(() => { setContractDates(getContractDates()) }, [])
 
   const [typedCoupon, setTypedCoupon] = useState(coupon)
   const [couponStatus, setCouponStatus] = useState<'idle' | 'applied' | 'invalid'>(
@@ -80,7 +82,7 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
           <div className="mb-4 rounded-[var(--radius-inner)] bg-[var(--color-surface-0)] border border-[var(--color-border)] px-3 py-2 flex items-center justify-between">
             <span className="text-[var(--color-text-dim)] text-xs">Contract period</span>
             <span className="text-[var(--color-text-muted)] text-xs font-medium font-[family-name:var(--font-mono)] tabular-nums">
-              {formatDate(contractStart)} – {formatDate(contractEnd)}
+              {contractDates ? `${formatDate(contractDates.start)} – ${formatDate(contractDates.end)}` : '—'}
             </span>
           </div>
 
