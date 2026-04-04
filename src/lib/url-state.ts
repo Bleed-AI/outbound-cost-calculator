@@ -19,6 +19,7 @@ const P = {
   drip: 'dr',
   infra: 'in',
   instantly: 'is',
+  landing: 'lp',
   coupon: 'cp',
 } as const
 
@@ -93,6 +94,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
       dripSequence: params.get(P.drip) === '1',
       infraManagement: params.get(P.infra) === '1',
       instantlySetup: isLegacyFullDfy || params.get(P.instantly) === '1',
+      landingPage: params.get(P.landing) === '1',
     },
     coupon: params.get(P.coupon) ?? '',
   }
@@ -117,6 +119,7 @@ export function serializeState(state: SelectionState): string {
   if (state.addOns.dripSequence) params.set(P.drip, '1')
   if (state.addOns.infraManagement) params.set(P.infra, '1')
   if (state.addOns.instantlySetup) params.set(P.instantly, '1')
+  if (state.addOns.landingPage) params.set(P.landing, '1')
   if (state.coupon) params.set(P.coupon, state.coupon)
 
   return params.toString()

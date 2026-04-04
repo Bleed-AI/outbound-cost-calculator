@@ -31,6 +31,7 @@ export const DEFAULT_STATE: SelectionState = {
     dripSequence: false,
     infraManagement: false,
     instantlySetup: false,
+    landingPage: false,
   },
   coupon: '',
 }
@@ -262,6 +263,15 @@ export function calculateTotal(state: SelectionState): PricingResult {
       amount: PRICING.addOns.drip_monthly,
       type: 'addon',
       period: 'monthly',
+    })
+  }
+
+  if (state.addOns.landingPage) {
+    lineItems.push({
+      label: 'Landing Page Build',
+      amount: PRICING.addOns.landingPage,
+      type: 'addon',
+      period: 'one-time',
     })
   }
 

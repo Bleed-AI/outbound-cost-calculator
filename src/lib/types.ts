@@ -21,6 +21,7 @@ export interface AddOns {
   dripSequence: boolean
   infraManagement: boolean
   instantlySetup: boolean
+  landingPage: boolean
 }
 
 export interface SelectionState {

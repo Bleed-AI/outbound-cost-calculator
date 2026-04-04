@@ -70,6 +70,7 @@ export const PRICING = {
     drip_onetime:      180,  // one-time setup
     drip_monthly:      120,  // $/month
     infra_management:  25,   // $/1k emails (monthly) — waived if total > $2,000
+    landingPage:       350,  // one-time landing page build
   },
 
   // Support waiver thresholds — support is free when baseTotal meets threshold

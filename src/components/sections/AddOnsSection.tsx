@@ -69,6 +69,14 @@ const ADDONS: AddOnItem[] = [
     getPrice: () => `$${PRICING.setup.instantly_setup}`,
     getPriceNote: () => 'one-time',
   },
+  {
+    key: 'landingPage',
+    label: 'Landing Page Build',
+    description:
+      'We create a high-end landing page for your offer — the kind agencies charge $3.5k for.',
+    getPrice: () => `$${PRICING.addOns.landingPage}`,
+    getPriceNote: () => 'one-time',
+  },
 ]
 
 export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOnsSectionProps) {

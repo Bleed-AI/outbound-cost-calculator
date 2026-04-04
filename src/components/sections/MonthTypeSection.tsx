@@ -35,8 +35,8 @@ function fmtUSD(n: number): string {
 
 function InfraEstimator({ emailsPerMonth }: { emailsPerMonth: number }) {
   const [tiersOpen, setTiersOpen] = useState(false)
-  const inboxes = Math.floor(emailsPerMonth / 500)
-  const domains = Math.floor(emailsPerMonth / 1500)
+  const inboxes = Math.ceil(emailsPerMonth / 500)
+  const domains = Math.ceil(emailsPerMonth / 1500)
   const inboxRate = getInboxRate(inboxes)
   const domainCost = domains * 12
   const monthlyInboxCost = inboxes * inboxRate
