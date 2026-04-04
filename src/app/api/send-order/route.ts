@@ -6,7 +6,6 @@ const OWNER_EMAIL = 'owner@bleedai.com'
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'BleedAI <onboarding@resend.dev>'
 const CALENDLY_URL = 'https://calendly.com/bleedai/pilot-campaign-launch'
 
-// Lazily initialized so build doesn't fail without RESEND_API_KEY
 let _resend: Resend | null = null
 function getResend(): Resend {
   if (!_resend) {
@@ -70,92 +69,97 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = `${firstName} ${lastName}`
+  const formattedTotal = fmt(total)
 
-  const formattedTotal = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(total)
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(n)
-
-  const lineItemsHtml = lineItems
-    .map(
-      (item) =>
-        `<tr>
-          <td style="padding:6px 0;color:#aaaaaa;font-size:13px;border-bottom:1px solid #1a1a2a;">${item.label}</td>
-          <td style="padding:6px 0;color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;white-space:nowrap;">
-            ${fmt(item.amount)}
-            <span style="color:#555;font-size:11px;"> ${item.period === 'one-time' ? '' : item.period === 'monthly' ? '/mo' : '/campaign'}</span>
-          </td>
-        </tr>`
-    )
-    .join('\n')
-
-  const volumeStatsHtml = `
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-      <tr>
-        <td style="padding:8px 0 4px;color:#777;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;" colspan="2">Campaign Volume</td>
-      </tr>
-      <tr>
-        <td style="padding:4px 0;color:#aaaaaa;font-size:13px;border-bottom:1px solid #1a1a2a;">Total Emails</td>
-        <td style="padding:4px 0;color:#ffffff;font-size:13px;font-weight:700;text-align:right;border-bottom:1px solid #1a1a2a;">${totalEmails.toLocaleString()}</td>
-      </tr>
-    </table>
-  `
+  const fixedItems = lineItems.filter((i) => i.type === 'fixed')
+  const variableItems = lineItems.filter((i) => i.type === 'variable')
+  const addonItems = lineItems.filter((i) => i.type === 'addon')
 
   const clientHtml = buildEmail({
-    title: 'Your BleedAI Campaign Order',
+    title: 'Your Campaign Order',
+    preheader: `Campaign total: ${formattedTotal} — ${totalEmails.toLocaleString()} emails`,
     body: `
-      <p style="color:#aaaaaa;font-size:14px;line-height:1.6;margin:0 0 20px;">
-        Hi ${firstName}, thanks for submitting your campaign configuration. Here&rsquo;s a full
-        summary of your selections. We&rsquo;ll review and be in touch shortly.
+      <p style="color:#8b8b9e;font-size:15px;line-height:1.7;margin:0 0 24px;">
+        Hi ${firstName}, thanks for configuring your campaign. Here&rsquo;s your full breakdown.
+        We&rsquo;ll review everything and be in touch shortly.
       </p>
-      ${volumeStatsHtml}
-      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
-      <div style="margin:24px 0;background:#150505;border:1px solid #B1130F;border-radius:10px;padding:20px;">
-        <p style="color:#ffffff;font-size:14px;font-weight:700;margin:0 0 6px;">Next Step: Book Your Onboarding Call</p>
-        <p style="color:#aaaaaa;font-size:13px;margin:0 0 16px;line-height:1.5;">
-          Schedule a quick call so we can review your configuration and get your campaign launched.
-        </p>
-        <a href="${CALENDLY_URL}" style="display:inline-block;background:#B1130F;color:#ffffff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:8px;text-decoration:none;">
-          Book Your Onboarding Call &rarr;
-        </a>
-      </div>
-      <div style="margin:16px 0;">
-        <a href="${shareUrl}" style="display:inline-block;background:#222;color:#aaaaaa;font-weight:500;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none;">
-          View Your Configuration
-        </a>
-      </div>
-      <p style="color:#555555;font-size:12px;margin:0;">
-        This link captures all your selections exactly — you can share or revisit it any time.
-      </p>
+
+      <!-- Volume highlight -->
+      ${buildStatCards([
+        { label: 'Total Emails', value: totalEmails.toLocaleString() },
+        { label: 'Campaign Total', value: formattedTotal, highlight: true },
+      ])}
+
+      <!-- Line items -->
+      ${buildLineItemSection('Fixed Costs', fixedItems)}
+      ${buildLineItemSection('Variable Costs', variableItems, discountPercent)}
+      ${buildLineItemSection('Add-Ons', addonItems)}
+
+      <!-- Discounts -->
+      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
+
+      <!-- Total -->
+      ${buildTotalBar(formattedTotal)}
+
+      <!-- CTA -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
+        <tr><td style="background:#0c0c14;border:1px solid rgba(177,19,15,0.25);border-radius:12px;padding:24px;">
+          <p style="color:#f0f0f4;font-size:16px;font-weight:700;margin:0 0 6px;">Next Step: Book Your Onboarding Call</p>
+          <p style="color:#8b8b9e;font-size:13px;margin:0 0 20px;line-height:1.6;">
+            Schedule a quick call so we can review your configuration and get your pilot campaign launched.
+          </p>
+          <table cellpadding="0" cellspacing="0"><tr><td style="background:#B1130F;border-radius:8px;">
+            <a href="${CALENDLY_URL}" style="display:inline-block;color:#ffffff;font-weight:700;font-size:14px;padding:14px 32px;text-decoration:none;letter-spacing:0.02em;">
+              Book Your Onboarding Call &rarr;
+            </a>
+          </td></tr></table>
+        </td></tr>
+      </table>
+
+      <!-- Config link -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">
+        <tr><td align="center">
+          <a href="${shareUrl}" style="display:inline-block;color:#5a5a6e;font-size:12px;text-decoration:none;padding:10px 20px;border:1px solid rgba(255,255,255,0.08);border-radius:8px;">
+            View Your Full Configuration &rarr;
+          </a>
+        </td></tr>
+      </table>
     `,
   })
 
   const ownerHtml = buildEmail({
     title: `New Order — ${companyDomain}`,
+    preheader: `${fullName} (${companyDomain}) — ${formattedTotal}`,
     body: `
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Name</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${fullName}</td></tr>
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Company</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${companyDomain}</td></tr>
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Email</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;"><a href="mailto:${email}" style="color:#e84040;">${email}</a></td></tr>
-        <tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;">Total Emails</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${totalEmails.toLocaleString()}</td></tr>
-        ${description ? `<tr><td style="color:#aaaaaa;font-size:13px;padding:4px 0;border-bottom:1px solid #1a1a2a;vertical-align:top;">Description</td><td style="color:#ffffff;font-size:13px;text-align:right;border-bottom:1px solid #1a1a2a;">${description}</td></tr>` : ''}
+      <!-- Client details -->
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+        ${buildDetailRow('Name', fullName)}
+        ${buildDetailRow('Company', companyDomain)}
+        ${buildDetailRow('Email', `<a href="mailto:${email}" style="color:#B1130F;text-decoration:none;">${email}</a>`)}
+        ${buildDetailRow('Total Emails', totalEmails.toLocaleString())}
+        ${description ? buildDetailRow('Description', description) : ''}
       </table>
-      ${buildBreakdownTable(lineItemsHtml, formattedTotal, discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
-      <div style="margin:24px 0;">
-        <a href="${shareUrl}" style="display:inline-block;background:#B1130F;color:#ffffff;font-weight:600;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-          View Their Configuration
-        </a>
-      </div>
+
+      ${buildStatCards([
+        { label: 'Campaign Total', value: formattedTotal, highlight: true },
+        { label: 'Emails', value: totalEmails.toLocaleString() },
+      ])}
+
+      ${buildLineItemSection('Fixed Costs', fixedItems)}
+      ${buildLineItemSection('Variable Costs', variableItems, discountPercent)}
+      ${buildLineItemSection('Add-Ons', addonItems)}
+      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
+      ${buildTotalBar(formattedTotal)}
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
+        <tr><td align="center">
+          <table cellpadding="0" cellspacing="0"><tr><td style="background:#B1130F;border-radius:8px;">
+            <a href="${shareUrl}" style="display:inline-block;color:#ffffff;font-weight:600;font-size:14px;padding:12px 28px;text-decoration:none;">
+              View Their Configuration
+            </a>
+          </td></tr></table>
+        </td></tr>
+      </table>
     `,
   })
 
@@ -182,76 +186,182 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function buildBreakdownTable(
-  lineItemsHtml: string,
-  formattedTotal: string,
+/* ── Formatting helpers ─────────────────────────────────── */
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(n)
+}
+
+const PERIOD_LABELS: Record<string, string> = {
+  'one-time': '',
+  monthly: '/mo',
+  'per-campaign': '/campaign',
+}
+
+/* ── Email building blocks ──────────────────────────────── */
+
+function buildDetailRow(label: string, value: string) {
+  return `
+    <tr>
+      <td style="padding:8px 0;color:#5a5a6e;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);width:120px;vertical-align:top;">${label}</td>
+      <td style="padding:8px 0;color:#f0f0f4;font-size:13px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04);">${value}</td>
+    </tr>
+  `
+}
+
+function buildStatCards(stats: { label: string; value: string; highlight?: boolean }[]) {
+  const cells = stats.map((s) => `
+    <td style="width:${Math.floor(100 / stats.length)}%;padding:16px;background:${s.highlight ? 'rgba(177,19,15,0.08)' : '#0c0c14'};border:1px solid ${s.highlight ? 'rgba(177,19,15,0.2)' : 'rgba(255,255,255,0.06)'};border-radius:10px;text-align:center;">
+      <div style="color:#5a5a6e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">${s.label}</div>
+      <div style="color:${s.highlight ? '#f0f0f4' : '#f0f0f4'};font-size:${s.highlight ? '24px' : '20px'};font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">${s.value}</div>
+    </td>
+  `).join('<td style="width:12px;"></td>')
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>${cells}</tr>
+    </table>
+  `
+}
+
+function buildLineItemSection(title: string, items: LineItem[], discountPercent?: number) {
+  if (items.length === 0) return ''
+
+  const discountNote = discountPercent && discountPercent > 0
+    ? ` <span style="color:#34d399;font-size:10px;font-weight:500;">(${discountPercent}% volume discount applied)</span>`
+    : ''
+
+  const rows = items.map((item) => `
+    <tr>
+      <td style="padding:8px 0;color:#8b8b9e;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);">${item.label}</td>
+      <td style="padding:8px 0;color:#f0f0f4;font-size:13px;font-weight:500;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">
+        ${fmt(item.amount)}
+        <span style="color:#3a3a4a;font-size:11px;font-weight:400;font-family:inherit;">${PERIOD_LABELS[item.period] ?? ''}</span>
+      </td>
+    </tr>
+  `).join('')
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+      <tr>
+        <td colspan="2" style="padding:12px 0 6px;color:#3a3a4a;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;">
+          ${title}${discountNote}
+        </td>
+      </tr>
+      ${rows}
+    </table>
+  `
+}
+
+function buildDiscounts(
   discountAmount: number,
   discountPercent: number,
   couponDiscountAmount: number,
   couponDiscountPercent: number,
   couponCode: string
-): string {
-  const fmtCur = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+) {
+  let html = ''
+
+  if (discountAmount > 0) {
+    html += `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;">
+        <span style="color:#5a5a6e;font-size:13px;">Volume Discount (${discountPercent}% off)</span>
+        <span style="color:#34d399;font-size:13px;font-weight:600;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">-${fmt(discountAmount)}</span>
+      </div>
+    `
+  }
+
+  if (couponDiscountAmount > 0) {
+    html += `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;">
+        <span style="color:#5a5a6e;font-size:13px;">
+          Coupon <span style="font-family:'SF Mono',SFMono-Regular,Menlo,monospace;background:#111119;padding:2px 8px;border-radius:4px;font-size:12px;color:#8b8b9e;">${couponCode}</span> (${couponDiscountPercent}% off)
+        </span>
+        <span style="color:#34d399;font-size:13px;font-weight:600;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">-${fmt(couponDiscountAmount)}</span>
+      </div>
+    `
+  }
+
+  return html
+}
+
+function buildTotalBar(formattedTotal: string) {
   return `
-    <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
-      ${lineItemsHtml}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0;">
+      <tr><td colspan="2" style="height:2px;background:linear-gradient(to right,#B1130F,rgba(177,19,15,0.2));border-radius:1px;"></td></tr>
+      <tr>
+        <td style="padding:16px 0 0;color:#f0f0f4;font-size:15px;font-weight:600;">Campaign Total</td>
+        <td style="padding:16px 0 0;color:#f0f0f4;font-size:28px;font-weight:800;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;">${formattedTotal}</td>
+      </tr>
     </table>
-    ${
-      discountAmount > 0
-        ? `<p style="color:#4ade80;font-size:13px;margin:0 0 6px;">
-            Volume discount (${discountPercent}% off): -${fmtCur(discountAmount)}
-          </p>`
-        : ''
-    }
-    ${
-      couponDiscountAmount > 0
-        ? `<p style="color:#4ade80;font-size:13px;margin:0 0 8px;">
-            Coupon <span style="font-family:monospace;background:#1a1a2a;padding:2px 6px;border-radius:4px;">${couponCode}</span> (${couponDiscountPercent}% off): -${fmtCur(couponDiscountAmount)}
-          </p>`
-        : ''
-    }
-    <div style="border-top:2px solid #B1130F;padding-top:12px;">
-      <table style="width:100%;border-collapse:collapse;">
-        <tr>
-          <td style="color:#ffffff;font-size:16px;font-weight:700;">Campaign Total</td>
-          <td style="color:#ffffff;font-size:22px;font-weight:800;text-align:right;">${formattedTotal}</td>
-        </tr>
-      </table>
-    </div>
   `
 }
 
-function buildEmail({ title, body }: { title: string; body: string }): string {
+function buildEmail({ title, preheader, body }: { title: string; preheader: string; body: string }): string {
   return `
     <!DOCTYPE html>
     <html>
-    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-    <body style="margin:0;padding:0;background:#050508;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="background:#050508;padding:32px 16px;">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta name="color-scheme" content="dark">
+      <meta name="supported-color-schemes" content="dark">
+      <!--[if mso]><style>table,td{font-family:Arial,sans-serif!important;}</style><![endif]-->
+    </head>
+    <body style="margin:0;padding:0;background:#06060a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+      <!-- Preheader (hidden preview text) -->
+      <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#06060a;padding:32px 16px;">
         <tr><td align="center">
           <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
-            <!-- Header -->
+
+            <!-- Logo -->
             <tr>
-              <td style="padding:0 0 24px;">
-                <div style="background:#B1130F;height:3px;border-radius:2px;margin-bottom:24px;"></div>
-                <span style="color:#ffffff;font-size:22px;font-weight:800;">${title}</span>
+              <td style="padding:0 0 32px;">
+                <img src="https://calculator.bleedai.com/bleed-ai-logo.svg" alt="BleedAI" width="100" style="display:block;height:auto;" />
               </td>
             </tr>
-            <!-- Body -->
+
+            <!-- Title -->
             <tr>
-              <td style="background:#0d0d14;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:24px;">
-                ${body}
+              <td style="padding:0 0 8px;">
+                <h1 style="color:#f0f0f4;font-size:24px;font-weight:800;margin:0;letter-spacing:-0.02em;">${title}</h1>
               </td>
             </tr>
+
+            <!-- Gradient rule -->
+            <tr>
+              <td style="padding:0 0 28px;">
+                <div style="height:2px;background:linear-gradient(to right,#B1130F,transparent 60%);border-radius:1px;"></div>
+              </td>
+            </tr>
+
+            <!-- Body card (double-bezel) -->
+            <tr>
+              <td style="background:#0c0c14;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:1px;">
+                <div style="background:#111119;border-radius:15px;padding:28px 24px;">
+                  ${body}
+                </div>
+              </td>
+            </tr>
+
             <!-- Footer -->
             <tr>
-              <td style="padding:20px 0 0;text-align:center;">
-                <p style="color:#333333;font-size:11px;margin:0;">
+              <td style="padding:28px 0 0;text-align:center;">
+                <div style="height:1px;background:linear-gradient(to right,transparent,rgba(255,255,255,0.06),transparent);margin-bottom:20px;"></div>
+                <p style="color:#3a3a4a;font-size:11px;margin:0;line-height:1.6;">
                   BleedAI &mdash; We Install Revenue Systems that Scale B2B Firms in Weeks<br>
-                  <a href="https://bleedai.com" style="color:#555555;">bleedai.com</a>
+                  <a href="https://bleedai.com" style="color:#5a5a6e;text-decoration:none;">bleedai.com</a>
                 </p>
               </td>
             </tr>
+
           </table>
         </td></tr>
       </table>
