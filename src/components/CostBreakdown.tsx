@@ -341,16 +341,29 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
     <div className="mb-5">
       <button
         onClick={() => setIsOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-[var(--color-text-dim)] text-xs hover:text-[var(--color-text-muted)] transition-colors"
+        className="group flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-purple-500/30 bg-purple-500/[0.07] hover:bg-purple-500/[0.12] hover:border-purple-400/50 transition-all duration-300"
+        style={{ animation: isOpen ? 'none' : 'roi-glow 2.5s ease-in-out infinite' }}
       >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        <style>{`
+          @keyframes roi-glow {
+            0%, 100% { box-shadow: 0 0 6px rgba(168,85,247,0.15); }
+            50% { box-shadow: 0 0 18px rgba(168,85,247,0.35), 0 0 4px rgba(168,85,247,0.2); }
+          }
+          @keyframes roi-sparkle {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+        `}</style>
+        <svg className="w-4 h-4 text-purple-400 shrink-0" style={{ animation: 'roi-sparkle 2s ease-in-out infinite' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
         </svg>
-        <span>Estimate your ROI</span>
+        <span className="text-sm font-medium text-purple-300 group-hover:text-purple-200 transition-colors">
+          Estimate ROI with AI Research
+        </span>
         <motion.svg
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-          className="w-3 h-3"
+          className="w-3.5 h-3.5 ml-auto text-purple-400/70"
           fill="none" viewBox="0 0 24 24" stroke="currentColor"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
