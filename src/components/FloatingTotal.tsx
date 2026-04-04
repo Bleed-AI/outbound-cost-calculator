@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { formatCurrency } from '@/lib/pricing'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
@@ -11,13 +12,17 @@ interface FloatingTotalProps {
 
 export function FloatingTotal({ result }: FloatingTotalProps) {
   const { total, discountAmount, discountPercent } = result
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={false}
+      animate={mounted ? { y: 0, opacity: 1 } : undefined}
       transition={{ type: 'spring', stiffness: 120, damping: 20, delay: 0.5 }}
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      style={!mounted ? { transform: 'translateY(100px)', opacity: 0 } : undefined}
     >
       {/* Gradient top border */}
       <div
@@ -26,7 +31,7 @@ export function FloatingTotal({ result }: FloatingTotalProps) {
       />
 
       {/* Glass bar */}
-      <div className="bg-[var(--color-bg)]/80 backdrop-blur-xl backdrop-saturate-150">
+      <div className="backdrop-blur-xl backdrop-saturate-150" style={{ backgroundColor: 'rgba(6, 6, 10, 0.8)' }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">

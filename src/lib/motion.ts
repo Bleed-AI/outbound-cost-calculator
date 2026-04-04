@@ -3,8 +3,8 @@ import type { Variants, Transition } from 'framer-motion'
 /* ── Scroll-reveal variants ─────────────────────────────── */
 
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(4px)' },
-  visible: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 }
 
 export const fadeIn: Variants = {

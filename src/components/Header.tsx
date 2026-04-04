@@ -1,11 +1,12 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { spring } from '@/lib/motion'
 
 const wordVariants = {
-  hidden: { opacity: 0, y: 20, filter: 'blur(8px)' },
-  visible: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 }
 
 const staggerParent = {
@@ -14,6 +15,9 @@ const staggerParent = {
 }
 
 export function Header() {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   return (
     <header className="relative bg-[var(--color-bg)] border-b border-[var(--color-border)] overflow-hidden">
       {/* Ambient glow behind hero */}
@@ -30,67 +34,94 @@ export function Header() {
 
       {/* Asymmetric hero */}
       <div className="relative max-w-6xl mx-auto px-4 pb-12 pt-8">
-        <motion.div
-          variants={staggerParent}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Line 1 */}
-          <div className="flex flex-wrap gap-x-4">
-            {['Cold', 'Outreach'].map((word) => (
+        {mounted ? (
+          <motion.div
+            variants={staggerParent}
+            initial="hidden"
+            animate="visible"
+          >
+            <div className="flex flex-wrap gap-x-4">
+              {['Cold', 'Outreach'].map((word) => (
+                <motion.span
+                  key={word}
+                  variants={wordVariants}
+                  transition={spring}
+                  className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
+                >
+                  {word}
+                </motion.span>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-x-4 mt-1">
               <motion.span
-                key={word}
                 variants={wordVariants}
                 transition={spring}
-                className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
+                className="relative text-[var(--color-brand)] text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight"
               >
-                {word}
-              </motion.span>
-            ))}
-          </div>
-          {/* Line 2 — "Cost" in crimson with glow */}
-          <div className="flex flex-wrap gap-x-4 mt-1">
-            <motion.span
-              variants={wordVariants}
-              transition={spring}
-              className="relative text-[var(--color-brand)] text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight"
-            >
-              Cost
-              {/* Text glow effect */}
-              <span className="absolute inset-0 text-[var(--color-brand)] blur-lg opacity-30 pointer-events-none select-none" aria-hidden="true">
                 Cost
+                <span className="absolute inset-0 text-[var(--color-brand)] blur-lg opacity-30 pointer-events-none select-none" aria-hidden="true">
+                  Cost
+                </span>
+              </motion.span>
+              <motion.span
+                variants={wordVariants}
+                transition={spring}
+                className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight"
+              >
+                Calculator
+              </motion.span>
+            </div>
+          </motion.div>
+        ) : (
+          /* Static SSR version — no motion, no hydration mismatch */
+          <div>
+            <div className="flex flex-wrap gap-x-4">
+              <span className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">Cold</span>
+              <span className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">Outreach</span>
+            </div>
+            <div className="flex flex-wrap gap-x-4 mt-1">
+              <span className="relative text-[var(--color-brand)] text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight">
+                Cost
+                <span className="absolute inset-0 text-[var(--color-brand)] blur-lg opacity-30 pointer-events-none select-none" aria-hidden="true">Cost</span>
               </span>
-            </motion.span>
-            <motion.span
-              variants={wordVariants}
-              transition={spring}
-              className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight"
-            >
-              Calculator
-            </motion.span>
+              <span className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-light tracking-tight">Calculator</span>
+            </div>
           </div>
-        </motion.div>
+        )}
 
         {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-[var(--color-text-muted)] text-base mt-5 max-w-md"
-        >
-          Configure your campaign below and get an instant price.
-        </motion.p>
+        {mounted ? (
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="text-[var(--color-text-muted)] text-base mt-5 max-w-md"
+          >
+            Configure your campaign below and get an instant price.
+          </motion.p>
+        ) : (
+          <p className="text-[var(--color-text-muted)] text-base mt-5 max-w-md">
+            Configure your campaign below and get an instant price.
+          </p>
+        )}
 
         {/* Gradient rule with glow */}
-        <motion.div
-          initial={{ scaleX: 0, opacity: 0 }}
-          animate={{ scaleX: 1, opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative mt-8 origin-left"
-        >
-          <div className="h-px" style={{ background: 'linear-gradient(to right, var(--color-brand), transparent 60%)' }} />
-          <div className="h-4 -mt-2" style={{ background: 'linear-gradient(to right, rgba(177,19,15,0.1), transparent 40%)' }} />
-        </motion.div>
+        {mounted ? (
+          <motion.div
+            initial={{ scaleX: 0, opacity: 0 }}
+            animate={{ scaleX: 1, opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="relative mt-8 origin-left"
+          >
+            <div className="h-px" style={{ background: 'linear-gradient(to right, var(--color-brand), transparent 60%)' }} />
+            <div className="h-4 -mt-2" style={{ background: 'linear-gradient(to right, rgba(177,19,15,0.1), transparent 40%)' }} />
+          </motion.div>
+        ) : (
+          <div className="relative mt-8">
+            <div className="h-px" style={{ background: 'linear-gradient(to right, var(--color-brand), transparent 60%)' }} />
+            <div className="h-4 -mt-2" style={{ background: 'linear-gradient(to right, rgba(177,19,15,0.1), transparent 40%)' }} />
+          </div>
+        )}
       </div>
     </header>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSpring, useTransform, motion, useMotionValue } from 'framer-motion'
 
 interface AnimatedNumberProps {
@@ -17,24 +17,32 @@ export function AnimatedNumber({
   format = defaultFormat,
   className,
 }: AnimatedNumberProps) {
-  const motionValue = useMotionValue(0)
+  const [mounted, setMounted] = useState(false)
+  const motionValue = useMotionValue(value)
   const springValue = useSpring(motionValue, {
     stiffness: 80,
     damping: 25,
     mass: 1,
   })
   const display = useTransform(springValue, (v) => format(v))
-  const hasAnimated = useRef(false)
+  const prevValue = useRef(value)
 
   useEffect(() => {
-    if (!hasAnimated.current) {
-      // Skip animation on first render — show value immediately
-      motionValue.jump(value)
-      hasAnimated.current = true
-    } else {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (mounted && value !== prevValue.current) {
       motionValue.set(value)
+      prevValue.current = value
     }
-  }, [value, motionValue])
+  }, [value, motionValue, mounted])
+
+  // Server + first client render: static text (no hydration mismatch)
+  // After mount: Framer Motion takes over for animated transitions
+  if (!mounted) {
+    return <span className={className}>{format(value)}</span>
+  }
 
   return <motion.span className={className}>{display}</motion.span>
 }
