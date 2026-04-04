@@ -22,7 +22,7 @@ export const PRICING = {
 
   inboxOwnership: {
     user_domains: 35,   // $ per 1k emails sent
-    dfy:          85,   // $ per 1k emails sent
+    dfy:          60,   // $ per 1k emails sent
   },
 
   dataSource: {

@@ -20,9 +20,9 @@ export const DEFAULT_STATE: SelectionState = {
   emailsPerProspect: 2,
   inboxOwnership: 'dfy',
   dataSource: 'dfy_scrape',
-  enrichments: 'none',
+  enrichments: 'standard',
   copywriting: 'full_strategy',
-  campaigns: 1,
+  campaigns: 2,
   replyHandling: 'none',
   support: 'email',
   addOns: {

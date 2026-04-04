@@ -80,6 +80,9 @@ const ADDONS: AddOnItem[] = [
 ]
 
 export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOnsSectionProps) {
+  const infraRemaining = PRICING.infraWaiverThreshold - baseTotal
+  const showInfraNudge = infraRemaining > 0 && infraRemaining <= PRICING.infraWaiverThreshold * 0.3
+
   return (
     <SectionCard title="Optional Add-Ons" description="Extras to enhance your campaign.">
       <div className="space-y-2">
@@ -141,6 +144,18 @@ export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOn
           )
         })}
       </div>
+
+      {/* Infra waiver unlock nudge */}
+      {showInfraNudge && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-500/5 border border-green-500/15 px-3 py-2">
+          <svg className="w-3.5 h-3.5 text-green-500/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <span className="text-green-400/80 text-xs">
+            ${Math.ceil(infraRemaining).toLocaleString()} more to include infrastructure management free
+          </span>
+        </div>
+      )}
     </SectionCard>
   )
 }

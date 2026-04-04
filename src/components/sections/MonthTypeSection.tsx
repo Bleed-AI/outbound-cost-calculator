@@ -157,7 +157,7 @@ export function MonthTypeSection({
     : formatCurrency(PRICING.brandedSetup.baseSetupFee)
 
   const MONTH_TABS: { value: MonthType; label: string; sublabel: string }[] = [
-    { value: 'first_month', label: 'First Month', sublabel: 'Setup & Launch' },
+    { value: 'first_month', label: 'Pilot Month', sublabel: 'Setup & Launch' },
     { value: 'normal_month', label: 'Normal Month', sublabel: 'Recurring' },
   ]
 
@@ -171,9 +171,9 @@ export function MonthTypeSection({
   }[] = [
     {
       value: 'dfy',
-      label: "BleedAI's Warm Infrastructure",
+      label: "BleedAI's Warm Infrastructure — Instant Start",
       description:
-        "BleedAI provides fully warmed sending domains, inboxes, and infrastructure. Zero setup or warmup delay — campaign starts at full capacity from day 1.",
+        "Pre-warmed domains and inboxes ready to send. No setup fees, no warmup delays — your campaign launches at full volume from day 1.",
       price: `$${PRICING.inboxOwnership.dfy}/1k emails`,
       priceNote: '/ month',
       badge: 'Pre-Warmed',

@@ -36,6 +36,12 @@ const OPTIONS: {
 ]
 
 export function SupportSection({ value, baseTotal, onChange }: SupportSectionProps) {
+  // Find the best unlock nudge: the cheapest support tier the user hasn't yet unlocked
+  const bestNudge = OPTIONS.find((opt) => {
+    const remaining = opt.threshold - baseTotal
+    return remaining > 0 && remaining <= opt.threshold * 0.3
+  })
+
   return (
     <SectionCard
       title="Support"
@@ -65,6 +71,18 @@ export function SupportSection({ value, baseTotal, onChange }: SupportSectionPro
           )
         })}
       </div>
+
+      {/* Unlock nudge */}
+      {bestNudge && (
+        <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-500/5 border border-green-500/15 px-3 py-2">
+          <svg className="w-3.5 h-3.5 text-green-500/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          <span className="text-green-400/80 text-xs">
+            ${Math.ceil(bestNudge.threshold - baseTotal).toLocaleString()} more to unlock free {bestNudge.label.toLowerCase()}
+          </span>
+        </div>
+      )}
     </SectionCard>
   )
 }

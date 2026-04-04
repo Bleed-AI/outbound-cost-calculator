@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { formatCurrency, COUPON_CODES, getContractDates } from '@/lib/pricing'
-import { PRICING } from '@/lib/pricing.config'
 import type { PricingResult } from '@/lib/types'
 
 function formatDate(d: Date): string {
@@ -215,14 +214,8 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
           )}
         </div>
 
-        {/* Notes */}
-        <p className="text-gray-600 text-xs mb-1.5">
-          Any additional work outside scope is charged at{' '}
-          <span className="text-gray-500">${PRICING.hourlyRate}/hr</span>.
-        </p>
-        <p className="text-gray-600 text-xs mb-5">
-          Delays in invoice clearance do not extend the contract period.
-        </p>
+        {/* ROI Estimator */}
+        <RoiEstimator totalEmails={result.totalEmails} campaignCost={total} />
 
         {/* Submit button */}
         <button
@@ -237,6 +230,290 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
 }
 
 import type { LineItem } from '@/lib/types'
+
+function RateInput({ label, value, onChange }: {
+  label: string; value: number; onChange: (v: number) => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-gray-500 text-[11px] flex-1">{label}</span>
+      <div className="flex items-center gap-1">
+        <input
+          type="number"
+          min={0}
+          max={100}
+          step={0.5}
+          value={value}
+          onChange={(e) => onChange(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+          className="w-14 bg-[#050508] border border-white/10 rounded px-2 py-1 text-white text-xs text-right tabular-nums focus:outline-none focus:border-[#B1130F]/50 transition-colors"
+        />
+        <span className="text-gray-600 text-[10px]">%</span>
+      </div>
+    </div>
+  )
+}
+
+interface AiEstimate {
+  companyDescription: string
+  replyRate: number
+  positiveReplyRate: number
+  reasoning: string
+}
+
+function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; campaignCost: number }) {
+  const [isOpen, setIsOpen] = useState(false)
+
+  // Domain research
+  const [domain, setDomain] = useState('')
+  const [researching, setResearching] = useState(false)
+  const [aiResult, setAiResult] = useState<AiEstimate | null>(null)
+  const [aiError, setAiError] = useState('')
+
+  // Deal value
+  const [dealSize, setDealSize] = useState('')
+
+  // Funnel rates (defaults, updated by AI research)
+  const [replyRate, setReplyRate] = useState(3)
+  const [positiveRate, setPositiveRate] = useState(30)
+  const [meetingRate, setMeetingRate] = useState(50)
+  const [closeRate, setCloseRate] = useState(25)
+
+  const dealValue = Number(dealSize.replace(/[^0-9]/g, ''))
+
+  // Funnel math
+  const totalReplies = Math.round(totalEmails * (replyRate / 100))
+  const positiveReplies = Math.round(totalReplies * (positiveRate / 100))
+  const meetingsBooked = Math.round(positiveReplies * (meetingRate / 100))
+  const dealsClosed = Math.round(meetingsBooked * (closeRate / 100))
+  const pipelineValue = positiveReplies * dealValue
+  const estimatedRevenue = dealsClosed * dealValue
+  const roi = campaignCost > 0 && estimatedRevenue > 0
+    ? Math.round((estimatedRevenue / campaignCost) * 100) / 100
+    : 0
+
+  async function handleResearch() {
+    const cleanDomain = domain.trim()
+    if (!cleanDomain) return
+
+    setResearching(true)
+    setAiError('')
+    setAiResult(null)
+
+    try {
+      const res = await fetch('/api/estimate-roi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain: cleanDomain }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setAiError(data.error || 'Research failed')
+        return
+      }
+
+      setAiResult(data)
+      setReplyRate(data.replyRate)
+      setPositiveRate(data.positiveReplyRate)
+    } catch {
+      setAiError('Network error — could not reach the server')
+    } finally {
+      setResearching(false)
+    }
+  }
+
+  return (
+    <div className="mb-5">
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-gray-500 text-xs hover:text-gray-300 transition-colors"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span>Estimate your ROI</span>
+        <svg
+          className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="mt-2 rounded-lg border border-white/8 bg-white/[0.02] px-3 py-3 space-y-3">
+
+          {/* Domain research */}
+          <div>
+            <label className="text-gray-500 text-[11px] block mb-1">Your website</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="acmecorp.com"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleResearch() }}
+                className="flex-1 bg-[#050508] border border-white/10 rounded-lg px-3 py-2 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/50 transition-colors"
+              />
+              <button
+                onClick={handleResearch}
+                disabled={researching || !domain.trim()}
+                className="px-3 py-2 rounded-lg bg-[#B1130F] text-white text-xs font-medium hover:bg-[#d41510] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+              >
+                {researching ? (
+                  <>
+                    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Researching...
+                  </>
+                ) : 'Research'}
+              </button>
+            </div>
+            {aiError && (
+              <p className="text-red-400 text-[11px] mt-1.5">{aiError}</p>
+            )}
+          </div>
+
+          {/* Loading state */}
+          {researching && (
+            <div className="rounded-lg bg-[#B1130F]/5 border border-[#B1130F]/15 px-3 py-3">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-3.5 h-3.5 text-[#B1130F] animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span className="text-gray-400 text-xs">Analyzing your industry and estimating conversion rates...</span>
+              </div>
+              <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+                <div className="h-full bg-[#B1130F] rounded-full animate-pulse" style={{ width: '60%' }} />
+              </div>
+            </div>
+          )}
+
+          {/* AI research results */}
+          {aiResult && !researching && (
+            <div className="rounded-lg bg-green-500/5 border border-green-500/15 px-3 py-3 space-y-2">
+              <div className="flex items-start gap-2">
+                <svg className="w-3.5 h-3.5 text-green-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <div className="space-y-1.5">
+                  <p className="text-gray-300 text-xs leading-relaxed">{aiResult.companyDescription}</p>
+                  <p className="text-gray-500 text-[11px] leading-relaxed">{aiResult.reasoning}</p>
+                  <div className="flex gap-3 pt-1">
+                    <span className="text-[11px]">
+                      <span className="text-gray-600">Reply rate:</span>{' '}
+                      <span className="text-white font-medium">{aiResult.replyRate}%</span>
+                    </span>
+                    <span className="text-[11px]">
+                      <span className="text-gray-600">Positive replies:</span>{' '}
+                      <span className="text-white font-medium">{aiResult.positiveReplyRate}%</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Deal value input */}
+          <div>
+            <label className="text-gray-500 text-[11px] block mb-1">Average deal / contract value</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="5,000"
+                value={dealSize}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, '')
+                  setDealSize(raw ? Number(raw).toLocaleString() : '')
+                }}
+                className="w-full bg-[#050508] border border-white/10 rounded-lg pl-7 pr-3 py-2 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#B1130F]/50 transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Conversion rates (editable) */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between">
+              <div className="text-gray-600 text-[10px] font-medium uppercase tracking-wider">Conversion Rates</div>
+              {aiResult && <span className="text-gray-700 text-[10px]">AI-estimated, adjust as needed</span>}
+            </div>
+            <RateInput label="Reply rate" value={replyRate} onChange={setReplyRate} />
+            <RateInput label="Positive reply rate (of replies)" value={positiveRate} onChange={setPositiveRate} />
+            <RateInput label="Meetings booked (of positive)" value={meetingRate} onChange={setMeetingRate} />
+            <RateInput label="Close rate (of meetings)" value={closeRate} onChange={setCloseRate} />
+          </div>
+
+          {/* Funnel results — always visible */}
+          <div className="border-t border-white/6 pt-3 space-y-1.5">
+            <div className="text-gray-600 text-[10px] font-medium uppercase tracking-wider mb-2">Estimated Funnel</div>
+            <FunnelRow label="Emails sent" value={totalEmails} />
+            <FunnelRow label={`Replies (${replyRate}%)`} value={totalReplies} />
+            <FunnelRow label={`Positive replies (${positiveRate}% of replies)`} value={positiveReplies} highlight />
+            <FunnelRow label={`Meetings booked (${meetingRate}%)`} value={meetingsBooked} />
+            <FunnelRow label={`Deals closed (${closeRate}%)`} value={dealsClosed} strong />
+          </div>
+
+          {/* Pipeline & revenue — always visible, shows $0 when no deal value */}
+          <div className="border-t border-white/6 pt-3 space-y-2">
+            <div className="text-gray-600 text-[10px] font-medium uppercase tracking-wider mb-2">Projected Value</div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-lg border border-white/8 bg-[#0c0c12] px-3 py-2.5">
+                <div className="text-gray-600 text-[10px] uppercase tracking-wider">Pipeline Value</div>
+                <div className="text-white font-bold text-lg tabular-nums mt-0.5">
+                  {formatCurrency(pipelineValue)}
+                </div>
+                <div className="text-gray-600 text-[10px] mt-0.5">
+                  {positiveReplies} qualified leads
+                </div>
+              </div>
+              <div className="rounded-lg border border-green-500/20 bg-green-500/5 px-3 py-2.5">
+                <div className="text-gray-600 text-[10px] uppercase tracking-wider">Est. Revenue</div>
+                <div className="text-green-400 font-bold text-lg tabular-nums mt-0.5">
+                  {formatCurrency(estimatedRevenue)}
+                </div>
+                <div className="text-gray-600 text-[10px] mt-0.5">
+                  {dealsClosed} closed deal{dealsClosed !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+
+            {roi > 0 && (
+              <div className="flex items-center justify-between rounded-lg border border-green-500/15 bg-green-500/5 px-3 py-2">
+                <span className="text-gray-400 text-xs">Return on investment</span>
+                <span className="text-green-400 font-bold text-base tabular-nums">{roi}x ROI</span>
+              </div>
+            )}
+
+            {dealValue === 0 && (
+              <p className="text-gray-600 text-[10px] italic">Enter your average deal value above to see projected pipeline and revenue.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FunnelRow({ label, value, highlight, strong }: {
+  label: string; value: number; highlight?: boolean; strong?: boolean
+}) {
+  return (
+    <div className="flex justify-between text-xs">
+      <span className="text-gray-500">{label}</span>
+      <span className={`tabular-nums ${
+        strong ? 'text-white font-semibold' : highlight ? 'text-gray-300 font-medium' : 'text-gray-400'
+      }`}>
+        {value.toLocaleString()}
+      </span>
+    </div>
+  )
+}
 
 function LineItemRow({ item }: { item: LineItem }) {
   return (
