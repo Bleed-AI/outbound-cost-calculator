@@ -3,6 +3,7 @@
 import { EPP_OPTIONS } from '@/lib/pricing'
 import { PRICING } from '@/lib/pricing.config'
 import { SectionCard } from '@/components/SectionCard'
+import { CampaignVolumeIllustration } from '@/components/SectionIllustrations'
 import type { LeadsPerMonth, EmailsPerProspect } from '@/lib/types'
 
 const SLIDER_MIN = 2000
@@ -49,21 +50,22 @@ export function CampaignVolumeSection({
     <SectionCard
       title="Campaign Volume"
       description="How many leads do you want to reach per month, and how many follow-up emails per prospect?"
+      illustration={<CampaignVolumeIllustration />}
     >
       {/* Leads per month — free-range slider */}
       <div className="mb-6">
-        <label className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3 block">
+        <label className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider mb-3 block">
           Leads per Month
         </label>
 
         {/* Current value + discount badge */}
         <div className="flex items-baseline gap-2 mb-3">
-          <span className="text-white text-2xl font-bold tabular-nums">
+          <span className="text-[var(--color-text)] text-2xl font-bold tabular-nums">
             {leads.toLocaleString()}
           </span>
-          <span className="text-gray-400 text-sm">leads / month</span>
+          <span className="text-[var(--color-text-muted)] text-sm">leads / month</span>
           {discountPct > 0 && (
-            <span className="ml-1 bg-green-500/15 text-green-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+            <span className="ml-1 bg-[var(--color-success-bg)] text-[var(--color-success)] text-xs font-semibold px-2 py-0.5 rounded-full">
               -{discountPct}% volume discount
             </span>
           )}
@@ -95,10 +97,10 @@ export function CampaignVolumeSection({
                 className="absolute flex flex-col items-center"
                 style={{ left: `${pos}%`, transform: 'translateX(-50%)' }}
               >
-                <span className={`text-[9px] font-semibold ${isUnlocked ? 'text-green-400' : 'text-gray-700'}`}>
+                <span className={`text-[9px] font-semibold ${isUnlocked ? 'text-[var(--color-success)]' : 'text-[var(--color-text-ghost)]'}`}>
                   -{tier.pct}%
                 </span>
-                <span className={`text-[9px] ${isUnlocked ? 'text-gray-500' : 'text-gray-700'}`}>
+                <span className={`text-[9px] ${isUnlocked ? 'text-[var(--color-text-dim)]' : 'text-[var(--color-text-ghost)]'}`}>
                   {tier.label}
                 </span>
               </div>
@@ -109,7 +111,7 @@ export function CampaignVolumeSection({
 
       {/* Emails per prospect */}
       <div className="mb-5">
-        <label className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2 block">
+        <label className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider mb-2 block">
           Emails per Prospect
         </label>
         <div className="flex gap-2">
@@ -120,15 +122,15 @@ export function CampaignVolumeSection({
               <button
                 key={opt}
                 onClick={() => onEmailsChange(opt)}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-lg border text-sm transition-all ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-[var(--radius-inner)] border text-sm transition-all ${
                   isSelected
-                    ? 'border-[#B1130F] bg-[#B1130F]/10 text-white font-medium'
-                    : 'border-white/10 bg-[#050508] text-gray-400 hover:border-white/20 hover:text-gray-200'
+                    ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)] text-[var(--color-text)] font-medium'
+                    : 'border-[var(--color-border-hover)] bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text)]'
                 }`}
               >
                 {label}
                 {badge && (
-                  <span className="ml-1.5 text-[10px] text-[#e84040] font-semibold">{badge}</span>
+                  <span className="ml-1.5 text-[10px] text-[var(--color-brand)] font-semibold">{badge}</span>
                 )}
               </button>
             )
@@ -137,19 +139,19 @@ export function CampaignVolumeSection({
       </div>
 
       {/* Total email count */}
-      <div className="flex items-center gap-3 bg-[#050508] border border-white/8 rounded-lg px-4 py-3">
-        <div className="w-8 h-8 rounded-lg bg-[#B1130F]/15 flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-[#B1130F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="flex items-center gap-3 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-[var(--radius-inner)] px-4 py-3">
+        <div className="w-8 h-8 rounded-[var(--radius-inner)] bg-[var(--color-brand-muted)] flex items-center justify-center flex-shrink-0">
+          <svg className="w-4 h-4 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
         <div>
-          <div className="text-gray-500 text-xs">Monthly Email Capacity</div>
-          <div className="text-white font-bold text-lg tabular-nums">
+          <div className="text-[var(--color-text-dim)] text-xs">Monthly Email Capacity</div>
+          <div className="text-[var(--color-text)] font-bold text-lg tabular-nums">
             {totalEmails.toLocaleString()}
           </div>
         </div>
-        <div className="ml-auto text-gray-600 text-xs text-right">
+        <div className="ml-auto text-[var(--color-text-ghost)] text-xs text-right">
           {leads.toLocaleString()} leads<br />× {emailsPerProspect} emails
         </div>
       </div>

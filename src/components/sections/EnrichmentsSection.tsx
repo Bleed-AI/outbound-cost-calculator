@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { EnrichmentsIllustration } from '@/components/SectionIllustrations'
 import { RadioOption } from '@/components/RadioOption'
 import { PRICING } from '@/lib/pricing.config'
 import type { Enrichments } from '@/lib/types'
@@ -37,6 +38,7 @@ export function EnrichmentsSection({ value, onChange }: EnrichmentsSectionProps)
     <SectionCard
       title="Additional Enrichments"
       description="Does the lead data need enrichment before the campaign can launch?"
+      illustration={<EnrichmentsIllustration />}
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {

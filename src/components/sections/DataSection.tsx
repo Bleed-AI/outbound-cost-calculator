@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { LeadDataIllustration } from '@/components/SectionIllustrations'
 import { RadioOption } from '@/components/RadioOption'
 import { PRICING } from '@/lib/pricing.config'
 import type { DataSource } from '@/lib/types'
@@ -56,6 +57,7 @@ export function DataSection({ value, onChange }: DataSectionProps) {
     <SectionCard
       title="Lead Data Source"
       description="Who will source and provide the list of people to target?"
+      illustration={<LeadDataIllustration />}
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {
@@ -76,12 +78,12 @@ export function DataSection({ value, onChange }: DataSectionProps) {
       </div>
 
       {/* Social proof */}
-      <div className="mt-3 flex items-center gap-2 rounded-lg bg-white/[0.02] border border-white/6 px-3 py-2">
-        <svg className="w-3.5 h-3.5 text-[#B1130F] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="mt-3 flex items-center gap-2 rounded-[var(--radius-inner)] bg-[var(--color-surface-0)] border border-[var(--color-border)] px-3 py-2">
+        <svg className="w-3.5 h-3.5 text-[var(--color-brand)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
-        <span className="text-gray-500 text-[11px]">
-          Recent campaign: <span className="text-gray-400">241 qualified opportunities</span> from ~15k outreach sequences
+        <span className="text-[var(--color-text-dim)] text-[11px]">
+          Recent campaign: <span className="text-[var(--color-text-muted)]">241 qualified opportunities</span> from ~15k outreach sequences
         </span>
       </div>
     </SectionCard>

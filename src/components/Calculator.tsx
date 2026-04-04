@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { LazyMotion, domAnimation } from 'framer-motion'
 
 import { parseState, serializeState } from '@/lib/url-state'
 import { calculateTotal } from '@/lib/pricing'
@@ -29,14 +30,12 @@ function CalculatorContent() {
   )
   const [showOrder, setShowOrder] = useState(false)
 
-  // Derive share URL from current state (computed, not stored in state)
   const paramStr = serializeState(state)
   const shareUrl =
     typeof window !== 'undefined'
       ? window.location.origin + (paramStr ? `/?${paramStr}` : '/')
       : ''
 
-  // Sync URL whenever state changes
   useEffect(() => {
     const newUrl = paramStr ? `/?${paramStr}` : '/'
     router.replace(newUrl, { scroll: false })
@@ -57,80 +56,93 @@ function CalculatorContent() {
   const result = calculateTotal(state)
 
   return (
-    <>
-      <div className="max-w-3xl mx-auto px-4 pt-6 pb-28 space-y-3">
-        <MonthTypeSection
-          monthType={state.monthType}
-          inboxOwnership={state.inboxOwnership}
-          leads={state.leadsPerMonth}
-          emailsPerProspect={state.emailsPerProspect}
-          totalEmails={result.totalEmails}
-          pricingResult={result}
-          onMonthTypeChange={(v) => update('monthType', v)}
-          onInboxChange={(v) => update('inboxOwnership', v)}
-          onLeadsChange={(v) => update('leadsPerMonth', v)}
-          onEmailsChange={(v) => update('emailsPerProspect', v)}
-        />
+    <LazyMotion features={domAnimation}>
+      {/* Editorial split: sections left, breakdown sticky right */}
+      <div className="max-w-6xl mx-auto px-4 pt-6 pb-28 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-10 items-start">
 
-        {/* Campaign Volume — hidden for Scenario 3 (First Month + Branded), controlled inside MonthTypeSection */}
-        {!result.isFirstMonthBranded && (
-          <>
-            <SectionDivider label="Campaign Volume" />
-            <CampaignVolumeSection
-              leads={state.leadsPerMonth}
-              emailsPerProspect={state.emailsPerProspect}
-              totalEmails={result.totalEmails}
-              onLeadsChange={(v) => update('leadsPerMonth', v)}
-              onEmailsChange={(v) => update('emailsPerProspect', v)}
+        {/* ─── Left column: all sections ─── */}
+        <div className="space-y-3 min-w-0">
+          <MonthTypeSection
+            monthType={state.monthType}
+            inboxOwnership={state.inboxOwnership}
+            leads={state.leadsPerMonth}
+            emailsPerProspect={state.emailsPerProspect}
+            totalEmails={result.totalEmails}
+            pricingResult={result}
+            onMonthTypeChange={(v) => update('monthType', v)}
+            onInboxChange={(v) => update('inboxOwnership', v)}
+            onLeadsChange={(v) => update('leadsPerMonth', v)}
+            onEmailsChange={(v) => update('emailsPerProspect', v)}
+          />
+
+          {!result.isFirstMonthBranded && (
+            <>
+              <GroupLabel label="Campaign Volume" />
+              <CampaignVolumeSection
+                leads={state.leadsPerMonth}
+                emailsPerProspect={state.emailsPerProspect}
+                totalEmails={result.totalEmails}
+                onLeadsChange={(v) => update('leadsPerMonth', v)}
+                onEmailsChange={(v) => update('emailsPerProspect', v)}
+              />
+            </>
+          )}
+
+          <GroupLabel label="Lead Data" />
+          <DataSection value={state.dataSource} onChange={(v) => update('dataSource', v)} />
+          <EnrichmentsSection value={state.enrichments} onChange={(v) => update('enrichments', v)} />
+
+          <GroupLabel label="Campaign Strategy" />
+          <CopywritingSection value={state.copywriting} onChange={(v) => update('copywriting', v)} />
+          <CampaignsSection
+            value={state.campaigns}
+            leads={state.leadsPerMonth}
+            onChange={(v) => update('campaigns', v)}
+          />
+
+          <GroupLabel label="Operations" />
+          <ReplyHandlingSection
+            value={state.replyHandling}
+            onChange={(v) => update('replyHandling', v)}
+          />
+          <SupportSection
+            value={state.support}
+            baseTotal={result.baseTotal}
+            onChange={(v) => update('support', v)}
+          />
+
+          <GroupLabel label="Optional Add-Ons" />
+          <AddOnsSection
+            value={state.addOns}
+            totalEmails={result.totalEmails}
+            baseTotal={result.baseTotal}
+            onChange={updateAddOn}
+          />
+
+          {/* Mobile-only: CostBreakdown in flow */}
+          <div className="lg:hidden mt-6">
+            <GroupLabel label="Summary" />
+            <CostBreakdown
+              result={result}
+              coupon={state.coupon}
+              onCouponChange={(v) => update('coupon', v)}
+              onSubmit={() => setShowOrder(true)}
             />
-          </>
-        )}
+          </div>
+        </div>
 
-        <SectionDivider label="Lead Data" />
-
-        <DataSection value={state.dataSource} onChange={(v) => update('dataSource', v)} />
-        <EnrichmentsSection value={state.enrichments} onChange={(v) => update('enrichments', v)} />
-
-        <SectionDivider label="Campaign Strategy" />
-
-        <CopywritingSection value={state.copywriting} onChange={(v) => update('copywriting', v)} />
-        <CampaignsSection
-          value={state.campaigns}
-          leads={state.leadsPerMonth}
-          onChange={(v) => update('campaigns', v)}
-        />
-
-        <SectionDivider label="Operations" />
-
-        <ReplyHandlingSection
-          value={state.replyHandling}
-          onChange={(v) => update('replyHandling', v)}
-        />
-        <SupportSection
-          value={state.support}
-          baseTotal={result.baseTotal}
-          onChange={(v) => update('support', v)}
-        />
-
-        <SectionDivider label="Optional Add-Ons" />
-
-        <AddOnsSection
-          value={state.addOns}
-          totalEmails={result.totalEmails}
-          baseTotal={result.baseTotal}
-          onChange={updateAddOn}
-        />
-
-        <SectionDivider label="Summary" />
-
-        <CostBreakdown
-          result={result}
-          coupon={state.coupon}
-          onCouponChange={(v) => update('coupon', v)}
-          onSubmit={() => setShowOrder(true)}
-        />
+        {/* ─── Right column: sticky breakdown (desktop only) ─── */}
+        <div className="hidden lg:block sticky top-6">
+          <CostBreakdown
+            result={result}
+            coupon={state.coupon}
+            onCouponChange={(v) => update('coupon', v)}
+            onSubmit={() => setShowOrder(true)}
+          />
+        </div>
       </div>
 
+      {/* Floating total — mobile only (desktop has sticky breakdown) */}
       <FloatingTotal result={result} />
 
       {showOrder && (
@@ -141,16 +153,17 @@ function CalculatorContent() {
           onClose={() => setShowOrder(false)}
         />
       )}
-    </>
+    </LazyMotion>
   )
 }
 
-function SectionDivider({ label }: { label: string }) {
+function GroupLabel({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 pt-2">
-      <div className="flex-1 h-px bg-white/5" />
-      <span className="text-gray-600 text-[11px] font-medium uppercase tracking-widest">{label}</span>
-      <div className="flex-1 h-px bg-white/5" />
+    <div className="flex items-center gap-2.5 pt-4 pb-0.5 px-1">
+      <span className="w-1 h-1 rounded-full bg-[var(--color-brand)]" />
+      <span className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-[0.15em]">
+        {label}
+      </span>
     </div>
   )
 }
@@ -160,7 +173,7 @@ export function Calculator() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-gray-600 text-sm">Loading calculator...</div>
+          <div className="text-[var(--color-text-dim)] text-sm">Loading calculator...</div>
         </div>
       }
     >

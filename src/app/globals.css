@@ -1,21 +1,58 @@
 @import "tailwindcss";
 
 @theme {
+  /* Background hierarchy */
+  --color-bg: #06060a;
+  --color-surface-0: #0c0c14;
+  --color-surface-1: #111119;
+  --color-surface-2: #16161f;
+
+  /* Brand */
   --color-brand: #B1130F;
-  --color-brand-hover: #d41510;
-  --color-bg: #050508;
-  --color-surface: #0d0d14;
-  --color-surface-2: #13131e;
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --color-brand-hover: #cc1712;
+  --color-brand-muted: rgba(177, 19, 15, 0.12);
+
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-hover: rgba(255, 255, 255, 0.12);
+  --color-border-active: rgba(177, 19, 15, 0.4);
+
+  /* Text hierarchy */
+  --color-text: #f0f0f4;
+  --color-text-muted: #8b8b9e;
+  --color-text-dim: #5a5a6e;
+  --color-text-ghost: #3a3a4a;
+
+  /* Semantic */
+  --color-success: #34d399;
+  --color-success-bg: rgba(52, 211, 153, 0.06);
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), 'SF Mono', monospace;
+
+  /* Radii */
+  --radius-card: 1rem;
+  --radius-inner: 0.75rem;
+  --radius-button: 0.625rem;
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 500ms;
 }
 
 :root {
-  --background: #050508;
-  --foreground: #ffffff;
+  --background: #06060a;
+  --foreground: #f0f0f4;
 }
 
 body {
   background: var(--background);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(177, 19, 15, 0.04) 0%, transparent 70%);
   color: var(--foreground);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -50,4 +87,104 @@ body {
 /* Tabular numbers for all money displays */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Sticky breakdown scrollbar (thin, visible on hover) */
+.breakdown-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.breakdown-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.breakdown-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+.breakdown-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Custom range slider ───────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--color-surface-0);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  position: relative;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  cursor: grab;
+  border: 2px solid var(--color-surface-1);
+  box-shadow:
+    0 0 0 3px rgba(177, 19, 15, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow:
+    0 0 0 5px rgba(177, 19, 15, 0.2),
+    0 2px 12px rgba(177, 19, 15, 0.25);
+  transform: scale(1.1);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+  box-shadow:
+    0 0 0 4px rgba(177, 19, 15, 0.3),
+    0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-brand);
+  cursor: grab;
+  border: 2px solid var(--color-surface-1);
+  box-shadow:
+    0 0 0 3px rgba(177, 19, 15, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--color-surface-0);
+  border-radius: 3px;
+  border: none;
+}
+
+/* ── Glassmorphism noise texture ───────────────────────── */
+.glass-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  background-size: 128px;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* ── Ambient glow keyframe ─────────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
 }

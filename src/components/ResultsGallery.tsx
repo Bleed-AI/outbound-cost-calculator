@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { fadeUp, spring, modalBackdrop, modalContent } from '@/lib/motion'
 
 interface CampaignResult {
   title: string
@@ -91,82 +93,110 @@ const CAMPAIGNS: CampaignResult[] = [
 
 export function ResultsGallery() {
   const [activeModal, setActiveModal] = useState<CampaignResult | null>(null)
+  const sectionRef = useRef(null)
+  const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
 
   return (
     <>
-      <section className="bg-[#050508] border-t border-white/8 py-12">
-        <div className="max-w-5xl mx-auto px-4">
-          <p className="text-gray-500 text-xs font-medium uppercase tracking-widest mb-2">
-            Real Results
-          </p>
-          <h2 className="text-white text-2xl font-bold mb-8">Campaign Results</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {CAMPAIGNS.map((campaign, i) => (
-              <CampaignCard
-                key={i}
-                campaign={campaign}
-                onImageClick={() => setActiveModal(campaign)}
-              />
-            ))}
+      <section ref={sectionRef} className="bg-[var(--color-bg)] border-t border-[var(--color-border)] py-14">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
+            <p className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-[0.15em]">
+              Real Results
+            </p>
           </div>
+          <h2 className="text-[var(--color-text)] text-2xl font-bold mb-8 tracking-tight">Campaign Results</h2>
+
+          {/* Asymmetric bento grid */}
+          <motion.div
+            initial="hidden"
+            animate={isInView ? 'visible' : 'hidden'}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.08 } },
+            }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {CAMPAIGNS.map((campaign, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                transition={spring}
+                className={i === 0 ? 'sm:col-span-2 lg:col-span-2' : ''}
+              >
+                <CampaignCard
+                  campaign={campaign}
+                  featured={i === 0}
+                  onImageClick={() => setActiveModal(campaign)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {activeModal && (
-        <ImageModal campaign={activeModal} onClose={() => setActiveModal(null)} />
-      )}
+      <AnimatePresence>
+        {activeModal && (
+          <ImageModal campaign={activeModal} onClose={() => setActiveModal(null)} />
+        )}
+      </AnimatePresence>
     </>
   )
 }
 
 function CampaignCard({
   campaign,
+  featured,
   onImageClick,
 }: {
   campaign: CampaignResult
+  featured?: boolean
   onImageClick: () => void
 }) {
   return (
-    <div className="bg-[#0d0d14] border border-white/8 rounded-2xl overflow-hidden flex flex-col hover:border-white/15 transition-colors">
-      {/* Card header */}
-      <div className="px-5 pt-5 pb-4">
-        <h3 className="text-white font-semibold text-sm mb-1">{campaign.title}</h3>
-        <p className="text-gray-500 text-xs leading-relaxed">{campaign.headline}</p>
-      </div>
-
-      {/* Metrics grid */}
-      <div className="grid grid-cols-2 gap-px bg-white/5 border-t border-b border-white/5 mx-0">
-        {campaign.metrics.map((m, i) => (
-          <div
-            key={i}
-            className="bg-[#0d0d14] px-4 py-3"
-          >
-            <p className="text-[#B1130F] font-black text-lg leading-tight tabular-nums">{m.value}</p>
-            <p className="text-gray-500 text-[10px] mt-0.5 uppercase tracking-wide">{m.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Screenshot */}
-      <button
-        onClick={onImageClick}
-        className="relative flex-1 overflow-hidden group cursor-zoom-in"
-        aria-label={`View full screenshot for ${campaign.title}`}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={campaign.image}
-          alt={campaign.title}
-          className="w-full object-cover object-top"
-          style={{ maxHeight: '180px' }}
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
-            View full screenshot
-          </div>
+    <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px hover:border-[var(--color-border-hover)] transition-colors">
+      <div className="rounded-[calc(var(--radius-card)-1px)] bg-[var(--color-surface-1)] overflow-hidden flex flex-col h-full">
+        {/* Card header */}
+        <div className="px-5 pt-5 pb-4">
+          <h3 className="text-[var(--color-text)] font-semibold text-sm mb-1">{campaign.title}</h3>
+          <p className="text-[var(--color-text-dim)] text-xs leading-relaxed">{campaign.headline}</p>
         </div>
-      </button>
+
+        {/* Metrics grid */}
+        <div className={`grid gap-px bg-[var(--color-border)] border-t border-b border-[var(--color-border)] ${
+          featured ? 'grid-cols-4' : 'grid-cols-2'
+        }`}>
+          {campaign.metrics.map((m, i) => (
+            <div key={i} className="bg-[var(--color-surface-1)] px-4 py-3">
+              <p className="text-[var(--color-brand)] font-black text-lg leading-tight font-[family-name:var(--font-mono)] tabular-nums">
+                {m.value}
+              </p>
+              <p className="text-[var(--color-text-ghost)] text-[10px] mt-0.5 uppercase tracking-wide">{m.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Screenshot */}
+        <button
+          onClick={onImageClick}
+          className="relative flex-1 overflow-hidden group cursor-zoom-in"
+          aria-label={`View full screenshot for ${campaign.title}`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={campaign.image}
+            alt={campaign.title}
+            className="w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            style={{ maxHeight: featured ? '240px' : '180px' }}
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm">
+              View full screenshot
+            </div>
+          </div>
+        </button>
+      </div>
     </div>
   )
 }
@@ -177,50 +207,60 @@ function ImageModal({ campaign, onClose }: { campaign: CampaignResult; onClose: 
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
+      <motion.div
+        variants={modalBackdrop}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ duration: 0.2 }}
+        className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+      />
 
-      {/* Modal */}
-      <div
-        className="relative max-w-4xl w-full bg-[#0d0d14] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+      <motion.div
+        variants={modalContent}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={spring}
+        className="relative max-w-4xl w-full"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between px-6 py-4 border-b border-white/8">
-          <div>
-            <h3 className="text-white font-semibold">{campaign.title}</h3>
-            <p className="text-gray-500 text-xs mt-0.5">{campaign.headline}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-300 transition-colors p-1 ml-4 flex-shrink-0"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Metrics */}
-        <div className="grid grid-cols-4 gap-px bg-white/5 border-b border-white/5">
-          {campaign.metrics.map((m, i) => (
-            <div key={i} className="bg-[#0d0d14] px-5 py-4">
-              <p className="text-[#B1130F] font-black text-2xl leading-tight tabular-nums">{m.value}</p>
-              <p className="text-gray-500 text-[10px] mt-1 uppercase tracking-wide">{m.label}</p>
+        <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px">
+          <div className="rounded-[calc(var(--radius-card)-1px)] bg-[var(--color-surface-1)] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--color-border)]">
+              <div>
+                <h3 className="text-[var(--color-text)] font-semibold">{campaign.title}</h3>
+                <p className="text-[var(--color-text-dim)] text-xs mt-0.5">{campaign.headline}</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)] transition-colors p-1 ml-4 flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* Full screenshot */}
-        <div className="overflow-auto max-h-[60vh]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={campaign.image}
-            alt={campaign.title}
-            className="w-full"
-          />
+            {/* Metrics */}
+            <div className="grid grid-cols-4 gap-px bg-[var(--color-border)] border-b border-[var(--color-border)]">
+              {campaign.metrics.map((m, i) => (
+                <div key={i} className="bg-[var(--color-surface-1)] px-5 py-4">
+                  <p className="text-[var(--color-brand)] font-black text-2xl leading-tight font-[family-name:var(--font-mono)] tabular-nums">{m.value}</p>
+                  <p className="text-[var(--color-text-ghost)] text-[10px] mt-1 uppercase tracking-wide">{m.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Full screenshot */}
+            <div className="overflow-auto max-h-[60vh]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={campaign.image} alt={campaign.title} className="w-full" />
+            </div>
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

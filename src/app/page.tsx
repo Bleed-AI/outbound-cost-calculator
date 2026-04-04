@@ -4,7 +4,7 @@ import { Calculator } from '@/components/Calculator'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#050508]">
+    <div className="min-h-[100dvh] bg-[var(--color-bg)]">
       <Header />
       <main>
         <Calculator />

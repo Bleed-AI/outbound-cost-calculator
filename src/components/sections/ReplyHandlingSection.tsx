@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { ReplyHandlingIllustration } from '@/components/SectionIllustrations'
 import { RadioOption } from '@/components/RadioOption'
 import { PRICING } from '@/lib/pricing.config'
 import type { ReplyHandling } from '@/lib/types'
@@ -44,6 +45,7 @@ export function ReplyHandlingSection({ value, onChange }: ReplyHandlingSectionPr
     <SectionCard
       title="Reply Handling & Booking"
       description="How should positive replies and meeting bookings be managed?"
+      illustration={<ReplyHandlingIllustration />}
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => (

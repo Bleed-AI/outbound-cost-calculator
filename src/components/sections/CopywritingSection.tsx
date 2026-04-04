@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { CopywritingIllustration } from '@/components/SectionIllustrations'
 import { RadioOption } from '@/components/RadioOption'
 import { PRICING } from '@/lib/pricing.config'
 import type { CopywritingOption } from '@/lib/types'
@@ -32,6 +33,7 @@ export function CopywritingSection({ value, onChange }: CopywritingSectionProps)
     <SectionCard
       title="Copywriting Strategy"
       description="Do you have a finalised messaging strategy, or should BleedAI build it from scratch?"
+      illustration={<CopywritingIllustration />}
     >
       <div className="space-y-2">
         {OPTIONS.map((opt) => {

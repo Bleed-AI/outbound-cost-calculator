@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { CopywritingIllustration } from '@/components/SectionIllustrations'
 import { CAMPAIGNS_OPTIONS, includedCampaignTier } from '@/lib/pricing'
 import { PRICING } from '@/lib/pricing.config'
 import type { CampaignsCount, LeadsPerMonth } from '@/lib/types'
@@ -16,6 +17,7 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
     <SectionCard
       title="Campaign Strategy"
       description="How many parallel campaign strategies should BleedAI run? Each strategy can target a different ICP or test a different angle — your total lead volume is split between them."
+      illustration={<CopywritingIllustration />}
     >
       <div className="flex gap-2 mb-4">
         {CAMPAIGNS_OPTIONS.map((count) => {
@@ -28,10 +30,10 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
             <button
               key={count}
               onClick={() => onChange(count)}
-              className={`flex-1 py-3 rounded-lg border text-center transition-all ${
+              className={`flex-1 py-3 rounded-[var(--radius-inner)] border text-center transition-all ${
                 isSelected
-                  ? 'border-[#B1130F] bg-[#B1130F]/10 text-white'
-                  : 'border-white/10 bg-[#050508] text-gray-400 hover:border-white/20 hover:text-gray-200'
+                  ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)] text-[var(--color-text)]'
+                  : 'border-[var(--color-border-hover)] bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text)]'
               }`}
             >
               <div className="font-semibold text-sm">
@@ -39,11 +41,11 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
               </div>
               <div className="text-xs mt-0.5">
                 {isIncluded ? (
-                  <span className="text-green-400 font-semibold">Included</span>
+                  <span className="text-[var(--color-success)] font-semibold">Included</span>
                 ) : effectivePrice === 0 ? (
-                  <span className={isSelected ? 'text-[#e84040]' : 'text-gray-600'}>Included</span>
+                  <span className={isSelected ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-ghost)]'}>Included</span>
                 ) : (
-                  <span className={isSelected ? 'text-[#e84040]' : 'text-gray-600'}>
+                  <span className={isSelected ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-ghost)]'}>
                     +${effectivePrice}
                   </span>
                 )}
@@ -54,14 +56,14 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
       </div>
 
       {includedTier > 1 && (
-        <div className="bg-green-500/8 border border-green-500/20 rounded-lg px-4 py-3 flex gap-3 mb-4">
-          <div className="text-green-400 mt-0.5 flex-shrink-0">
+        <div className="bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.15)] rounded-[var(--radius-inner)] px-4 py-3 flex gap-3 mb-4">
+          <div className="text-[var(--color-success)] mt-0.5 flex-shrink-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-gray-400 text-xs leading-relaxed">
-            <span className="text-white font-medium">
+          <p className="text-[var(--color-text-muted)] text-xs leading-relaxed">
+            <span className="text-[var(--color-text)] font-medium">
               {includedTier === 3 ? '3' : '2'} campaign {includedTier === 3 ? 'strategies are' : 'strategies are'} included
             </span>{' '}
             at your selected lead volume — no additional charge.
@@ -70,16 +72,16 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
       )}
 
       {/* Tip callout */}
-      <div className="bg-[#B1130F]/8 border border-[#B1130F]/20 rounded-lg px-4 py-3 flex gap-3">
-        <div className="text-[#B1130F] mt-0.5 flex-shrink-0">
+      <div className="bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.2)] rounded-[var(--radius-inner)] px-4 py-3 flex gap-3">
+        <div className="text-[var(--color-brand)] mt-0.5 flex-shrink-0">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
               d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.347a2 2 0 01-1.414.587H9.657a2 2 0 01-1.414-.587l-.347-.347z"
             />
           </svg>
         </div>
-        <p className="text-gray-400 text-xs leading-relaxed">
-          <span className="text-white font-medium">Tip: </span>
+        <p className="text-[var(--color-text-muted)] text-xs leading-relaxed">
+          <span className="text-[var(--color-text)] font-medium">Tip: </span>
           If your offer is new or competes in a crowded market, multiple strategies typically yield far better results — each can target a different ICP or test a completely different messaging angle.
         </p>
       </div>

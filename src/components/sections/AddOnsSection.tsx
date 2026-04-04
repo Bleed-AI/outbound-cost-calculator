@@ -1,4 +1,5 @@
 import { SectionCard } from '@/components/SectionCard'
+import { AddOnsIllustration } from '@/components/SectionIllustrations'
 import { PRICING } from '@/lib/pricing.config'
 import type { AddOns } from '@/lib/types'
 
@@ -84,7 +85,7 @@ export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOn
   const showInfraNudge = infraRemaining > 0 && infraRemaining <= PRICING.infraWaiverThreshold * 0.3
 
   return (
-    <SectionCard title="Optional Add-Ons" description="Extras to enhance your campaign.">
+    <SectionCard title="Optional Add-Ons" description="Extras to enhance your campaign." illustration={<AddOnsIllustration />}>
       <div className="space-y-2">
         {ADDONS.map((addon) => {
           const isSelected = value[addon.key]
@@ -95,21 +96,21 @@ export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOn
           return (
             <label
               key={addon.key}
-              className={`flex items-start gap-4 p-4 rounded-lg cursor-pointer border transition-all duration-150 hover:border-white/20 ${
+              className={`flex items-start gap-4 p-4 rounded-[var(--radius-inner)] cursor-pointer border transition-all duration-150 hover:border-[var(--color-border-hover)] ${
                 isSelected
-                  ? 'border-[#B1130F] bg-[#B1130F]/8'
-                  : 'border-white/8 bg-[#050508]'
+                  ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)]'
+                  : 'border-[var(--color-border)] bg-[var(--color-bg)]'
               }`}
             >
               {/* Checkbox */}
               <div className="mt-0.5 flex-shrink-0">
                 <div
                   className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                    isSelected ? 'border-[#B1130F] bg-[#B1130F]' : 'border-gray-600'
+                    isSelected ? 'border-[var(--color-brand)] bg-[var(--color-brand)]' : 'border-[var(--color-text-ghost)]'
                   }`}
                 >
                   {isSelected && (
-                    <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-2.5 h-2.5 text-[var(--color-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -123,22 +124,22 @@ export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOn
               />
 
               <div className="flex-1 min-w-0">
-                <div className={`font-medium text-sm ${isSelected ? 'text-white' : 'text-gray-300'}`}>
+                <div className={`font-medium text-sm ${isSelected ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
                   {addon.label}
                 </div>
-                <p className="text-gray-500 text-xs leading-relaxed mt-1">{addon.description}</p>
+                <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mt-1">{addon.description}</p>
               </div>
 
               <div className="flex-shrink-0 text-right">
                 {originalPrice && (
-                  <div className="text-gray-600 text-xs line-through">{originalPrice}</div>
+                  <div className="text-[var(--color-text-ghost)] text-xs line-through">{originalPrice}</div>
                 )}
                 <div className={`font-semibold text-sm ${
-                  waived ? 'text-green-400' : isSelected ? 'text-[#e84040]' : 'text-gray-400'
+                  waived ? 'text-[var(--color-success)]' : isSelected ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-muted)]'
                 }`}>
                   {price}
                 </div>
-                <div className="text-gray-600 text-xs mt-0.5">{priceNote}</div>
+                <div className="text-[var(--color-text-ghost)] text-xs mt-0.5">{priceNote}</div>
               </div>
             </label>
           )
@@ -147,11 +148,11 @@ export function AddOnsSection({ value, totalEmails, baseTotal, onChange }: AddOn
 
       {/* Infra waiver unlock nudge */}
       {showInfraNudge && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg bg-green-500/5 border border-green-500/15 px-3 py-2">
-          <svg className="w-3.5 h-3.5 text-green-500/70 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="mt-3 flex items-center gap-2 rounded-[var(--radius-inner)] bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.15)] px-3 py-2">
+          <svg className="w-3.5 h-3.5 text-[var(--color-success)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
           </svg>
-          <span className="text-green-400/80 text-xs">
+          <span className="text-[var(--color-success)] text-xs">
             ${Math.ceil(infraRemaining).toLocaleString()} more to include infrastructure management free
           </span>
         </div>
