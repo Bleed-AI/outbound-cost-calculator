@@ -1,15 +1,9 @@
-'use client'
-
-import { motion } from 'framer-motion'
-
 interface RadioOptionProps {
   name: string
   value: string
   label: string
   description?: string
   price?: string
-  /** Stagger delay index for entrance animation (0-based). Omit for no stagger. */
-  index?: number
   priceNote?: string
   strikePrice?: string
   badge?: string
@@ -30,43 +24,29 @@ export function RadioOption({
   selected,
   onSelect,
   disabled,
-  index,
 }: RadioOptionProps) {
   return (
-    <motion.label
-      initial={index !== undefined ? { opacity: 0, y: 12 } : undefined}
-      animate={index !== undefined ? { opacity: 1, y: 0 } : undefined}
-      transition={index !== undefined
-        ? { type: 'spring', stiffness: 100, damping: 20, delay: (index ?? 0) * 0.06 }
-        : { type: 'spring', stiffness: 400, damping: 30 }
-      }
-      whileHover={disabled ? undefined : { scale: 1.005 }}
-      whileTap={disabled ? undefined : { scale: 0.995 }}
-      className={`flex items-start gap-4 p-4 rounded-[var(--radius-inner)] cursor-pointer border transition-all ${
-        disabled ? 'opacity-40 cursor-not-allowed' : ''
+    <label
+      className={`flex items-start gap-4 p-4 rounded-[var(--radius-inner)] cursor-pointer border transition-all duration-200 ease-[var(--ease-out-expo)] hover:scale-[1.005] active:scale-[0.995] ${
+        disabled ? 'opacity-40 cursor-not-allowed hover:scale-100 active:scale-100' : ''
       } ${
         selected
           ? 'border-[var(--color-border-active)] bg-[var(--color-surface-2)] shadow-[0_0_0_1px_rgba(177,19,15,0.1)]'
           : 'border-[var(--color-border)] bg-[var(--color-surface-0)] hover:border-[var(--color-border-hover)]'
       }`}
-      style={{ transitionDuration: 'var(--duration-normal)', transitionTimingFunction: 'var(--ease-out-expo)' }}
     >
       {/* Radio indicator */}
       <div className="mt-0.5 flex-shrink-0">
         <div
-          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
             selected ? 'border-[var(--color-brand)]' : 'border-[var(--color-text-ghost)]'
           }`}
-          style={{ transitionDuration: 'var(--duration-normal)' }}
         >
-          {selected && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-              className="w-2 h-2 rounded-full bg-[var(--color-brand)]"
-            />
-          )}
+          <div
+            className={`w-2 h-2 rounded-full bg-[var(--color-brand)] transition-transform duration-200 ease-[var(--ease-spring)] ${
+              selected ? 'scale-100' : 'scale-0'
+            }`}
+          />
         </div>
       </div>
 
@@ -109,6 +89,6 @@ export function RadioOption({
           {priceNote && <div className="text-[var(--color-text-ghost)] text-xs mt-0.5">{priceNote}</div>}
         </div>
       )}
-    </motion.label>
+    </label>
   )
 }

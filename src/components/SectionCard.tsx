@@ -1,21 +1,29 @@
 'use client'
 
-import { useRef, type ReactNode } from 'react'
-import { motion, useInView } from 'framer-motion'
-import { fadeUp, spring } from '@/lib/motion'
+import { useRef, useState, useEffect, type ReactNode } from 'react'
 
 interface SectionCardProps {
   title: string
   description?: string
   optional?: boolean
   children: ReactNode
-  delay?: number
   illustration?: ReactNode
 }
 
-export function SectionCard({ title, description, optional, children, delay = 0, illustration }: SectionCardProps) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-60px' })
+export function SectionCard({ title, description, optional, children, illustration }: SectionCardProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { rootMargin: '-60px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <div className="space-y-2" ref={ref}>
@@ -30,12 +38,11 @@ export function SectionCard({ title, description, optional, children, delay = 0,
         )}
       </div>
 
-      {/* Double-bezel card with glass accent */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate={isInView ? 'visible' : 'hidden'}
-        transition={{ ...spring, delay }}
+      {/* Double-bezel card with CSS-only scroll reveal */}
+      <div
+        className={`transition-all duration-500 ease-[var(--ease-out-expo)] ${
+          visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
+        }`}
       >
         {/* Outer bezel */}
         <div className="relative rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px overflow-hidden">
@@ -57,7 +64,7 @@ export function SectionCard({ title, description, optional, children, delay = 0,
             <div className="relative">{children}</div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
