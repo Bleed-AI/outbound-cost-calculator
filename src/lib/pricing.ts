@@ -341,22 +341,32 @@ export function calculateTotal(state: SelectionState): PricingResult {
     .filter((i) => i.type === 'addon')
     .reduce((s, i) => s + i.amount, 0))
 
-  const monthlyRecurringTotal = fmt(sumMonthly(lineItems))
-  const oneTimeTotal = fmt(lineItems
+  // Raw split of line items by period — before coupon and Upwork fee.
+  const monthlyRecurringRaw = sumMonthly(lineItems)
+  const oneTimeRaw = lineItems
     .filter((i) => i.period === 'one-time')
-    .reduce((s, i) => s + i.amount, 0))
+    .reduce((s, i) => s + i.amount, 0)
 
   const discountAmount = fmt(variableSubtotalBeforeDiscount * discountPercent)
 
-  // Grand pre-discount total = all monthly recurring + all one-time fees.
-  // (Equivalent to the old formula, which was sum-by-type.)
-  const preDiscountTotal = fmt(monthlyRecurringTotal + oneTimeTotal)
+  // Pre-discount grand total = all monthly recurring + all one-time fees.
+  const preDiscountTotal = fmt(monthlyRecurringRaw + oneTimeRaw)
 
   const couponPercent = COUPON_CODES[state.coupon?.toUpperCase?.() ?? ''] ?? 0
   const couponDiscountAmount = couponPercent > 0 ? fmt(preDiscountTotal * (couponPercent / 100)) : 0
   const afterDiscounts = fmt(preDiscountTotal - couponDiscountAmount)
   const upworkFeeAmount = state.upworkFee ? fmt(afterDiscounts * (UPWORK_FEE_PERCENT / 100)) : 0
   const total = fmt(afterDiscounts + upworkFeeAmount)
+
+  // Split the final `total` proportionally between monthly and one-time.
+  // Both the Pilot card and Month 2+ card read these fields, so they must
+  // include coupon discount AND Upwork fee — otherwise the cards silently
+  // drift from the grand total when those surcharges are toggled.
+  // Computing oneTime as a subtraction guarantees monthly + oneTime === total.
+  const rawSum = monthlyRecurringRaw + oneTimeRaw
+  const monthlyRatio = rawSum > 0 ? monthlyRecurringRaw / rawSum : 1
+  const monthlyRecurringTotal = fmt(total * monthlyRatio)
+  const oneTimeTotal = fmt(total - monthlyRecurringTotal)
 
   return {
     lineItems,

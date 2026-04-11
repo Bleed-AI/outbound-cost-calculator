@@ -30,10 +30,15 @@ const PERIOD_LABELS: Record<string, string> = {
 export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpworkFeeChange, onSubmit }: CostBreakdownProps) {
   const { lineItems, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent, upworkFeeAmount, totalEmails } = result
 
+  // For the individual line item listing we still split by period.
   const monthlyItems = lineItems.filter((i) => i.period === 'monthly')
   const oneTimeItems = lineItems.filter((i) => i.period === 'one-time')
-  const monthlySubtotal = monthlyItems.reduce((s, i) => s + i.amount, 0)
-  const oneTimeSubtotal = oneTimeItems.reduce((s, i) => s + i.amount, 0)
+
+  // For the summary rows under Campaign Total we use the final
+  // (post-coupon, post-Upwork) split so the two rows always sum to `total`.
+  // Using raw lineItems sums here would silently drift under any surcharge.
+  const monthlySubtotal = result.monthlyRecurringTotal
+  const oneTimeSubtotal = result.oneTimeTotal
 
   // Defer contract dates to client to avoid hydration mismatch (new Date() differs server vs client)
   const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)

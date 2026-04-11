@@ -327,6 +327,65 @@ describe('monthlyRecurringTotal / oneTimeTotal split', () => {
     expect(r.monthlyRecurringTotal + r.oneTimeTotal).toBeCloseTo(r.total, 2)
   })
 
+  it('REGRESSION: Upwork fee flows into monthlyRecurringTotal + oneTimeTotal', () => {
+    // Bug: when upworkFee=true, pricingResult.total bumped up by 10% but
+    // monthlyRecurringTotal / oneTimeTotal stayed at the pre-fee raw sums.
+    // The Month 2+ card read the stale field and didn't update when clients
+    // toggled Paying via Upwork. Both fields must include the fee so the
+    // sum always equals `total` across all surcharge combinations.
+    const base = state({
+      leadsPerMonth: 5000,
+      inboxOwnership: 'user_domains',
+      addOns: { ...DEFAULT_STATE.addOns, instantlySetup: true, landingPage: true },
+    })
+
+    const withoutUpwork = calculateTotal({ ...base, upworkFee: false })
+    const withUpwork = calculateTotal({ ...base, upworkFee: true })
+
+    // Invariant: monthly + oneTime === total, always, regardless of surcharges.
+    expect(withoutUpwork.monthlyRecurringTotal + withoutUpwork.oneTimeTotal)
+      .toBeCloseTo(withoutUpwork.total, 2)
+    expect(withUpwork.monthlyRecurringTotal + withUpwork.oneTimeTotal)
+      .toBeCloseTo(withUpwork.total, 2)
+
+    // Monthly recurring must scale by ~10% when Upwork is toggled on.
+    expect(withUpwork.monthlyRecurringTotal).toBeCloseTo(withoutUpwork.monthlyRecurringTotal * 1.10, 1)
+    expect(withUpwork.oneTimeTotal).toBeCloseTo(withoutUpwork.oneTimeTotal * 1.10, 1)
+  })
+
+  it('REGRESSION: coupon flows into monthlyRecurringTotal + oneTimeTotal', () => {
+    // Same invariant with a coupon applied. Both figures must reflect
+    // the discounted amounts so the Pilot card split and Month 2+ recurring
+    // figure match the grand total the client actually pays.
+    const base = state({
+      leadsPerMonth: 5000,
+      addOns: { ...DEFAULT_STATE.addOns, landingPage: true },
+    })
+    const withoutCoupon = calculateTotal(base)
+    const withCoupon = calculateTotal({ ...base, coupon: 'NEW5' })
+
+    expect(withCoupon.monthlyRecurringTotal + withCoupon.oneTimeTotal)
+      .toBeCloseTo(withCoupon.total, 2)
+
+    // Monthly recurring scales down by 5% with NEW5.
+    expect(withCoupon.monthlyRecurringTotal).toBeCloseTo(withoutCoupon.monthlyRecurringTotal * 0.95, 1)
+    expect(withCoupon.oneTimeTotal).toBeCloseTo(withoutCoupon.oneTimeTotal * 0.95, 1)
+  })
+
+  it('REGRESSION: coupon + Upwork combined — invariant still holds', () => {
+    // Belt and braces: both surcharges on at once. Monthly + oneTime must
+    // still sum to total.
+    const r = calculateTotal(state({
+      leadsPerMonth: 7500,
+      addOns: { ...DEFAULT_STATE.addOns, landingPage: true, instantlySetup: true, linkedin: true },
+      coupon: 'VIP15',
+      upworkFee: true,
+    }))
+    expect(r.monthlyRecurringTotal + r.oneTimeTotal).toBeCloseTo(r.total, 2)
+    expect(r.couponDiscountAmount).toBeGreaterThan(0)
+    expect(r.upworkFeeAmount).toBeGreaterThan(0)
+  })
+
   it('REGRESSION: pilot total vs Month 2+ recurring must differ by the one-time amount + ramp savings', () => {
     // The user's reported URL: l=5000&i=user_domains&ca=1&is=1&lp=1
     // Before the fix, the Month 2+ card was showing `.total` (including one-time
