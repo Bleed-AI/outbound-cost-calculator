@@ -30,6 +30,7 @@ interface OrderPayload {
   couponDiscountAmount: number
   couponDiscountPercent: number
   couponCode: string
+  upworkFeeAmount: number
   totalEmails: number
   shareUrl: string
 }
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
     couponDiscountAmount,
     couponDiscountPercent,
     couponCode,
+    upworkFeeAmount,
     totalEmails,
     shareUrl,
   } = payload
@@ -71,9 +73,10 @@ export async function POST(req: NextRequest) {
   const fullName = `${firstName} ${lastName}`
   const formattedTotal = fmt(total)
 
-  const fixedItems = lineItems.filter((i) => i.type === 'fixed')
-  const variableItems = lineItems.filter((i) => i.type === 'variable')
-  const addonItems = lineItems.filter((i) => i.type === 'addon')
+  const monthlyItems = lineItems.filter((i) => i.period === 'monthly')
+  const oneTimeItems = lineItems.filter((i) => i.period === 'one-time')
+  const monthlySubtotal = monthlyItems.reduce((s, i) => s + i.amount, 0)
+  const oneTimeSubtotal = oneTimeItems.reduce((s, i) => s + i.amount, 0)
 
   const clientHtml = buildEmail({
     title: 'Your Campaign Order',
@@ -91,12 +94,14 @@ export async function POST(req: NextRequest) {
       ])}
 
       <!-- Line items -->
-      ${buildLineItemSection('Fixed Costs', fixedItems)}
-      ${buildLineItemSection('Variable Costs', variableItems, discountPercent)}
-      ${buildLineItemSection('Add-Ons', addonItems)}
+      ${buildLineItemSection('Monthly / Recurring', monthlyItems, discountPercent)}
+      ${buildLineItemSection('One-Time Costs', oneTimeItems)}
+
+      <!-- Subtotals -->
+      ${buildSubtotals(monthlySubtotal, oneTimeSubtotal, totalEmails)}
 
       <!-- Discounts -->
-      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
+      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode, upworkFeeAmount)}
 
       <!-- Total -->
       ${buildTotalBar(formattedTotal)}
@@ -145,10 +150,10 @@ export async function POST(req: NextRequest) {
         { label: 'Emails', value: totalEmails.toLocaleString() },
       ])}
 
-      ${buildLineItemSection('Fixed Costs', fixedItems)}
-      ${buildLineItemSection('Variable Costs', variableItems, discountPercent)}
-      ${buildLineItemSection('Add-Ons', addonItems)}
-      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode)}
+      ${buildLineItemSection('Monthly / Recurring', monthlyItems, discountPercent)}
+      ${buildLineItemSection('One-Time Costs', oneTimeItems)}
+      ${buildSubtotals(monthlySubtotal, oneTimeSubtotal, totalEmails)}
+      ${buildDiscounts(discountAmount, discountPercent, couponDiscountAmount, couponDiscountPercent, couponCode, upworkFeeAmount)}
       ${buildTotalBar(formattedTotal)}
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
@@ -258,12 +263,38 @@ function buildLineItemSection(title: string, items: LineItem[], discountPercent?
   `
 }
 
+function buildSubtotals(monthlySubtotal: number, oneTimeSubtotal: number, totalEmails: number) {
+  const rows: string[] = []
+  if (monthlySubtotal > 0) {
+    rows.push(`
+      <tr>
+        <td style="padding:6px 0;color:#5a5a6e;font-size:12px;">
+          Monthly / Recurring
+          <span style="color:#3a3a4a;font-size:11px;">(for ${totalEmails.toLocaleString()} emails/mo)</span>
+        </td>
+        <td style="padding:6px 0;color:#8b8b9e;font-size:12px;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">${fmt(monthlySubtotal)}/mo</td>
+      </tr>
+    `)
+  }
+  if (oneTimeSubtotal > 0) {
+    rows.push(`
+      <tr>
+        <td style="padding:6px 0;color:#5a5a6e;font-size:12px;">One-Time</td>
+        <td style="padding:6px 0;color:#8b8b9e;font-size:12px;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">${fmt(oneTimeSubtotal)}</td>
+      </tr>
+    `)
+  }
+  if (rows.length === 0) return ''
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">${rows.join('')}</table>`
+}
+
 function buildDiscounts(
   discountAmount: number,
   discountPercent: number,
   couponDiscountAmount: number,
   couponDiscountPercent: number,
-  couponCode: string
+  couponCode: string,
+  upworkFeeAmount: number
 ) {
   let html = ''
 
@@ -283,6 +314,15 @@ function buildDiscounts(
           Coupon <span style="font-family:'SF Mono',SFMono-Regular,Menlo,monospace;background:#111119;padding:2px 8px;border-radius:4px;font-size:12px;color:#8b8b9e;">${couponCode}</span> (${couponDiscountPercent}% off)
         </span>
         <span style="color:#34d399;font-size:13px;font-weight:600;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">-${fmt(couponDiscountAmount)}</span>
+      </div>
+    `
+  }
+
+  if (upworkFeeAmount > 0) {
+    html += `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;">
+        <span style="color:#5a5a6e;font-size:13px;">Upwork platform fee (+10%)</span>
+        <span style="color:#8b8b9e;font-size:13px;font-weight:600;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">+${fmt(upworkFeeAmount)}</span>
       </div>
     `
   }

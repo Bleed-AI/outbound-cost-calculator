@@ -21,6 +21,7 @@ const P = {
   instantly: 'is',
   landing: 'lp',
   coupon: 'cp',
+  upwork: 'uw',
 } as const
 
 function valid<T extends string>(val: string | null, allowed: T[], fallback: T): T {
@@ -97,6 +98,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
       landingPage: params.get(P.landing) === '1',
     },
     coupon: params.get(P.coupon) ?? '',
+    upworkFee: params.get(P.upwork) === '1',
   }
 }
 
@@ -121,6 +123,7 @@ export function serializeState(state: SelectionState): string {
   if (state.addOns.instantlySetup) params.set(P.instantly, '1')
   if (state.addOns.landingPage) params.set(P.landing, '1')
   if (state.coupon) params.set(P.coupon, state.coupon)
+  if (state.upworkFee) params.set(P.upwork, '1')
 
   return params.toString()
 }

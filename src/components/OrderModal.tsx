@@ -59,6 +59,7 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
           couponDiscountAmount: result.couponDiscountAmount,
           couponDiscountPercent: result.couponDiscountPercent,
           couponCode: coupon,
+          upworkFeeAmount: result.upworkFeeAmount,
           totalEmails: result.totalEmails,
           shareUrl,
         }),
