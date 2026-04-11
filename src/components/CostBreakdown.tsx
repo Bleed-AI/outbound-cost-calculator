@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { formatCurrency, COUPON_CODES, getContractDates } from '@/lib/pricing'
+import { formatCurrency, COUPON_CODES, getContractDates, UPWORK_FEE_PERCENT } from '@/lib/pricing'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
 import { MagneticButton } from '@/components/MagneticButton'
 import type { PricingResult, LineItem } from '@/lib/types'
@@ -16,6 +16,8 @@ interface CostBreakdownProps {
   result: PricingResult
   coupon: string
   onCouponChange: (v: string) => void
+  upworkFee: boolean
+  onUpworkFeeChange: (v: boolean) => void
   onSubmit: () => void
 }
 
@@ -25,12 +27,13 @@ const PERIOD_LABELS: Record<string, string> = {
   'per-campaign': '/campaign',
 }
 
-export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: CostBreakdownProps) {
-  const { lineItems, fixedSubtotal, variableSubtotal, addonSubtotal, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent } = result
+export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpworkFeeChange, onSubmit }: CostBreakdownProps) {
+  const { lineItems, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent, upworkFeeAmount, totalEmails } = result
 
-  const fixedItems = lineItems.filter((i) => i.type === 'fixed')
-  const variableItems = lineItems.filter((i) => i.type === 'variable')
-  const addonItems = lineItems.filter((i) => i.type === 'addon')
+  const monthlyItems = lineItems.filter((i) => i.period === 'monthly')
+  const oneTimeItems = lineItems.filter((i) => i.period === 'one-time')
+  const monthlySubtotal = monthlyItems.reduce((s, i) => s + i.amount, 0)
+  const oneTimeSubtotal = oneTimeItems.reduce((s, i) => s + i.amount, 0)
 
   // Defer contract dates to client to avoid hydration mismatch (new Date() differs server vs client)
   const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)
@@ -62,7 +65,7 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
   }
 
   return (
-    <div className="lg:max-h-[calc(100dvh-3rem)] lg:overflow-y-auto breakdown-scroll">
+    <div>
       {/* Double-bezel card with glass accent */}
       <div className="relative rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px overflow-hidden">
         {/* Ambient glow */}
@@ -88,39 +91,28 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
 
           {/* Line items */}
           <div className="space-y-1 mb-4">
-            {fixedItems.length > 0 && (
+            {monthlyItems.length > 0 && (
               <>
                 <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-widest pt-1 pb-1">
-                  Fixed Costs
-                </div>
-                {fixedItems.map((item, i) => (
-                  <LineItemRow key={i} item={item} />
-                ))}
-              </>
-            )}
-
-            {variableItems.length > 0 && (
-              <>
-                <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-widest pt-3 pb-1">
-                  Variable Costs{discountPercent > 0 && ` (${discountPercent}% volume discount applied)`}
+                  Monthly / Recurring{discountPercent > 0 && ` (${discountPercent}% volume discount applied)`}
                   {result.isFirstMonthBranded && result.month1ActualEmails != null && (
                     <span className="ml-1 normal-case tracking-normal font-normal text-[var(--color-text-ghost)]">
                       — {result.month1ActualEmails.toLocaleString()} emails billed (month 1 ramp)
                     </span>
                   )}
                 </div>
-                {variableItems.map((item, i) => (
+                {monthlyItems.map((item, i) => (
                   <LineItemRow key={i} item={item} />
                 ))}
               </>
             )}
 
-            {addonItems.length > 0 && (
+            {oneTimeItems.length > 0 && (
               <>
                 <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-widest pt-3 pb-1">
-                  Add-Ons
+                  One-Time Costs
                 </div>
-                {addonItems.map((item, i) => (
+                {oneTimeItems.map((item, i) => (
                   <LineItemRow key={i} item={item} />
                 ))}
               </>
@@ -210,27 +202,63 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
             />
           </div>
 
-          {/* Breakdown by type */}
-          <div className="space-y-0.5 mb-5">
-            {fixedSubtotal > 0 && (
-              <div className="flex justify-between text-xs text-[var(--color-text-dim)]">
-                <span>Fixed (one-time)</span>
-                <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(fixedSubtotal)}</span>
+          {/* Breakdown by period */}
+          <div className="space-y-0.5 mb-4">
+            {monthlySubtotal > 0 && (
+              <div className="flex justify-between items-baseline text-xs text-[var(--color-text-dim)]">
+                <span>
+                  {result.isFirstMonthBranded ? 'Pilot Month Fee' : 'Monthly / Recurring'}
+                  <span className="text-[var(--color-text-ghost)] ml-1">
+                    {result.isFirstMonthBranded && result.month1ActualEmails != null
+                      ? `(for ${result.month1ActualEmails.toLocaleString()} ramp sends only)`
+                      : `(for ${totalEmails.toLocaleString()} emails/mo)`}
+                  </span>
+                </span>
+                <span className="font-[family-name:var(--font-mono)] tabular-nums">
+                  {formatCurrency(monthlySubtotal)}{result.isFirstMonthBranded ? '' : '/mo'}
+                </span>
               </div>
             )}
-            {variableSubtotal > 0 && (
+            {oneTimeSubtotal > 0 && (
               <div className="flex justify-between text-xs text-[var(--color-text-dim)]">
-                <span>Variable (volume-based)</span>
-                <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(variableSubtotal)}</span>
-              </div>
-            )}
-            {addonSubtotal > 0 && (
-              <div className="flex justify-between text-xs text-[var(--color-text-dim)]">
-                <span>Add-ons</span>
-                <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(addonSubtotal)}</span>
+                <span>One-Time</span>
+                <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(oneTimeSubtotal)}</span>
               </div>
             )}
           </div>
+
+          {/* Upwork fee toggle */}
+          <label className="flex items-center gap-2.5 mb-3 px-3 py-2 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] cursor-pointer hover:border-[var(--color-border-hover)] transition-colors">
+            <input
+              type="checkbox"
+              checked={upworkFee ?? false}
+              onChange={(e) => onUpworkFeeChange(e.target.checked)}
+              className="sr-only"
+            />
+            <span
+              className={`w-3.5 h-3.5 rounded-[3px] border flex-shrink-0 flex items-center justify-center transition-colors ${
+                upworkFee
+                  ? 'bg-[var(--color-brand)] border-[var(--color-brand)]'
+                  : 'border-[var(--color-border-hover)] bg-transparent'
+              }`}
+              aria-hidden="true"
+            >
+              {upworkFee && (
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </span>
+            <span className="text-[var(--color-text-dim)] text-xs flex-1">
+              Paying via Upwork
+              <span className="text-[var(--color-text-ghost)] ml-1">(+{UPWORK_FEE_PERCENT}% platform fee)</span>
+            </span>
+            {upworkFee && upworkFeeAmount > 0 && (
+              <span className="text-[var(--color-text-muted)] text-xs font-medium font-[family-name:var(--font-mono)] tabular-nums">
+                +{formatCurrency(upworkFeeAmount)}
+              </span>
+            )}
+          </label>
 
           {/* ROI Estimator */}
           <RoiEstimator totalEmails={result.totalEmails} campaignCost={total} />

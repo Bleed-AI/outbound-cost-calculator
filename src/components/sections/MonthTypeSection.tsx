@@ -92,6 +92,62 @@ function InfraEstimator({ emailsPerMonth }: { emailsPerMonth: number }) {
   )
 }
 
+// ── Collapsible provider cost disclosure ─────────────────────────────────────
+
+function ProviderCostDisclosure({
+  emailsPerMonth,
+  inboxes,
+  domains,
+}: {
+  emailsPerMonth: number
+  inboxes: number
+  domains: number
+}) {
+  const [open, setOpen] = useState(false)
+  const inboxRate = getInboxRate(inboxes)
+  const domainCost = domains * 12
+  const monthlyInboxCost = inboxes * inboxRate
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-3 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2.5 text-left hover:border-[var(--color-border-hover)] transition-colors group"
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          {/* Pulsing indicator */}
+          <span className="relative flex h-2 w-2 flex-shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-brand)] opacity-60"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-brand)]"></span>
+          </span>
+          <div className="min-w-0">
+            <div className="text-[var(--color-text-muted)] text-[11px] font-medium">
+              Infrastructure you rent directly
+              <span className="text-[var(--color-text-ghost)] font-normal"> &mdash; not on BleedAI&apos;s invoice</span>
+            </div>
+            <div className="text-[var(--color-text-ghost)] text-[10px] mt-0.5 tabular-nums">
+              &asymp;{fmtUSD(domainCost)} one-time + &asymp;{fmtUSD(monthlyInboxCost)}/mo &rarr; your inbox provider
+            </div>
+          </div>
+        </div>
+        <svg
+          className={`w-4 h-4 flex-shrink-0 text-[var(--color-text-ghost)] transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="mt-3">
+          <InfraEstimator emailsPerMonth={emailsPerMonth} />
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── EPP buttons ───────────────────────────────────────────────────────────────
 
 const EPP_LABELS: Record<number, { label: string; badge?: string }> = {
@@ -109,6 +165,8 @@ interface MonthTypeSectionProps {
   emailsPerProspect: EmailsPerProspect
   totalEmails: number
   pricingResult: PricingResult
+  /** Pricing result for the same config as a Normal Month — used by the "Month 2 onwards" card. */
+  month2Result: PricingResult | null
   onMonthTypeChange: (v: MonthType) => void
   onInboxChange: (v: InboxOwnership) => void
   onLeadsChange: (v: LeadsPerMonth) => void
@@ -126,6 +184,7 @@ export function MonthTypeSection({
   emailsPerProspect,
   totalEmails,
   pricingResult,
+  month2Result,
   onMonthTypeChange,
   onInboxChange,
   onLeadsChange,
@@ -151,6 +210,20 @@ export function MonthTypeSection({
   const capacityFillPct = Math.min(100, Math.max(0,
     ((capacityEmails - CAPACITY_SLIDER_MIN) / (CAPACITY_SLIDER_MAX - CAPACITY_SLIDER_MIN)) * 100
   ))
+
+  // Provider-billed costs (NOT on BleedAI's invoice) — shown as "+" rows inside
+  // the Pilot / Month 2 cards so clients understand these are separate from BleedAI fees.
+  const providerInboxRate = getInboxRate(capacityStats.inboxesNeeded)
+  const providerDomainOneTime = capacityStats.domainsNeeded * 12
+  const providerInboxMonthly = capacityStats.inboxesNeeded * providerInboxRate
+  const providerMonth1Total = providerDomainOneTime + providerInboxMonthly
+
+  // EPP toggle — collapsed by default when user picked the recommended "2 / prospect"
+  // (which is most cases); expanded automatically if they've chosen 1 or 3.
+  const [eppOpen, setEppOpen] = useState(emailsPerProspect !== 2)
+  useEffect(() => {
+    if (emailsPerProspect !== 2) setEppOpen(true)
+  }, [emailsPerProspect])
 
   // Setup fee display for Branded radio card
   const setupFeeDisplay = isFirstMonthBranded && pricingResult.brandedSetupFee != null
@@ -240,33 +313,27 @@ export function MonthTypeSection({
         ))}
       </div>
 
-      {/* ── Scenario 3 only: single unified panel ── */}
+      {/* ── Scenario 3 only: Pilot Month panel ── */}
       {isFirstMonthBranded && (
         <div className="mt-4 rounded-[var(--radius-card)] border border-[var(--color-border-hover)] bg-[var(--color-bg)] p-4 space-y-4">
 
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider">
-              Month 1 Setup &amp; Capacity
-            </div>
-            <div className="text-[var(--color-text-ghost)] text-[11px]">
-              Setup fee: <span className="text-[var(--color-text-muted)] font-medium">{formatCurrency(capacityStats.setupFee)}</span>
-              {capacityStats.inboxesNeeded > PRICING.brandedSetup.extraInboxThreshold && (
-                <span className="text-[var(--color-text-ghost)] ml-1">
-                  ($250 + {capacityStats.inboxesNeeded - PRICING.brandedSetup.extraInboxThreshold}×$2)
-                </span>
-              )}
-            </div>
+          <div className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider">
+            Your Pilot Month &mdash; What You&apos;re Paying For
           </div>
 
-          {/* Capacity slider */}
+          {/* Target capacity slider */}
           <div>
-            <div className="flex items-baseline gap-2 mb-1">
+            <div className="flex items-baseline gap-2 mb-1 flex-wrap">
+              <span className="text-[var(--color-text-ghost)] text-[10px] uppercase tracking-wider">Target capacity</span>
               <span className="text-[var(--color-text)] text-2xl font-bold tabular-nums">
                 {capacityEmails.toLocaleString()}
               </span>
-              <span className="text-[var(--color-text-muted)] text-sm">emails / month (month 2+ full capacity)</span>
+              <span className="text-[var(--color-text-muted)] text-sm">emails / month</span>
             </div>
+            <p className="text-[var(--color-text-ghost)] text-[11px] mb-2 leading-relaxed">
+              We size your infrastructure for this volume. <strong className="text-[var(--color-text-dim)]">Month 1 sends only a fraction</strong> during the 14-day ramp &mdash; then hits full target from month 2 onwards.
+            </p>
             <input
               type="range"
               min={CAPACITY_SLIDER_MIN}
@@ -285,78 +352,163 @@ export function MonthTypeSection({
             </p>
           </div>
 
-          {/* Emails per prospect */}
-          <div>
-            <div className="text-[var(--color-text-dim)] text-xs font-medium uppercase tracking-wider mb-2">
-              Emails per Prospect
-            </div>
-            <div className="flex gap-2">
-              {EPP_OPTIONS.map((opt) => {
-                const { label, badge } = EPP_LABELS[opt]
-                const isSelected = emailsPerProspect === opt
-                return (
+          {/* Emails per prospect — collapsed by default when EPP=2 (recommended) */}
+          {eppOpen ? (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[var(--color-text-dim)] text-xs font-medium uppercase tracking-wider">
+                  Emails per Prospect
+                </div>
+                {emailsPerProspect === 2 && (
                   <button
-                    key={opt}
-                    onClick={() => onEmailsChange(opt)}
-                    className={`flex-1 px-3 py-2 rounded-[var(--radius-inner)] border text-xs transition-all ${
-                      isSelected
-                        ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)] text-[var(--color-text)] font-medium'
-                        : 'border-[var(--color-border-hover)] bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text)]'
-                    }`}
+                    type="button"
+                    onClick={() => setEppOpen(false)}
+                    className="text-[var(--color-text-ghost)] hover:text-[var(--color-text-muted)] text-[10px] transition-colors"
                   >
-                    {label}
-                    {badge && (
-                      <span className="ml-1 text-[10px] text-[var(--color-brand)] font-semibold">{badge}</span>
-                    )}
+                    collapse
                   </button>
-                )
-              })}
+                )}
+              </div>
+              <div className="flex gap-2">
+                {EPP_OPTIONS.map((opt) => {
+                  const { label, badge } = EPP_LABELS[opt]
+                  const isSelected = emailsPerProspect === opt
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => onEmailsChange(opt)}
+                      className={`flex-1 px-3 py-2 rounded-[var(--radius-inner)] border text-xs transition-all ${
+                        isSelected
+                          ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)] text-[var(--color-text)] font-medium'
+                          : 'border-[var(--color-border-hover)] bg-[var(--color-bg)] text-[var(--color-text-muted)] hover:border-[var(--color-border-hover)] hover:text-[var(--color-text)]'
+                      }`}
+                    >
+                      {label}
+                      {badge && (
+                        <span className="ml-1 text-[10px] text-[var(--color-brand)] font-semibold">{badge}</span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEppOpen(true)}
+              className="w-full flex items-center justify-between gap-3 rounded-[var(--radius-inner)] border border-dashed border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2 text-left hover:border-[var(--color-border-hover)] transition-colors"
+            >
+              <div className="flex items-baseline gap-2 min-w-0">
+                <span className="text-[var(--color-text-muted)] text-xs font-medium">2 Emails / Prospect</span>
+                <span className="text-[var(--color-brand)] text-[10px] font-semibold">Recommended</span>
+              </div>
+              <span className="text-[var(--color-text-ghost)] text-[10px]">click to change</span>
+            </button>
+          )}
+
+          {/* ── Two-card layout: Pilot Month vs Month 2+ ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            {/* Pilot Month card */}
+            <div className="rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.35)] bg-[var(--color-brand-muted)] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[var(--color-brand)] text-[10px] font-semibold uppercase tracking-wider">
+                  Pilot Month
+                </div>
+                <div className="text-[var(--color-text-ghost)] text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full border border-[var(--color-border)]">
+                  One-time
+                </div>
+              </div>
+              <div>
+                <div className="text-[var(--color-text)] text-2xl md:text-[1.75rem] font-bold tabular-nums leading-none">
+                  {formatCurrency(pricingResult.total)}
+                </div>
+                <div className="text-[var(--color-text-dim)] text-[11px] mt-1.5">
+                  <span className="text-[var(--color-text-muted)]">&rarr; BleedAI</span> · billed once for pilot month
+                </div>
+              </div>
+              {/* Cost split: what makes up the pilot total */}
+              <div className="pt-2 border-t border-[rgba(177,19,15,0.2)] space-y-1">
+                <div className="flex items-baseline justify-between text-[11px]">
+                  <span className="text-[var(--color-text-dim)]">Monthly costs (ramp-billed)</span>
+                  <span className="text-[var(--color-text-muted)] font-medium tabular-nums">{formatCurrency(pricingResult.monthlyRecurringTotal)}</span>
+                </div>
+                {pricingResult.oneTimeTotal > 0 && (
+                  <div className="flex items-baseline justify-between text-[11px]">
+                    <span className="text-[var(--color-text-dim)]">One-time fees</span>
+                    <span className="text-[var(--color-text-muted)] font-medium tabular-nums">{formatCurrency(pricingResult.oneTimeTotal)}</span>
+                  </div>
+                )}
+              </div>
+              <ul className="text-[11px] text-[var(--color-text-muted)] space-y-1.5 pt-2 border-t border-[rgba(177,19,15,0.2)]">
+                <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">&#10003;</span><span>Infrastructure built &amp; warmed (14 days)</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">&#10003;</span><span><strong className="text-[var(--color-text)]">{capacityStats.month1ActualEmails.toLocaleString()} ramp-phase sends</strong> &mdash; billed on these, not your {capacityEmails.toLocaleString()} target</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">&#10003;</span><span>{formatCurrency(capacityStats.setupFee)} setup fee included</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">&#10003;</span><span>One-time add-ons paid now, never again</span></li>
+              </ul>
+              {/* Provider fee — paid directly, not on BleedAI invoice */}
+              <div className="rounded-[var(--radius-inner)] bg-[rgba(0,0,0,0.25)] border border-dashed border-[rgba(177,19,15,0.25)] px-3 py-2 mt-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider">+ to your inbox provider</span>
+                  <span className="text-[var(--color-text-muted)] text-xs font-semibold tabular-nums">{fmtUSD(providerMonth1Total)}</span>
+                </div>
+                <div className="text-[var(--color-text-ghost)] text-[10px] mt-0.5">
+                  {capacityStats.domainsNeeded} domain{capacityStats.domainsNeeded !== 1 ? 's' : ''} ({fmtUSD(providerDomainOneTime)} one-time) + {capacityStats.inboxesNeeded} inbox{capacityStats.inboxesNeeded !== 1 ? 'es' : ''} month 1 ({fmtUSD(providerInboxMonthly)})
+                </div>
+              </div>
+            </div>
+
+            {/* Month 2+ card */}
+            <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[var(--color-text-muted)] text-[10px] font-semibold uppercase tracking-wider">
+                  Month 2 Onwards
+                </div>
+                <div className="text-[var(--color-text-ghost)] text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full border border-[var(--color-border)]">
+                  Recurring
+                </div>
+              </div>
+              <div>
+                <div className="text-[var(--color-text)] text-2xl md:text-[1.75rem] font-bold tabular-nums leading-none">
+                  {month2Result ? formatCurrency(month2Result.monthlyRecurringTotal) : '—'}
+                </div>
+                <div className="text-[var(--color-text-dim)] text-[11px] mt-1.5">
+                  <span className="text-[var(--color-text-muted)]">&rarr; BleedAI</span> · recurring, every month
+                </div>
+              </div>
+              <ul className="text-[11px] text-[var(--color-text-muted)] space-y-1.5 pt-2 border-t border-[var(--color-border)]">
+                <li className="flex gap-2"><span className="text-[var(--color-text-dim)] flex-shrink-0">&#10003;</span><span><strong className="text-[var(--color-text)]">{capacityEmails.toLocaleString()} emails / month</strong> (full target)</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-text-dim)] flex-shrink-0">&#10003;</span><span>Full branded sending from day 1</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-text-dim)] flex-shrink-0">&#10003;</span><span>All selected add-ons &amp; support continue</span></li>
+                <li className="flex gap-2"><span className="text-[var(--color-text-dim)] flex-shrink-0">&#10003;</span><span>No setup fees after pilot</span></li>
+              </ul>
+              {/* Provider fee — paid directly, not on BleedAI invoice */}
+              <div className="rounded-[var(--radius-inner)] bg-[rgba(0,0,0,0.25)] border border-dashed border-[var(--color-border)] px-3 py-2 mt-1">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider">+ to your inbox provider</span>
+                  <span className="text-[var(--color-text-muted)] text-xs font-semibold tabular-nums">{fmtUSD(providerInboxMonthly)}/mo</span>
+                </div>
+                <div className="text-[var(--color-text-ghost)] text-[10px] mt-0.5">
+                  {capacityStats.inboxesNeeded} inbox{capacityStats.inboxesNeeded !== 1 ? 'es' : ''} &mdash; no new domain fees
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Timeline */}
+          {/* Timeline — compact context */}
           <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2.5 text-[11px] space-y-1">
-            <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-16 flex-shrink-0">Day 1</span><span className="text-[var(--color-text-dim)]">Infrastructure setup</span></div>
-            <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-16 flex-shrink-0">Days 2–15</span><span className="text-[var(--color-text-dim)]">Provider inbox warmup — zero outbound sends</span></div>
-            <div className="flex gap-2"><span className="text-[var(--color-brand)] w-16 flex-shrink-0">Days 16–29</span><span className="text-[var(--color-text-muted)]">Outbound ramp — <strong className="text-[var(--color-text)]">{capacityStats.month1ActualEmails.toLocaleString()} emails sent</strong></span></div>
+            <div className="text-[var(--color-text-dim)] text-[9px] uppercase tracking-wider mb-1.5 font-medium">Pilot Month Timeline</div>
+            <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Day 1</span><span className="text-[var(--color-text-dim)]">Infrastructure setup</span></div>
+            <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Days 2&ndash;15</span><span className="text-[var(--color-text-dim)]">Provider warmup &mdash; zero sends</span></div>
+            <div className="flex gap-2"><span className="text-[var(--color-brand)] w-20 flex-shrink-0">Days 16&ndash;29</span><span className="text-[var(--color-text-muted)]">Outbound ramp &mdash; <strong className="text-[var(--color-text)]">{capacityStats.month1ActualEmails.toLocaleString()} emails sent</strong></span></div>
           </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-4 gap-2">
-            <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2 text-center">
-              <div className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider">Inboxes</div>
-              <div className="text-[var(--color-text)] text-lg font-bold tabular-nums">{capacityStats.inboxesNeeded}</div>
-              <div className="text-[var(--color-text-ghost)] text-[10px]">{capacityStats.domainsNeeded} domain{capacityStats.domainsNeeded !== 1 ? 's' : ''}</div>
-            </div>
-            <div className="col-span-2 rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.2)] bg-[var(--color-brand-muted)] px-3 py-2 text-center">
-              <div className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider">Month 1 Emails Sent</div>
-              <div className="text-[var(--color-text)] text-lg font-bold tabular-nums">{capacityStats.month1ActualEmails.toLocaleString()}</div>
-              <div className="text-[var(--color-brand)] text-[10px] font-medium">billed on this</div>
-            </div>
-            <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2 text-center">
-              <div className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider">Setup Fee</div>
-              <div className="text-[var(--color-text)] text-lg font-bold tabular-nums">{formatCurrency(capacityStats.setupFee)}</div>
-              <div className="text-[var(--color-text-ghost)] text-[10px]">one-time</div>
-            </div>
-          </div>
-
-          <p className="text-[var(--color-text-ghost)] text-[11px] italic">
-            Month 1 billing is based on emails sent during the 14-day ramp phase only. Full sending capacity begins from month 2.
-          </p>
-
-          {/* Divider */}
-          <div className="border-t border-[var(--color-border)]" />
-
-          {/* Provider cost sub-section */}
-          <div>
-            <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-wider mb-3">
-              Your Provider Cost Estimate
-              <span className="ml-2 normal-case tracking-normal font-normal text-[var(--color-text-ghost)]">
-                (paid to your inbox provider — not included in BleedAI total)
-              </span>
-            </div>
-            <InfraEstimator emailsPerMonth={capacityEmails} />
-          </div>
+          {/* Collapsible provider cost section */}
+          <ProviderCostDisclosure
+            emailsPerMonth={capacityEmails}
+            inboxes={capacityStats.inboxesNeeded}
+            domains={capacityStats.domainsNeeded}
+          />
 
         </div>
       )}

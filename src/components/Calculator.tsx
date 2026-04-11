@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useLayoutEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { LazyMotion, domAnimation } from 'framer-motion'
 
@@ -55,6 +55,34 @@ function CalculatorContent() {
 
   const result = calculateTotal(state)
 
+  // For the Pilot Month + Branded scenario, also compute what the same
+  // configuration would cost as a Normal Month — so the "Month 2 onwards"
+  // card shows the exact recurring price the client will be billed from month 2.
+  const month2Result = result.isFirstMonthBranded
+    ? calculateTotal({ ...state, monthType: 'normal_month' })
+    : null
+
+  // Smooth sticky: always sticky, but dynamic `top` keeps the panel visible.
+  // When panel fits in viewport → pin to top (24px gap).
+  // When panel is taller than viewport → anchor so its bottom sits 24px above viewport bottom
+  // (so Campaign Total + Submit button are always visible as user scrolls).
+  const breakdownRef = useRef<HTMLDivElement>(null)
+  const [stickyTop, setStickyTop] = useState(24)
+  useLayoutEffect(() => {
+    const el = breakdownRef.current
+    if (!el) return
+    const update = () => {
+      const h = el.offsetHeight
+      const vh = window.innerHeight
+      setStickyTop(h + 48 <= vh ? 24 : vh - h - 24)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    window.addEventListener('resize', update)
+    return () => { ro.disconnect(); window.removeEventListener('resize', update) }
+  }, [])
+
   return (
     <LazyMotion features={domAnimation}>
       {/* Editorial split: sections left, breakdown sticky right */}
@@ -69,6 +97,7 @@ function CalculatorContent() {
             emailsPerProspect={state.emailsPerProspect}
             totalEmails={result.totalEmails}
             pricingResult={result}
+            month2Result={month2Result}
             onMonthTypeChange={(v) => update('monthType', v)}
             onInboxChange={(v) => update('inboxOwnership', v)}
             onLeadsChange={(v) => update('leadsPerMonth', v)}
@@ -126,17 +155,25 @@ function CalculatorContent() {
               result={result}
               coupon={state.coupon}
               onCouponChange={(v) => update('coupon', v)}
+              upworkFee={state.upworkFee}
+              onUpworkFeeChange={(v) => update('upworkFee', v)}
               onSubmit={() => setShowOrder(true)}
             />
           </div>
         </div>
 
         {/* ─── Right column: sticky breakdown (desktop only) ─── */}
-        <div className="hidden lg:block sticky top-6">
+        <div
+          ref={breakdownRef}
+          className="hidden lg:block lg:sticky transition-[top] duration-300 ease-out"
+          style={{ top: `${stickyTop}px` }}
+        >
           <CostBreakdown
             result={result}
             coupon={state.coupon}
             onCouponChange={(v) => update('coupon', v)}
+            upworkFee={state.upworkFee}
+            onUpworkFeeChange={(v) => update('upworkFee', v)}
             onSubmit={() => setShowOrder(true)}
           />
         </div>

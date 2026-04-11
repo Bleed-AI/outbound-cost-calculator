@@ -34,7 +34,10 @@ export const DEFAULT_STATE: SelectionState = {
     landingPage: false,
   },
   coupon: '',
+  upworkFee: false,
 }
+
+export const UPWORK_FEE_PERCENT = 10
 
 export const LEADS_OPTIONS: LeadsPerMonth[] = [2000, 4000, 7500, 10000, 20000, 40000]
 
@@ -137,7 +140,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
         : 'Copywriting — Full Strategy + A/B Testing',
     amount: PRICING.copywriting[state.copywriting as CopywritingOption],
     type: 'fixed',
-    period: 'one-time',
+    period: 'monthly',
   })
 
   // Campaign strategy — cost reduced by included tiers
@@ -152,7 +155,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
       label: `${state.campaigns} Campaign Strateg${state.campaigns > 1 ? 'ies' : 'y'}${campaignsCost === 0 ? ' (Included)' : ''}`,
       amount: campaignsCost,
       type: 'fixed',
-      period: 'one-time',
+      period: 'monthly',
     })
   }
 
@@ -176,7 +179,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
     })${isFirstMonthBranded ? ` — ${billingEmails.toLocaleString()} emails billed (ramp phase)` : ''}`,
     amount: fmt(inboxCostRaw * multiplier),
     type: 'variable',
-    period: 'one-time',
+    period: 'monthly',
   })
 
   const dataCostRaw = (state.leadsPerMonth / 1000) * dataRate
@@ -192,7 +195,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
     label: `${dataLabels[state.dataSource]} — $${dataRate}/1k leads`,
     amount: fmt(dataCostRaw * multiplier),
     type: 'variable',
-    period: 'one-time',
+    period: 'monthly',
   })
 
   if (enrichRate > 0) {
@@ -205,7 +208,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
       })`,
       amount: fmt(enrichCostRaw * multiplier),
       type: 'variable',
-      period: 'one-time',
+      period: 'monthly',
     })
   }
 
@@ -219,7 +222,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
       })${isFirstMonthBranded ? ` — ${billingEmails.toLocaleString()} emails billed` : ''}`,
       amount: fmt(replyCostRaw * multiplier),
       type: 'variable',
-      period: 'one-time',
+      period: 'monthly',
     })
   }
 
@@ -275,43 +278,40 @@ export function calculateTotal(state: SelectionState): PricingResult {
     })
   }
 
-  // ── Subtotals before infra management ────────────────────────────────────
+  // ── Threshold base is RECURRING SPEND ONLY ───────────────────────────────
+  // One-time fees (branded setup, n8n setup, instantly setup, drip one-time,
+  // landing page) must NOT count toward the monthly-recurring thresholds
+  // that waive support and infra management — they're one-off costs that
+  // don't reflect ongoing spend. We filter line items by `period === 'monthly'`
+  // for all waiver checks, while still including them in the grand total.
 
-  const fixedSubtotalPreSupport = lineItems
-    .filter((i) => i.type === 'fixed')
-    .reduce((s, i) => s + i.amount, 0)
+  const sumMonthly = (items: LineItem[]) =>
+    items.filter((i) => i.period === 'monthly').reduce((s, i) => s + i.amount, 0)
 
-  const variableSubtotal = lineItems
-    .filter((i) => i.type === 'variable')
-    .reduce((s, i) => s + i.amount, 0)
+  // Recurring spend BEFORE infra management is added — used for infra waiver
+  const recurringPreInfra = fmt(sumMonthly(lineItems))
 
-  const addonSubtotalPreInfra = lineItems
-    .filter((i) => i.type === 'addon')
-    .reduce((s, i) => s + i.amount, 0)
-
-  // ── Infrastructure Management add-on (per-1k, waived if base > $2k) ───────
-
-  const preInfraBase = fmt(fixedSubtotalPreSupport + variableSubtotal + addonSubtotalPreInfra)
   const infraCostRaw = fmt((billingEmails / 1000) * PRICING.addOns.infra_management)
-  const infraIsWaived = preInfraBase >= PRICING.infraWaiverThreshold
+  const infraIsWaived = recurringPreInfra >= PRICING.infraWaiverThreshold
 
   if (state.addOns.infraManagement) {
     lineItems.push({
-      label: `Infrastructure Management & Domain Rotation${infraIsWaived ? ' (Included — package > $2k)' : ''}`,
+      label: `Infrastructure Management & Domain Rotation${infraIsWaived ? ' (Included — recurring ≥ $2k/mo)' : ''}`,
       amount: infraIsWaived ? 0 : infraCostRaw,
       type: 'addon',
       period: 'monthly',
     })
   }
 
-  const addonSubtotal = addonSubtotalPreInfra + (state.addOns.infraManagement && !infraIsWaived ? infraCostRaw : 0)
+  // Recurring spend BEFORE support is added — used for support waiver.
+  // This is also what we return as `baseTotal` so the UI's "free if > $X"
+  // messages and nudges reflect the same recurring-only amount.
+  const recurringPreSupport = fmt(sumMonthly(lineItems))
+  const baseTotal = recurringPreSupport
 
-  // ── Support (may be free based on baseTotal) ──────────────────────────────
-
-  const baseTotal = fmt(fixedSubtotalPreSupport + variableSubtotal + addonSubtotal)
   const supportThresholds = PRICING.supportWaiverThresholds as Record<string, number>
   const supportThreshold = supportThresholds[state.support] ?? 0
-  const supportIsFree = baseTotal >= supportThreshold
+  const supportIsFree = recurringPreSupport >= supportThreshold
   const supportCost = supportIsFree ? 0 : PRICING.support[state.support as SupportTier]
 
   lineItems.push({
@@ -324,16 +324,39 @@ export function calculateTotal(state: SelectionState): PricingResult {
     }${supportIsFree ? ' (Included)' : ''}`,
     amount: supportCost,
     type: 'fixed',
-    period: 'per-campaign',
+    period: 'monthly',
   })
 
-  const fixedSubtotal = fixedSubtotalPreSupport + supportCost
+  // ── Final subtotals (after all line items pushed) ─────────────────────────
+
+  const fixedSubtotal = fmt(lineItems
+    .filter((i) => i.type === 'fixed')
+    .reduce((s, i) => s + i.amount, 0))
+
+  const variableSubtotal = lineItems
+    .filter((i) => i.type === 'variable')
+    .reduce((s, i) => s + i.amount, 0)
+
+  const addonSubtotal = fmt(lineItems
+    .filter((i) => i.type === 'addon')
+    .reduce((s, i) => s + i.amount, 0))
+
+  const monthlyRecurringTotal = fmt(sumMonthly(lineItems))
+  const oneTimeTotal = fmt(lineItems
+    .filter((i) => i.period === 'one-time')
+    .reduce((s, i) => s + i.amount, 0))
+
   const discountAmount = fmt(variableSubtotalBeforeDiscount * discountPercent)
-  const preDiscountTotal = fmt(baseTotal + supportCost)
+
+  // Grand pre-discount total = all monthly recurring + all one-time fees.
+  // (Equivalent to the old formula, which was sum-by-type.)
+  const preDiscountTotal = fmt(monthlyRecurringTotal + oneTimeTotal)
 
   const couponPercent = COUPON_CODES[state.coupon?.toUpperCase?.() ?? ''] ?? 0
   const couponDiscountAmount = couponPercent > 0 ? fmt(preDiscountTotal * (couponPercent / 100)) : 0
-  const total = fmt(preDiscountTotal - couponDiscountAmount)
+  const afterDiscounts = fmt(preDiscountTotal - couponDiscountAmount)
+  const upworkFeeAmount = state.upworkFee ? fmt(afterDiscounts * (UPWORK_FEE_PERCENT / 100)) : 0
+  const total = fmt(afterDiscounts + upworkFeeAmount)
 
   return {
     lineItems,
@@ -344,12 +367,15 @@ export function calculateTotal(state: SelectionState): PricingResult {
     discountAmount,
     discountPercent: discountPercent * 100,
     total,
+    monthlyRecurringTotal,
+    oneTimeTotal,
     totalEmails,
     baseTotal,
     supportIsFree,
     supportThreshold,
     couponDiscountAmount,
     couponDiscountPercent: couponPercent,
+    upworkFeeAmount,
     ...(isFirstMonthBranded && {
       isFirstMonthBranded: true,
       month1ActualEmails,

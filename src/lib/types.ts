@@ -37,6 +37,7 @@ export interface SelectionState {
   support: SupportTier
   addOns: AddOns
   coupon: string
+  upworkFee: boolean
 }
 
 export interface LineItem {
@@ -55,12 +56,17 @@ export interface PricingResult {
   discountAmount: number
   discountPercent: number
   total: number
+  /** Sum of line items with period === 'monthly' (includes support). The "recurring" figure. */
+  monthlyRecurringTotal: number
+  /** Sum of line items with period === 'one-time'. Pays once, doesn't recur. */
+  oneTimeTotal: number
   totalEmails: number        // full capacity emails (leads × epp)
   baseTotal: number          // total before support cost (used for support waiver logic)
   supportIsFree: boolean
   supportThreshold: number   // threshold that triggered the waiver (0 if not free)
   couponDiscountAmount: number
   couponDiscountPercent: number
+  upworkFeeAmount: number
   // Scenario 3 fields (only present when monthType === 'first_month' && inboxOwnership === 'user_domains')
   isFirstMonthBranded?: boolean
   month1ActualEmails?: number

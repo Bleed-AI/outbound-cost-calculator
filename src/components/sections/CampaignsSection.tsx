@@ -30,6 +30,7 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
             <button
               key={count}
               onClick={() => onChange(count)}
+              suppressHydrationWarning
               className={`flex-1 py-3 rounded-[var(--radius-inner)] border text-center transition-all ${
                 isSelected
                   ? 'border-[var(--color-border-active)] bg-[var(--color-brand-muted)] text-[var(--color-text)]'
