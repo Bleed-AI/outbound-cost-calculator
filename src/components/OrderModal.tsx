@@ -8,6 +8,7 @@ import type { PricingResult } from '@/lib/types'
 
 interface OrderModalProps {
   result: PricingResult
+  month2Result: PricingResult | null
   shareUrl: string
   coupon: string
   onClose: () => void
@@ -20,7 +21,7 @@ function isValidDomain(value: string): boolean {
   return v.length > 0 && v.includes('.') && !v.includes(' ')
 }
 
-export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProps) {
+export function OrderModal({ result, month2Result, shareUrl, coupon, onClose }: OrderModalProps) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [companyDomain, setCompanyDomain] = useState('')
@@ -61,6 +62,14 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
           couponCode: coupon,
           upworkFeeAmount: result.upworkFeeAmount,
           totalEmails: result.totalEmails,
+          monthlyRecurringTotal: result.monthlyRecurringTotal,
+          oneTimeTotal: result.oneTimeTotal,
+          month2MonthlyRecurring: month2Result ? month2Result.monthlyRecurringTotal : result.monthlyRecurringTotal,
+          isFirstMonthBranded: result.isFirstMonthBranded ?? false,
+          month1ActualEmails: result.month1ActualEmails ?? 0,
+          brandedSetupFee: result.brandedSetupFee ?? 0,
+          inboxesNeeded: result.inboxesNeeded ?? 0,
+          domainsNeeded: result.domainsNeeded ?? 0,
           shareUrl,
         }),
       })

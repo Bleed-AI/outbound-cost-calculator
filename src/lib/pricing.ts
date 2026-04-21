@@ -52,10 +52,13 @@ export const CAMPAIGNS_OPTIONS: CampaignsCount[] = [1, 2, 3]
 
 const fmt = (n: number) => Math.round(n * 100) / 100
 
-/** How many campaign strategies are included (free) at the given lead volume */
-export function includedCampaignTier(leads: LeadsPerMonth): CampaignsCount {
-  if (leads >= 10000) return 3
-  if (leads >= 7500) return 2
+/**
+ * How many campaign strategies are included (free) at the given lead volume.
+ * Policy: only the baseline (1 campaign) is included — 2 and 3 are always
+ * charged at full price regardless of lead volume.
+ * Param kept for signature stability, but the function is now constant.
+ */
+export function includedCampaignTier(_leads: LeadsPerMonth): CampaignsCount {
   return 1
 }
 
@@ -355,8 +358,12 @@ export function calculateTotal(state: SelectionState): PricingResult {
   const couponPercent = COUPON_CODES[state.coupon?.toUpperCase?.() ?? ''] ?? 0
   const couponDiscountAmount = couponPercent > 0 ? fmt(preDiscountTotal * (couponPercent / 100)) : 0
   const afterDiscounts = fmt(preDiscountTotal - couponDiscountAmount)
-  const upworkFeeAmount = state.upworkFee ? fmt(afterDiscounts * (UPWORK_FEE_PERCENT / 100)) : 0
-  const total = fmt(afterDiscounts + upworkFeeAmount)
+  // Gross-up: Upwork deducts the fee from what the client pays, so we must
+  // raise the charge so the NET we receive equals `afterDiscounts`.
+  // total = afterDiscounts / (1 - fee); upworkFeeAmount = total - afterDiscounts.
+  const feeRate = UPWORK_FEE_PERCENT / 100
+  const total = state.upworkFee ? fmt(afterDiscounts / (1 - feeRate)) : fmt(afterDiscounts)
+  const upworkFeeAmount = state.upworkFee ? fmt(total - afterDiscounts) : 0
 
   // Split the final `total` proportionally between monthly and one-time.
   // Both the Pilot card and Month 2+ card read these fields, so they must

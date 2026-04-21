@@ -185,6 +185,7 @@ function CalculatorContent() {
       {showOrder && (
         <OrderModal
           result={result}
+          month2Result={month2Result}
           shareUrl={shareUrl}
           coupon={state.coupon}
           onClose={() => setShowOrder(false)}

@@ -153,32 +153,35 @@ describe('infra management waiver (recurring-only threshold)', () => {
 // Campaign strategy inclusion tiers
 // ────────────────────────────────────────────────────────────────
 
-describe('campaign strategy inclusion tiers', () => {
-  it('includes 1 strategy by default', () => {
+describe('campaign strategy pricing (no inclusion tiers)', () => {
+  it('only 1 strategy is the baseline/free; 2 and 3 are always charged', () => {
     expect(includedCampaignTier(2000)).toBe(1)
-    expect(includedCampaignTier(4000)).toBe(1)
+    expect(includedCampaignTier(7500)).toBe(1)
+    expect(includedCampaignTier(10000)).toBe(1)
+    expect(includedCampaignTier(40000)).toBe(1)
   })
 
-  it('includes 2 strategies at 7,500 leads', () => {
-    expect(includedCampaignTier(7500)).toBe(2)
+  it('charges full price for 2 strategies regardless of lead volume', () => {
+    for (const leads of [2000, 7500, 10000, 40000] as const) {
+      const r = calculateTotal(state({ leadsPerMonth: leads, campaigns: 2 }))
+      const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
+      expect(line?.amount).toBe(PRICING.campaigns[2])
+    }
   })
 
-  it('includes 3 strategies at 10,000 leads', () => {
-    expect(includedCampaignTier(10000)).toBe(3)
-    expect(includedCampaignTier(40000)).toBe(3)
+  it('charges full price for 3 strategies regardless of lead volume', () => {
+    for (const leads of [2000, 7500, 10000, 40000] as const) {
+      const r = calculateTotal(state({ leadsPerMonth: leads, campaigns: 3 }))
+      const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
+      expect(line?.amount).toBe(PRICING.campaigns[3])
+    }
   })
 
-  it('charges zero for 2 strategies at 7,500 leads (included tier)', () => {
-    const r = calculateTotal(state({ leadsPerMonth: 7500, campaigns: 2 }))
+  it('1 strategy is always $0 (baseline)', () => {
+    const r = calculateTotal(state({ leadsPerMonth: 10000, campaigns: 1 }))
     const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
-    expect(line?.amount).toBe(0)
-  })
-
-  it('charges the difference for 3 strategies at 2,000 leads (only 1 included)', () => {
-    const r = calculateTotal(state({ leadsPerMonth: 2000, campaigns: 3 }))
-    const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
-    // 3 strategies price ($400) minus 1 included strategy price ($0) = $400.
-    expect(line?.amount).toBe(PRICING.campaigns[3] - PRICING.campaigns[1])
+    // 1 campaign has price $0 in config, so the line is omitted when cost is zero.
+    expect(line === undefined || line.amount === 0).toBe(true)
   })
 })
 
@@ -281,12 +284,12 @@ describe('coupon and upwork fee', () => {
     expect(r.couponDiscountPercent).toBe(0)
   })
 
-  it('applies upwork fee AFTER coupon discount (10% on top of post-coupon total)', () => {
+  it('grosses up the total so NET after Upwork\'s 10% cut equals post-coupon subtotal', () => {
     const r = calculateTotal(state({ leadsPerMonth: 10000, coupon: 'NEW5', upworkFee: true }))
-    // total = afterDiscounts + upworkFeeAmount, upworkFeeAmount = afterDiscounts × 0.10
-    // So afterDiscounts = total - upworkFeeAmount, and upworkFeeAmount = afterDiscounts × 0.10.
-    const afterDiscounts = r.total - r.upworkFeeAmount
-    expect(r.upworkFeeAmount).toBeCloseTo(afterDiscounts * 0.10, 1)
+    // Upwork deducts 10% of what the client pays. We need to raise the charge
+    // so that (total × 0.90) equals the post-coupon subtotal we quoted.
+    // Equivalently: upworkFeeAmount = total × 0.10.
+    expect(r.upworkFeeAmount).toBeCloseTo(r.total * 0.10, 1)
     expect(r.upworkFeeAmount).toBeGreaterThan(0)
   })
 })
@@ -348,9 +351,11 @@ describe('monthlyRecurringTotal / oneTimeTotal split', () => {
     expect(withUpwork.monthlyRecurringTotal + withUpwork.oneTimeTotal)
       .toBeCloseTo(withUpwork.total, 2)
 
-    // Monthly recurring must scale by ~10% when Upwork is toggled on.
-    expect(withUpwork.monthlyRecurringTotal).toBeCloseTo(withoutUpwork.monthlyRecurringTotal * 1.10, 1)
-    expect(withUpwork.oneTimeTotal).toBeCloseTo(withoutUpwork.oneTimeTotal * 1.10, 1)
+    // Gross-up: total scales by 1 / (1 - 0.10) ≈ 1.1111 when Upwork is on,
+    // so NET after Upwork's 10% cut equals the pre-fee subtotal.
+    const grossUp = 1 / (1 - 0.10)
+    expect(withUpwork.monthlyRecurringTotal).toBeCloseTo(withoutUpwork.monthlyRecurringTotal * grossUp, 1)
+    expect(withUpwork.oneTimeTotal).toBeCloseTo(withoutUpwork.oneTimeTotal * grossUp, 1)
   })
 
   it('REGRESSION: coupon flows into monthlyRecurringTotal + oneTimeTotal', () => {
