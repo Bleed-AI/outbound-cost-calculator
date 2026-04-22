@@ -22,7 +22,7 @@ export const DEFAULT_STATE: SelectionState = {
   dataSource: 'dfy_scrape',
   enrichments: 'standard',
   copywriting: 'full_strategy',
-  campaigns: 2,
+  campaigns: 1,
   replyHandling: 'ai_instantly',
   support: 'slack_light',
   addOns: {
