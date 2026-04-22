@@ -17,16 +17,16 @@ const OPTIONS: {
 }[] = [
   {
     value: 'email',
-    label: 'Live Email Support',
+    label: 'Email Support',
     description:
-      'Minimal async email support for status updates. Best only if you don\'t plan to iterate — if you want ongoing adjustments, copy tweaks, or strategy changes throughout the campaign, pick a Slack tier instead.',
-    badge: 'Recommended',
+      'Minimal async email support for status updates. Best only if you don\'t plan to iterate — if you want ongoing adjustments throughout the campaign, pick a Slack tier instead.',
   },
   {
     value: 'slack_light',
     label: 'Standard Slack Support',
     description:
-      'Dedicated Slack channel with same-day responses during the campaign. Request copy tweaks, strategy pivots, and optimisations as often as you want. No scheduled calls included — all async over Slack.',
+      'Dedicated Slack channel with same-day responses during the campaign. Request optimisations as often as you want. No scheduled calls included — all async over Slack.',
+    badge: 'Recommended',
   },
   {
     value: 'slack_full',

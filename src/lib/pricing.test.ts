@@ -60,7 +60,7 @@ describe('support (always charged)', () => {
       support: 'email',
     }))
     expect(r.supportIsFree).toBe(false)
-    const emailLine = r.lineItems.find((i) => i.label.includes('Live Email'))
+    const emailLine = r.lineItems.find((i) => i.label.includes('Support — Email'))
     expect(emailLine?.amount).toBe(PRICING.support.email)
   })
 

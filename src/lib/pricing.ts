@@ -24,7 +24,7 @@ export const DEFAULT_STATE: SelectionState = {
   copywriting: 'full_strategy',
   campaigns: 2,
   replyHandling: 'ai_instantly',
-  support: 'email',
+  support: 'slack_light',
   addOns: {
     linkedin: false,
     crm: false,
@@ -320,7 +320,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
   lineItems.push({
     label:
       state.support === 'email'
-        ? 'Support — Live Email'
+        ? 'Support — Email'
         : state.support === 'slack_light'
         ? 'Support — Standard Slack'
         : 'Support — Full Slack + Calls',
