@@ -66,7 +66,11 @@ export function RadioOption({
             {label}
           </span>
           {badge && (
-            <span className="text-[10px] font-semibold bg-[var(--color-brand-muted)] text-[#e84040] border border-[rgba(177,19,15,0.2)] rounded-full px-2 py-0.5 uppercase tracking-wider">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-gradient-to-r from-[rgba(177,19,15,0.18)] to-[rgba(177,19,15,0.08)] text-[#ff5a58] border border-[rgba(177,19,15,0.35)] rounded-full px-2 py-0.5 uppercase tracking-wider shadow-[0_0_8px_rgba(177,19,15,0.15)]">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ff5a58] opacity-60"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#ff5a58]"></span>
+              </span>
               {badge}
             </span>
           )}

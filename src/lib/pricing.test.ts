@@ -48,56 +48,31 @@ describe('volume discount', () => {
 })
 
 // ────────────────────────────────────────────────────────────────
-// Support waiver — free if recurring (monthly) spend hits threshold
+// Support — always charged at the tier's configured monthly price
+// (no auto-waiver: the previous "free over $X" logic was removed)
 // ────────────────────────────────────────────────────────────────
 
-describe('support waiver (recurring-only threshold)', () => {
-  it('charges email support when recurring < $500', () => {
-    const r = calculateTotal(state({
-      monthType: 'normal_month',
-      leadsPerMonth: 2000,
-      dataSource: 'full_list',   // cheapest data
-      enrichments: 'none',
-      copywriting: 'finalized',
-      campaigns: 1,
-      support: 'email',
-    }))
-    expect(r.supportIsFree).toBe(false)
-    expect(r.baseTotal).toBeLessThan(PRICING.supportWaiverThresholds.email)
-  })
-
-  it('waives email support when recurring ≥ $500', () => {
+describe('support (always charged)', () => {
+  it('charges email support regardless of recurring total', () => {
     const r = calculateTotal(state({
       monthType: 'normal_month',
       leadsPerMonth: 10000,
       support: 'email',
     }))
-    expect(r.supportIsFree).toBe(true)
+    expect(r.supportIsFree).toBe(false)
+    const emailLine = r.lineItems.find((i) => i.label.includes('Live Email'))
+    expect(emailLine?.amount).toBe(PRICING.support.email)
   })
 
-  it('BUGFIX: one-time fees (instantlySetup, landingPage) do NOT push recurring over threshold', () => {
-    // Baseline: a config where recurring is deliberately just under the $2k
-    // full-slack threshold. We then enable landingPage ($350 one-time) and
-    // instantlySetup ($150 one-time). Recurring must stay unchanged —
-    // those one-time fees must not cause supportIsFree to flip.
-    const base = state({
+  it('charges full slack support at configured price', () => {
+    const r = calculateTotal(state({
       monthType: 'normal_month',
-      leadsPerMonth: 7500,
+      leadsPerMonth: 2000,
       support: 'slack_full',
-    })
-    const baseline = calculateTotal(base)
-    const recurringBefore = baseline.baseTotal
-    const supportFreeBefore = baseline.supportIsFree
-
-    const withOneTimeAddons = calculateTotal(state({
-      ...base,
-      addOns: { ...base.addOns, landingPage: true, instantlySetup: true },
     }))
-
-    // One-time fees must not change the recurring baseTotal.
-    expect(withOneTimeAddons.baseTotal).toBe(recurringBefore)
-    // And therefore must not flip support waiver status.
-    expect(withOneTimeAddons.supportIsFree).toBe(supportFreeBefore)
+    expect(r.supportIsFree).toBe(false)
+    const line = r.lineItems.find((i) => i.label.includes('Full Slack'))
+    expect(line?.amount).toBe(PRICING.support.slack_full)
   })
 })
 

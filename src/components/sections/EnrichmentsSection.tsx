@@ -13,17 +13,19 @@ const OPTIONS: {
   value: Enrichments
   label: string
   description: string
+  badge?: string
 }[] = [
   {
     value: 'none',
     label: 'No additional enrichments needed',
-    description: 'Data is already clean and complete — no extra enrichment required.',
+    description: 'Data is already clean and complete — no need to find emails, enrich, or personalise further.',
   },
   {
     value: 'standard',
     label: 'Standard Enrichments',
     description:
-      'BleedAI enriches leads with website data, generates AI-driven personalisation snippets, and applies standard Clay enrichments.',
+      'BleedAI finds missing emails, enriches leads with website data, generates AI-driven personalisation snippets, and applies standard Clay enrichments.',
+    badge: 'Recommended',
   },
   {
     value: 'advanced',
@@ -51,6 +53,7 @@ export function EnrichmentsSection({ value, onChange }: EnrichmentsSectionProps)
               label={opt.label}
               description={opt.description}
               price={rate === 0 ? '$0' : `$${rate}/1k leads`}
+              badge={opt.badge}
               selected={value === opt.value}
               onSelect={() => onChange(opt.value)}
             />

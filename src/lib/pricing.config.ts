@@ -22,7 +22,7 @@ export const PRICING = {
 
   inboxOwnership: {
     user_domains: 35,   // $ per 1k emails sent
-    dfy:          45,   // $ per 1k emails sent
+    dfy:          50,   // $ per 1k emails sent
   },
 
   dataSource: {
@@ -53,15 +53,15 @@ export const PRICING = {
 
   replyHandling: {
     none:         0,    // $ per 1k emails sent
-    ai_instantly: 20,   // $ per 1k emails sent
+    ai_instantly: 17,   // $ per 1k emails sent
     custom_n8n:   20,   // $ per 1k emails sent
     n8n_setup:    330,  // one-time build fee (added when custom_n8n selected)
   },
 
   support: {
-    email:       75,   // $ per campaign duration
-    slack_light: 125,  // $ per campaign duration
-    slack_full:  225,  // $ per campaign duration
+    email:       100,  // $ per month
+    slack_light: 250,  // $ per month
+    slack_full:  375,  // $ per month
   },
 
   addOns: {

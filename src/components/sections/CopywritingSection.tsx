@@ -13,12 +13,14 @@ const OPTIONS: {
   value: CopywritingOption
   label: string
   description: string
+  badge?: string
 }[] = [
   {
     value: 'full_strategy',
     label: 'Build my strategy from scratch + A/B test variants',
     description:
       'BleedAI researches your ICP, crafts the optimal copy and personalisation angles for your specific offer, and runs A/B tests across multiple approaches to find the highest-performing variant.',
+    badge: 'Recommended',
   },
   {
     value: 'finalized',
@@ -46,7 +48,8 @@ export function CopywritingSection({ value, onChange }: CopywritingSectionProps)
               label={opt.label}
               description={opt.description}
               price={`$${price}`}
-              priceNote="one-time"
+              priceNote="per month"
+              badge={opt.badge}
               selected={value === opt.value}
               onSelect={() => onChange(opt.value)}
             />

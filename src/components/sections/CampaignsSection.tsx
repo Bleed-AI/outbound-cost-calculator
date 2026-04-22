@@ -47,7 +47,7 @@ export function CampaignsSection({ value, leads, onChange }: CampaignsSectionPro
                   <span className={isSelected ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-ghost)]'}>Included</span>
                 ) : (
                   <span className={isSelected ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-ghost)]'}>
-                    +${effectivePrice}
+                    +${effectivePrice}/mo
                   </span>
                 )}
               </div>

@@ -15,6 +15,7 @@ const OPTIONS: {
   description: string
   priceDisplay: string
   priceNote?: string
+  badge?: string
 }[] = [
   {
     value: 'none',
@@ -25,10 +26,11 @@ const OPTIONS: {
   },
   {
     value: 'ai_instantly',
-    label: 'AI Reply Agent (Instantly.ai)',
+    label: 'AI Reply Agent',
     description:
-      'BleedAI builds an AI agent that handles replies, books calls, and routes leads to your Slack channel and Google Sheet. Includes a human-in-the-loop option.',
+      'A 24/7 AI agent (powered by Instantly.ai) that replies instantly, qualifies leads, books calls on your calendar, and pipes every hot conversation straight to your Slack and Google Sheet. We start human-in-the-loop so every reply is reviewed — then transition to fully autonomous once your voice is locked in. Saves hours of reply management every week and ensures no lead goes cold.',
     priceDisplay: `$${PRICING.replyHandling.ai_instantly}/1k emails`,
+    badge: 'Recommended',
   },
   {
     value: 'custom_n8n',
@@ -57,6 +59,7 @@ export function ReplyHandlingSection({ value, onChange }: ReplyHandlingSectionPr
             description={opt.description}
             price={opt.priceDisplay}
             priceNote={opt.priceNote}
+            badge={opt.badge}
             selected={value === opt.value}
             onSelect={() => onChange(opt.value)}
           />

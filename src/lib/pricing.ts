@@ -16,14 +16,14 @@ import type {
 
 export const DEFAULT_STATE: SelectionState = {
   monthType: 'first_month',
-  leadsPerMonth: 2000,
+  leadsPerMonth: 4000,
   emailsPerProspect: 2,
   inboxOwnership: 'dfy',
   dataSource: 'dfy_scrape',
   enrichments: 'standard',
   copywriting: 'full_strategy',
   campaigns: 2,
-  replyHandling: 'none',
+  replyHandling: 'ai_instantly',
   support: 'email',
   addOns: {
     linkedin: false,
@@ -312,19 +312,18 @@ export function calculateTotal(state: SelectionState): PricingResult {
   const recurringPreSupport = fmt(sumMonthly(lineItems))
   const baseTotal = recurringPreSupport
 
-  const supportThresholds = PRICING.supportWaiverThresholds as Record<string, number>
-  const supportThreshold = supportThresholds[state.support] ?? 0
-  const supportIsFree = recurringPreSupport >= supportThreshold
-  const supportCost = supportIsFree ? 0 : PRICING.support[state.support as SupportTier]
+  // Support is always charged — no auto-waiver.
+  const supportCost = PRICING.support[state.support as SupportTier]
+  const supportIsFree = false
+  const supportThreshold = 0
 
   lineItems.push({
-    label: `${
+    label:
       state.support === 'email'
-        ? 'Support — Light Email / Upwork'
+        ? 'Support — Live Email'
         : state.support === 'slack_light'
-        ? 'Support — Light Slack'
-        : 'Support — Full Slack + Calls'
-    }${supportIsFree ? ' (Included)' : ''}`,
+        ? 'Support — Standard Slack'
+        : 'Support — Full Slack + Calls',
     amount: supportCost,
     type: 'fixed',
     period: 'monthly',

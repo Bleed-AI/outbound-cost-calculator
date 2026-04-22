@@ -13,12 +13,14 @@ const OPTIONS: {
   value: DataSource
   label: string
   description: string
+  badge?: string
 }[] = [
   {
     value: 'dfy_scrape',
     label: 'Full DFY — BleedAI Sources, Scrapes & Validates',
     description:
       'Client provides targeting criteria. BleedAI sources leads from LinkedIn, Apollo, Google Maps, and Instagram, then validates and enriches all emails.',
+    badge: 'Recommended',
   },
   {
     value: 'full_list',
@@ -70,6 +72,7 @@ export function DataSection({ value, onChange }: DataSectionProps) {
               label={opt.label}
               description={opt.description}
               price={`$${rate}/1k leads`}
+              badge={opt.badge}
               selected={value === opt.value}
               onSelect={() => onChange(opt.value)}
             />

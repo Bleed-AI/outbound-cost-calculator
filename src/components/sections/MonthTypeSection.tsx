@@ -245,12 +245,12 @@ export function MonthTypeSection({
   }[] = [
     {
       value: 'dfy',
-      label: "BleedAI's Warm Infrastructure — Instant Start",
+      label: "Pre-Warmed Email Accounts",
       description:
         "Pre-warmed domains and inboxes ready to send. No setup fees, no warmup delays — your campaign launches at full volume from day 1.",
       price: `$${PRICING.inboxOwnership.dfy}/1k emails`,
       priceNote: '/ month',
-      badge: 'Pre-Warmed',
+      badge: 'Instant Start',
     },
     {
       value: 'user_domains',
@@ -259,11 +259,9 @@ export function MonthTypeSection({
         monthType === 'first_month'
           ? `BleedAI sets up branded sending infrastructure under your domain. Includes 14-day provider warmup + outbound ramp. Setup fee: ${setupFeeDisplay}.`
           : "BleedAI manages campaigns on your branded sending infrastructure. Full capacity from day 1.",
-      price: monthType === 'first_month'
-        ? `${setupFeeDisplay} setup`
-        : `$${PRICING.inboxOwnership.user_domains}/1k emails`,
+      price: `$${PRICING.inboxOwnership.user_domains}/1k emails`,
       priceNote: monthType === 'first_month'
-        ? `+ $${PRICING.inboxOwnership.user_domains}/1k emails (month 2+)`
+        ? `+ ${setupFeeDisplay} setup (month 1)`
         : '/ month',
     },
   ]

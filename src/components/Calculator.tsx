@@ -136,7 +136,6 @@ function CalculatorContent() {
           />
           <SupportSection
             value={state.support}
-            baseTotal={result.baseTotal}
             onChange={(v) => update('support', v)}
           />
 
