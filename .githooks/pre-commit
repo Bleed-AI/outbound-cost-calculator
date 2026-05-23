@@ -1,0 +1,53 @@
+#!/bin/sh
+# Pre-commit secret guard for bleedai-campaign-master.
+# Blocks commits re-introducing known-leaked API keys or hardcoded Bearer tokens.
+# Bypass (ONLY for legitimate cases): git commit --no-verify
+
+# Exclude this hook itself — it legitimately contains the pattern strings.
+EXCLUDE=':(exclude).githooks/pre-commit'
+
+# 1. Known previously-leaked keys — must never reappear (history scrubbed 2026-04-23)
+if git diff --cached --no-color -- . "$EXCLUDE" | grep -q 'ZmYwMzYwMTctMzU5Zi00YzE3\|vpF4zs8ceGNGwRycJ\|apify_api_Fgjc2FMw5YPRIz'; then
+    echo ""
+    echo "ERROR: Commit blocked — re-introducing a known-leaked API key."
+    echo "These 3 keys were scrubbed from git history on 2026-04-23."
+    echo "Use env var reading instead (see .env for names)."
+    echo ""
+    git diff --cached --no-color -- . "$EXCLUDE" | grep -n 'ZmYwMzYwMTctMzU5Zi00YzE3\|vpF4zs8ceGNGwRycJ\|apify_api_Fgjc2FMw5YPRIz' | head -5
+    exit 1
+fi
+
+# 2. Generic 'Bearer <long-token>' pattern in added lines
+if git diff --cached --no-color -- . "$EXCLUDE" | grep -E '^\+[^+]' | grep -qE 'Bearer [A-Za-z0-9+/]{30,}=*'; then
+    echo ""
+    echo "ERROR: Commit blocked — hardcoded 'Bearer <token>' in staged diff."
+    echo "Use env var reference instead:"
+    echo "  curl: -H \"Authorization: Bearer \$YOUR_API_KEY\""
+    echo "  JS:   'Authorization': 'Bearer ' + process.env.YOUR_API_KEY"
+    echo ""
+    echo "Bypass for legitimate case: git commit --no-verify"
+    echo ""
+    git diff --cached --no-color -- . "$EXCLUDE" | grep -nE '^\+.*Bearer [A-Za-z0-9+/]{30,}=*' | head -3
+    exit 1
+fi
+
+# 3. Hardcoded vendor-style API keys (added 2026-05-09 audit — caught pre-existing
+# OpenAI + Serper keys that the original guard missed). Patterns intentionally
+# tight to avoid false positives on docs/comments.
+if git diff --cached --no-color -- . "$EXCLUDE" | grep -E '^\+[^+]' | grep -qE "= ['\"]sk-proj-[A-Za-z0-9_-]{30,}['\"]|= ['\"]sk-[A-Za-z0-9_-]{40,}['\"]|= ['\"]apify_api_[A-Za-z0-9]{30,}['\"]|= ['\"]pk_[a-f0-9]{40,}['\"]|SERPER_(KEY|API_KEY) = ['\"][a-f0-9]{30,}['\"]|TRYKIT_API_KEY = ['\"][A-Za-z0-9]{25,}['\"]"; then
+    echo ""
+    echo "ERROR: Commit blocked — looks like a hardcoded vendor API key in staged diff."
+    echo "Use env var instead:"
+    echo "  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;"
+    echo "  if (!OPENAI_API_KEY) { console.error('OPENAI_API_KEY not set'); process.exit(1); }"
+    echo ""
+    echo "Run scripts via: bin/dev node scripts/X.cjs   (injects from Doppler)"
+    echo "Or load from .env: require('dotenv').config({path: ...})"
+    echo ""
+    echo "Bypass for legitimate case (e.g. .env.example): git commit --no-verify"
+    echo ""
+    git diff --cached --no-color -- . "$EXCLUDE" | grep -nE "^\+.*(= ['\"]sk-proj-|= ['\"]sk-[A-Za-z0-9_-]{40,}|= ['\"]apify_api_|= ['\"]pk_[a-f0-9]{40,})" | head -3
+    exit 1
+fi
+
+exit 0
