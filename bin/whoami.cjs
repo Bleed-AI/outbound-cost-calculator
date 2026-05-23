@@ -50,9 +50,13 @@ function loadRoster() {
 
 function classify(email, roster) {
   const lower = (email || '').toLowerCase();
-  const owner = (roster.owners || []).find((o) => (o.email || '').toLowerCase() === lower);
+  const allEmails = (p) => {
+    const list = [p.email, ...(p.aliases || [])].filter(Boolean);
+    return list.map((e) => e.toLowerCase());
+  };
+  const owner = (roster.owners || []).find((o) => allEmails(o).includes(lower));
   if (owner) return { tier: 'OWNER', person: owner };
-  const teammate = (roster.teammates || []).find((t) => (t.email || '').toLowerCase() === lower && !t._example);
+  const teammate = (roster.teammates || []).find((t) => !t._example && allEmails(t).includes(lower));
   if (teammate) return { tier: 'TEAMMATE', person: teammate };
   return { tier: 'UNKNOWN', person: null };
 }

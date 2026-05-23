@@ -134,7 +134,10 @@ try {
   if (email && fs.existsSync(ROSTER)) {
     const roster = JSON.parse(fs.readFileSync(ROSTER, 'utf8'));
     const all = [...(roster.owners || []), ...(roster.teammates || [])].filter(p => !p._example);
-    const me = all.find(p => p.email && p.email.toLowerCase() === email.toLowerCase());
+    const me = all.find(p => {
+      const emails = [p.email, ...(p.aliases || [])].filter(Boolean).map(e => e.toLowerCase());
+      return emails.includes(email.toLowerCase());
+    });
     if (me) {
       console.error(`  ✓ identity: ${me.name} (${me.role})`);
     } else {
