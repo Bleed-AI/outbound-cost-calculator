@@ -46,6 +46,8 @@ export const COUPON_CODES: Record<string, number> = {
   SPECIAL10: 10,
   VIP15: 15,
   ULTRA20: 20,
+  PLATINUM25: 25,  // Premium — issued selectively
+  DIAMOND33: 33,   // Ultra-premium — issued to very few
 }
 export const EPP_OPTIONS: EmailsPerProspect[] = [1, 2, 3]
 export const CAMPAIGNS_OPTIONS: CampaignsCount[] = [1, 2, 3]
