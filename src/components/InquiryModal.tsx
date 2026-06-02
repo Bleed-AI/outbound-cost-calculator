@@ -2,14 +2,24 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { formatCurrency } from '@/lib/pricing'
 import { spring, modalBackdrop, modalContent } from '@/lib/motion'
-import type { PricingResult } from '@/lib/types'
 
-interface OrderModalProps {
-  result: PricingResult
-  shareUrl: string
-  coupon: string
+const BOOK_CALL_URL = 'https://bleedai.com/book-call/'
+
+export type InquiryKind = 'package' | 'trial'
+
+export interface InquiryContext {
+  kind: InquiryKind
+  /** Human-readable tier identifier — shown to the user + included in the email. */
+  tierLabel: string
+  /** Optional price reference — e.g. "$2,450/mo" — shown in the modal header. */
+  priceLabel?: string
+  /** Optional extra context shipped to the email (e.g. {tier: 'standard'}). */
+  metadata?: Record<string, string | number | boolean>
+}
+
+interface InquiryModalProps {
+  context: InquiryContext
   onClose: () => void
 }
 
@@ -20,7 +30,17 @@ function isValidDomain(value: string): boolean {
   return v.length > 0 && v.includes('.') && !v.includes(' ')
 }
 
-export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProps) {
+const KIND_TITLES: Record<InquiryKind, string> = {
+  package: 'Book Your Strategy Call',
+  trial: 'Book Your Strategy Call',
+}
+
+const KIND_SUBTITLES: Record<InquiryKind, string> = {
+  package: "Tell us about your business and we'll prep the call around your specific outbound goals.",
+  trial: "Tell us about your business — we'll see if a trial campaign is the right fit before scheduling.",
+}
+
+export function InquiryModal({ context, onClose }: InquiryModalProps) {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [companyDomain, setCompanyDomain] = useState('')
@@ -43,30 +63,19 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
     setErrorMsg('')
 
     try {
-      const res = await fetch('/api/send-order', {
+      const res = await fetch('/api/send-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          kind: context.kind,
+          tierLabel: context.tierLabel,
+          priceLabel: context.priceLabel ?? '',
+          metadata: context.metadata ?? {},
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           companyDomain: companyDomain.trim(),
           email: email.trim(),
           description: description.trim(),
-          total: result.total,
-          lineItems: result.lineItems,
-          discountAmount: result.discountAmount,
-          discountPercent: result.discountPercent,
-          couponDiscountAmount: result.couponDiscountAmount,
-          couponDiscountPercent: result.couponDiscountPercent,
-          couponCode: coupon,
-          totalEmails: result.totalEmails,
-          monthlyRecurringTotal: result.monthlyRecurringTotal,
-          oneTimeTotal: result.oneTimeTotal,
-          month1ActualEmails: result.month1ActualEmails ?? 0,
-          brandedSetupFee: result.brandedSetupFee ?? 0,
-          inboxesNeeded: result.inboxesNeeded ?? 0,
-          domainsNeeded: result.domainsNeeded ?? 0,
-          shareUrl,
         }),
       })
 
@@ -110,16 +119,22 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
         >
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px">
             <div className="rounded-[calc(var(--radius-card)-1px)] bg-[var(--color-surface-1)] overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border)]">
-                <div>
-                  <h3 className="text-[var(--color-text)] font-semibold">Submit Your Order</h3>
-                  <p className="text-[var(--color-text-dim)] text-xs mt-0.5">
-                    Total: <span className="text-[var(--color-text)] font-medium font-[family-name:var(--font-mono)]">{formatCurrency(result.total)}</span>
+              <div className="flex items-start justify-between px-6 py-4 border-b border-[var(--color-border)]">
+                <div className="min-w-0">
+                  <h3 className="text-[var(--color-text)] font-semibold">{KIND_TITLES[context.kind]}</h3>
+                  <p className="text-[var(--color-text-dim)] text-xs mt-0.5 truncate">
+                    <span className="text-[var(--color-text-muted)] font-medium">{context.tierLabel}</span>
+                    {context.priceLabel && (
+                      <>
+                        <span className="text-[var(--color-text-ghost)] mx-1.5">·</span>
+                        <span className="text-[var(--color-brand)] font-medium font-[family-name:var(--font-mono)]">{context.priceLabel}</span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)] transition-colors p-1"
+                  className="text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)] transition-colors p-1 -mr-1 flex-shrink-0"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -147,19 +162,19 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </motion.div>
-                      <h4 className="text-[var(--color-text)] font-semibold text-lg mb-2">Order Sent!</h4>
+                      <h4 className="text-[var(--color-text)] font-semibold text-lg mb-2">Thanks — we&apos;ll be in touch.</h4>
                       <p className="text-[var(--color-text-muted)] text-sm leading-relaxed mb-6">
-                        Your proposal has been submitted. Check your inbox for a confirmation email with your full breakdown and next steps.
+                        We&apos;ve got your details. Pick a time on the next page and we&apos;ll prep the call around your business.
                       </p>
                       <motion.a
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
-                        href="https://calendly.com/bleedai/pilot-campaign-launch"
+                        href={BOOK_CALL_URL}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block w-full bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-semibold py-3 px-6 rounded-[var(--radius-inner)] transition-colors text-sm text-center mb-3"
                       >
-                        Book Your Onboarding Call
+                        Pick a Time →
                       </motion.a>
                       <button
                         onClick={onClose}
@@ -175,7 +190,7 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
                       className="space-y-4"
                     >
                       <p className="text-[var(--color-text-muted)] text-sm">
-                        Enter your details and we&apos;ll send a full breakdown to your inbox with next steps.
+                        {KIND_SUBTITLES[context.kind]}
                       </p>
 
                       <div className="flex gap-3">
@@ -207,7 +222,7 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
                         <textarea
                           value={description}
                           onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Briefly describe your offer and target market..."
+                          placeholder="What's your offer and target market?"
                           rows={3}
                           className={`${inputClasses} resize-none`}
                         />
@@ -226,12 +241,8 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
                         whileTap={{ scale: 0.98 }}
                         className="w-full bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-[var(--radius-inner)] transition-colors text-sm"
                       >
-                        {submitState === 'loading' ? 'Sending...' : 'Send Order'}
+                        {submitState === 'loading' ? 'Sending...' : 'Continue to Booking'}
                       </motion.button>
-
-                      <p className="text-[var(--color-text-ghost)] text-xs text-center">
-                        Your full configuration URL is included in the email so everything is captured.
-                      </p>
                     </motion.form>
                   )}
                 </AnimatePresence>

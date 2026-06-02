@@ -46,10 +46,21 @@ export const PRICING = {
   },
 
   campaigns: {
-    1: 0,    // one-time
-    2: 220,  // one-time
-    3: 400,  // one-time
+    1: 0,    // one-time (1st experiment included)
+    2: 125,  // one-time (+$125 per additional experiment beyond the 1st)
+    3: 250,
+    4: 375,
+    5: 500,
   } as Record<number, number>,
+
+  // Per-additional-experiment price — single source of truth for the flat
+  // "$125 per experiment beyond the first" model. The `campaigns` map above is
+  // derived from this (n - 1) × pricePerAdditionalExperiment.
+  pricePerAdditionalExperiment: 125,
+
+  // Calculator-side eligibility nudge: when grand total ≥ this, surface a
+  // visible (non-popup) prompt suggesting the Standard package.
+  packageNudgeThreshold: 2200,
 
   replyHandling: {
     none:         0,    // $ per 1k emails sent

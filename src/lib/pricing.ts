@@ -14,17 +14,19 @@ import type {
   SupportTier,
 } from './types'
 
+// Simplified single-campaign defaults. Hidden config is locked to these.
+// The 3 visible controls are: leadsPerMonth, emailsPerProspect, campaigns.
 export const DEFAULT_STATE: SelectionState = {
-  monthType: 'first_month',
+  monthType: 'first_month',        // forced — produces ramp-billed "Your Campaign"
   leadsPerMonth: 4000,
   emailsPerProspect: 2,
-  inboxOwnership: 'dfy',
+  inboxOwnership: 'user_domains',  // forced — branded by default
   dataSource: 'dfy_scrape',
   enrichments: 'standard',
   copywriting: 'full_strategy',
   campaigns: 1,
   replyHandling: 'ai_instantly',
-  support: 'slack_light',
+  support: 'email',                // forced — included
   addOns: {
     linkedin: false,
     crm: false,
@@ -50,7 +52,7 @@ export const COUPON_CODES: Record<string, number> = {
   DIAMOND33: 33,   // Ultra-premium — issued to very few
 }
 export const EPP_OPTIONS: EmailsPerProspect[] = [1, 2, 3]
-export const CAMPAIGNS_OPTIONS: CampaignsCount[] = [1, 2, 3]
+export const CAMPAIGNS_OPTIONS: CampaignsCount[] = [1, 2, 3, 4, 5]
 
 const fmt = (n: number) => Math.round(n * 100) / 100
 
@@ -157,7 +159,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
     : 0
   if (campaignsCostFull > 0) {
     lineItems.push({
-      label: `${state.campaigns} Campaign Strateg${state.campaigns > 1 ? 'ies' : 'y'}${campaignsCost === 0 ? ' (Included)' : ''}`,
+      label: `${state.campaigns} Campaign Experiment${state.campaigns > 1 ? 's' : ''}${campaignsCost === 0 ? ' (Included)' : ''}`,
       amount: campaignsCost,
       type: 'fixed',
       period: 'monthly',

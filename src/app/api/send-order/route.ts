@@ -30,12 +30,9 @@ interface OrderPayload {
   couponDiscountAmount: number
   couponDiscountPercent: number
   couponCode: string
-  upworkFeeAmount: number
   totalEmails: number
   monthlyRecurringTotal: number
   oneTimeTotal: number
-  month2MonthlyRecurring: number
-  isFirstMonthBranded: boolean
   month1ActualEmails: number
   brandedSetupFee: number
   inboxesNeeded: number
@@ -65,12 +62,9 @@ export async function POST(req: NextRequest) {
     couponDiscountAmount,
     couponDiscountPercent,
     couponCode,
-    upworkFeeAmount,
     totalEmails,
     monthlyRecurringTotal,
     oneTimeTotal,
-    month2MonthlyRecurring,
-    isFirstMonthBranded,
     month1ActualEmails,
     brandedSetupFee,
     inboxesNeeded,
@@ -87,80 +81,54 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = `${firstName} ${lastName}`
-  const formattedPilot = fmt(total)
-  const formattedMonth2 = fmt(month2MonthlyRecurring)
+  const formattedTotal = fmt(total)
 
-  const monthlyItems = lineItems.filter((i) => i.period === 'monthly')
-  const oneTimeItems = lineItems.filter((i) => i.period === 'one-time')
-  const monthlySubtotal = monthlyItems.reduce((s, i) => s + i.amount, 0)
-  const oneTimeSubtotal = oneTimeItems.reduce((s, i) => s + i.amount, 0)
-
-  // Emails actually sent in the billed month vs the full monthly capacity
-  // we're building. On a pilot-branded month the ramp phase sends fewer
-  // than the capacity target; on a normal month the two are equal.
-  const emailsThisMonth = isFirstMonthBranded ? month1ActualEmails : totalEmails
-  const monthlyCapacity = totalEmails
-
-  const pilotContext = {
-    pilotTotal: formattedPilot,
-    month2Recurring: formattedMonth2,
-    isFirstMonthBranded,
-    month1ActualEmails,
-    totalEmails,
-    brandedSetupFee,
-    inboxesNeeded,
-    domainsNeeded,
-    monthlyInPilot: monthlyRecurringTotal,
-    oneTimeInPilot: oneTimeTotal,
-  }
-
-  const scenarioIntro = isFirstMonthBranded
-    ? `This is your <strong style="color:#f0f0f4;">pilot month</strong> proposal &mdash; we spend the first two weeks warming ${inboxesNeeded} inboxes across ${domainsNeeded} domains, then ramp to ${(emailsThisMonth ?? 0).toLocaleString()} sends in the back half of the month. From <strong style="color:#f0f0f4;">Month 2 onward</strong> you run at the full ${monthlyCapacity.toLocaleString()} emails / month, every month.`
-    : `This is your <strong style="color:#f0f0f4;">month-to-month</strong> proposal &mdash; running at full capacity with <strong style="color:#f0f0f4;">${monthlyCapacity.toLocaleString()} emails / month</strong> from day one.`
+  // Group line items by period for the email contract section.
+  const campaignItems = lineItems.filter((i) => i.period === 'monthly')
+  const setupItems = lineItems.filter((i) => i.period === 'one-time')
 
   const clientHtml = buildEmail({
-    title: `${companyDomain} &mdash; BleedAI Campaign Proposal`,
-    preheader: isFirstMonthBranded
-      ? `Pilot: ${formattedPilot} · Month 2+: ${formattedMonth2}/mo`
-      : `${formattedMonth2}/mo · ${monthlyCapacity.toLocaleString()} emails / month`,
+    title: `${companyDomain} — Your BleedAI Campaign Proposal`,
+    preheader: `Campaign total: ${formattedTotal} · ${totalEmails.toLocaleString()} email capacity`,
     body: `
       <p style="color:#d2d2dc;font-size:15px;line-height:1.7;margin:0 0 12px;">
         Hi ${firstName},
       </p>
       <p style="color:#8b8b9e;font-size:14px;line-height:1.7;margin:0 0 24px;">
-        Thanks for configuring your campaign. ${scenarioIntro} The full line-item contract is below.
+        Thanks for configuring your campaign. This proposal covers <strong style="color:#f0f0f4;">your single-campaign launch</strong> on branded domains we set up under your company. The full line-item breakdown is below.
       </p>
 
-      ${isFirstMonthBranded
-        ? buildCapacityCard(emailsThisMonth, monthlyCapacity, true, inboxesNeeded, domainsNeeded)
-        : ''}
-
-      ${isFirstMonthBranded ? buildPilotMonth2Cards(pilotContext) : ''}
+      ${buildCampaignSummaryCard({
+        total: formattedTotal,
+        month1ActualEmails: month1ActualEmails ?? 0,
+        totalEmails,
+        brandedSetupFee: brandedSetupFee ?? 0,
+        inboxesNeeded: inboxesNeeded ?? 0,
+        domainsNeeded: domainsNeeded ?? 0,
+        monthlyRecurring: monthlyRecurringTotal,
+        oneTime: oneTimeTotal,
+      })}
 
       ${buildFullContract({
-        monthlyItems,
-        oneTimeItems,
-        monthlySubtotal,
-        oneTimeSubtotal,
+        campaignItems,
+        setupItems,
         totalEmails,
         discountAmount,
         discountPercent,
         couponDiscountAmount,
         couponDiscountPercent,
         couponCode,
-        upworkFeeAmount,
         total,
-        isFirstMonthBranded,
       })}
 
-      ${buildTimelineCard(isFirstMonthBranded, month1ActualEmails)}
+      ${buildTimelineCard(month1ActualEmails ?? 0)}
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
         <tr><td style="background:#0c0c14;border:1px solid rgba(177,19,15,0.25);border-radius:12px;padding:24px;">
           <p style="color:#f0f0f4;font-size:16px;font-weight:700;margin:0 0 6px;">Next Step: Book Your Onboarding Call</p>
           <p style="color:#8b8b9e;font-size:13px;margin:0 0 20px;line-height:1.6;">
-            Schedule a quick call so we can review your configuration and launch your pilot.
+            Schedule a quick call so we can review your configuration and launch your campaign.
           </p>
           <table cellpadding="0" cellspacing="0"><tr><td style="background:#B1130F;border-radius:8px;">
             <a href="${CALENDLY_URL}" style="display:inline-block;color:#ffffff;font-weight:700;font-size:14px;padding:14px 32px;text-decoration:none;letter-spacing:0.02em;">
@@ -183,35 +151,29 @@ export async function POST(req: NextRequest) {
 
   const ownerHtml = buildEmail({
     title: `New Order &mdash; ${companyDomain}`,
-    preheader: `${fullName} (${companyDomain}) &mdash; ${isFirstMonthBranded ? `Pilot ${formattedPilot} · Month 2+ ${formattedMonth2}/mo` : `${formattedPilot}`}`,
+    preheader: `${fullName} (${companyDomain}) &mdash; ${formattedTotal}`,
     body: `
-      <!-- Client details -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
         ${buildDetailRow('Name', fullName)}
         ${buildDetailRow('Company', companyDomain)}
         ${buildDetailRow('Email', `<a href="mailto:${email}" style="color:#B1130F;text-decoration:none;">${email}</a>`)}
-        ${buildDetailRow('Scenario', isFirstMonthBranded ? 'Pilot Month (branded, first month)' : 'Month-to-Month (normal month)')}
-        ${buildDetailRow('Emails / month (capacity)', totalEmails.toLocaleString())}
-        ${isFirstMonthBranded ? buildDetailRow('Emails this pilot month', (emailsThisMonth ?? 0).toLocaleString()) : ''}
-        ${isFirstMonthBranded ? buildDetailRow('Pilot total', formattedPilot) : ''}
-        ${buildDetailRow(isFirstMonthBranded ? 'Month 2+ recurring' : 'Monthly total', `${formattedMonth2}/mo`)}
+        ${buildDetailRow('Campaign Total', formattedTotal)}
+        ${buildDetailRow('Capacity (emails/mo)', totalEmails.toLocaleString())}
+        ${buildDetailRow('Sends This Campaign', (month1ActualEmails ?? 0).toLocaleString())}
+        ${buildDetailRow('Branded Infra', `${inboxesNeeded ?? 0} inboxes / ${domainsNeeded ?? 0} domains`)}
         ${description ? buildDetailRow('Description', description) : ''}
       </table>
 
       ${buildFullContract({
-        monthlyItems,
-        oneTimeItems,
-        monthlySubtotal,
-        oneTimeSubtotal,
+        campaignItems,
+        setupItems,
         totalEmails,
         discountAmount,
         discountPercent,
         couponDiscountAmount,
         couponDiscountPercent,
         couponCode,
-        upworkFeeAmount,
         total,
-        isFirstMonthBranded,
       })}
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
@@ -231,13 +193,13 @@ export async function POST(req: NextRequest) {
       getResend().emails.send({
         from: FROM_EMAIL,
         to: email,
-        subject: `${companyDomain} — BleedAI Campaign Proposal`,
+        subject: `${companyDomain} — Your BleedAI Campaign Proposal`,
         html: clientHtml,
       }),
       getResend().emails.send({
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
-        subject: `New Order — ${formattedPilot} — ${companyDomain} (${fullName})`,
+        subject: `New Order — ${formattedTotal} — ${companyDomain} (${fullName})`,
         html: ownerHtml,
       }),
     ])
@@ -262,7 +224,7 @@ function fmt(n: number) {
 
 const PERIOD_LABELS: Record<string, string> = {
   'one-time': '',
-  monthly: '/mo',
+  monthly: '',
   'per-campaign': '/campaign',
 }
 
@@ -277,95 +239,62 @@ function buildDetailRow(label: string, value: string) {
   `
 }
 
-interface PilotContext {
-  pilotTotal: string
-  month2Recurring: string
-  isFirstMonthBranded: boolean
+interface SummaryCtx {
+  total: string
   month1ActualEmails: number
   totalEmails: number
   brandedSetupFee: number
   inboxesNeeded: number
   domainsNeeded: number
-  monthlyInPilot: number
-  oneTimeInPilot: number
+  monthlyRecurring: number
+  oneTime: number
 }
 
-function buildPilotMonth2Cards(ctx: PilotContext) {
-  const pilotBullets: string[] = []
-  if (ctx.isFirstMonthBranded) {
-    pilotBullets.push('Infrastructure built &amp; warmed (14 days)')
-    pilotBullets.push(`<strong>${ctx.month1ActualEmails.toLocaleString()} ramp-phase sends</strong> &mdash; billed on these, not the ${ctx.totalEmails.toLocaleString()} target`)
-    if (ctx.brandedSetupFee > 0) {
-      pilotBullets.push(`${fmt(ctx.brandedSetupFee)} setup fee included`)
-    }
-    pilotBullets.push('One-time add-ons paid now, never again')
-  } else {
-    pilotBullets.push(`<strong>${ctx.totalEmails.toLocaleString()} emails</strong> sent this month`)
-    pilotBullets.push('All selected add-ons &amp; support active')
-    pilotBullets.push('One-time add-ons paid now, never again')
-  }
-
-  const month2Bullets = [
-    `<strong>${ctx.totalEmails.toLocaleString()} emails / month</strong> (full target)`,
-    'Full branded sending from day 1',
-    'All selected add-ons &amp; support continue',
-    'No setup fees after pilot',
+function buildCampaignSummaryCard(ctx: SummaryCtx) {
+  const bullets: string[] = [
+    `Branded infrastructure built &amp; warmed (${ctx.inboxesNeeded} inboxes across ${ctx.domainsNeeded} domains)`,
+    `<strong>${ctx.month1ActualEmails.toLocaleString()} sends</strong> during ramp phase &mdash; on ${ctx.totalEmails.toLocaleString()} total monthly capacity built`,
   ]
+  if (ctx.brandedSetupFee > 0) {
+    bullets.push(`${fmt(ctx.brandedSetupFee)} setup fee &mdash; one-time, included in this total`)
+  }
+  bullets.push('Full DFY lead sourcing, copy, reply handling, support &mdash; included')
 
-  const split = (ctx.monthlyInPilot > 0 || ctx.oneTimeInPilot > 0) ? `
+  const split = (ctx.monthlyRecurring > 0 || ctx.oneTime > 0) ? `
     <div style="padding-top:10px;margin-top:10px;border-top:1px solid rgba(177,19,15,0.2);">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">Monthly costs (ramp-billed)</td>
-          <td style="color:#f0f0f4;font-size:11px;font-weight:500;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;padding:3px 0;">${fmt(ctx.monthlyInPilot)}</td>
+          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">Campaign costs (ramp-billed)</td>
+          <td style="color:#f0f0f4;font-size:11px;font-weight:500;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;padding:3px 0;">${fmt(ctx.monthlyRecurring)}</td>
         </tr>
-        ${ctx.oneTimeInPilot > 0 ? `
+        ${ctx.oneTime > 0 ? `
         <tr>
-          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">One-time fees</td>
-          <td style="color:#f0f0f4;font-size:11px;font-weight:500;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;padding:3px 0;">${fmt(ctx.oneTimeInPilot)}</td>
+          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">Setup fees</td>
+          <td style="color:#f0f0f4;font-size:11px;font-weight:500;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;padding:3px 0;">${fmt(ctx.oneTime)}</td>
         </tr>` : ''}
       </table>
     </div>
   ` : ''
 
-  const pilotBulletsHtml = pilotBullets
+  const bulletsHtml = bullets
     .map((b) => `<tr><td style="padding:4px 0;color:#d2d2dc;font-size:12px;line-height:1.5;"><span style="color:#B1130F;">&#10003;</span>&nbsp;&nbsp;${b}</td></tr>`)
-    .join('')
-  const month2BulletsHtml = month2Bullets
-    .map((b) => `<tr><td style="padding:4px 0;color:#d2d2dc;font-size:12px;line-height:1.5;"><span style="color:#8b8b9e;">&#10003;</span>&nbsp;&nbsp;${b}</td></tr>`)
     .join('')
 
   return `
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
-        <!-- Pilot card -->
-        <td width="49%" valign="top" style="background:rgba(177,19,15,0.08);border:1px solid rgba(177,19,15,0.35);border-radius:12px;padding:16px;">
+        <td style="background:rgba(177,19,15,0.08);border:1px solid rgba(177,19,15,0.35);border-radius:12px;padding:20px;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="color:#B1130F;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;">Pilot Month</td>
-              <td style="text-align:right;color:#5a5a6e;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">One-time</td>
+              <td style="color:#B1130F;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;">Your Campaign</td>
+              <td style="text-align:right;color:#5a5a6e;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">One-time charge</td>
             </tr>
           </table>
-          <div style="color:#f0f0f4;font-size:26px;font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;margin:10px 0 4px;">${ctx.pilotTotal}</div>
-          <div style="color:#8b8b9e;font-size:11px;margin-bottom:10px;"><span style="color:#f0f0f4;">&rarr; BleedAI</span> &middot; billed once for pilot month</div>
+          <div style="color:#f0f0f4;font-size:32px;font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;margin:10px 0 4px;">${ctx.total}</div>
+          <div style="color:#8b8b9e;font-size:11px;margin-bottom:10px;">Covers everything &mdash; setup, lead data, copy, sends, reply handling, support.</div>
           ${split}
           <table width="100%" cellpadding="0" cellspacing="0" style="padding-top:10px;margin-top:10px;border-top:1px solid rgba(177,19,15,0.2);">
-            ${pilotBulletsHtml}
-          </table>
-        </td>
-        <td width="2%">&nbsp;</td>
-        <!-- Month 2+ card -->
-        <td width="49%" valign="top" style="background:#0c0c14;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td style="color:#8b8b9e;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;">Month 2 Onwards</td>
-              <td style="text-align:right;color:#5a5a6e;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;">Recurring</td>
-            </tr>
-          </table>
-          <div style="color:#f0f0f4;font-size:26px;font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;margin:10px 0 4px;">${ctx.month2Recurring}<span style="font-size:14px;color:#5a5a6e;font-weight:500;">/mo</span></div>
-          <div style="color:#8b8b9e;font-size:11px;margin-bottom:10px;"><span style="color:#f0f0f4;">&rarr; BleedAI</span> &middot; recurring, every month</div>
-          <table width="100%" cellpadding="0" cellspacing="0" style="padding-top:10px;margin-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
-            ${month2BulletsHtml}
+            ${bulletsHtml}
           </table>
         </td>
       </tr>
@@ -374,23 +303,18 @@ function buildPilotMonth2Cards(ctx: PilotContext) {
 }
 
 interface ContractCtx {
-  monthlyItems: LineItem[]
-  oneTimeItems: LineItem[]
-  monthlySubtotal: number
-  oneTimeSubtotal: number
+  campaignItems: LineItem[]
+  setupItems: LineItem[]
   totalEmails: number
   discountAmount: number
   discountPercent: number
   couponDiscountAmount: number
   couponDiscountPercent: number
   couponCode: string
-  upworkFeeAmount: number
   total: number
-  isFirstMonthBranded: boolean
 }
 
 function buildFullContract(c: ContractCtx) {
-  const totalLabel = c.isFirstMonthBranded ? 'Pilot Month Total' : 'This Month Total'
   return `
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">
       <tr>
@@ -398,49 +322,10 @@ function buildFullContract(c: ContractCtx) {
       </tr>
     </table>
 
-    ${buildLineItemSection('Monthly / Recurring', c.monthlyItems, c.discountPercent)}
-    ${buildLineItemSection('One-Time Costs', c.oneTimeItems)}
-    ${buildSubtotals(c.monthlySubtotal, c.oneTimeSubtotal, c.totalEmails)}
-    ${buildDiscounts(c.discountAmount, c.discountPercent, c.couponDiscountAmount, c.couponDiscountPercent, c.couponCode, c.upworkFeeAmount)}
-    ${buildTotalBar(fmt(c.total), totalLabel)}
-  `
-}
-
-function buildCapacityCard(
-  emailsThisMonth: number | undefined,
-  monthlyCapacity: number,
-  isFirstMonthBranded: boolean,
-  inboxesNeeded: number,
-  domainsNeeded: number,
-) {
-  const thisMonth = (emailsThisMonth ?? monthlyCapacity).toLocaleString()
-  const capacity = monthlyCapacity.toLocaleString()
-  const sameNumber = !isFirstMonthBranded
-  const subline = isFirstMonthBranded
-    ? `Pilot month ramps gradually while the ${inboxesNeeded} inboxes across ${domainsNeeded} domains warm up. From Month 2 onward you send at full capacity.`
-    : `Running at full capacity every day this month.`
-
-  return `
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr>
-        <td width="49%" valign="top" style="background:#0c0c14;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px;text-align:center;">
-          <div style="color:#5a5a6e;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Emails This Month</div>
-          <div style="color:#f0f0f4;font-size:28px;font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;">${thisMonth}</div>
-          <div style="color:#8b8b9e;font-size:11px;margin-top:4px;">${sameNumber ? 'full monthly volume' : 'ramp-phase sends'}</div>
-        </td>
-        <td width="2%">&nbsp;</td>
-        <td width="49%" valign="top" style="background:rgba(177,19,15,0.06);border:1px solid rgba(177,19,15,0.25);border-radius:12px;padding:16px;text-align:center;">
-          <div style="color:#B1130F;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;">Monthly Capacity Built</div>
-          <div style="color:#f0f0f4;font-size:28px;font-weight:800;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;letter-spacing:-0.02em;">${capacity}</div>
-          <div style="color:#8b8b9e;font-size:11px;margin-top:4px;">emails / month, recurring</div>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="3" style="padding-top:10px;">
-          <div style="color:#8b8b9e;font-size:12px;line-height:1.6;text-align:center;">${subline}</div>
-        </td>
-      </tr>
-    </table>
+    ${buildLineItemSection('Campaign Costs', c.campaignItems, c.discountPercent)}
+    ${buildLineItemSection('Setup Fees (one-time)', c.setupItems)}
+    ${buildDiscounts(c.discountAmount, c.discountPercent, c.couponDiscountAmount, c.couponDiscountPercent, c.couponCode)}
+    ${buildTotalBar(fmt(c.total), 'Campaign Total')}
   `
 }
 
@@ -456,7 +341,7 @@ function buildLineItemSection(title: string, items: LineItem[], discountPercent?
       <td style="padding:8px 0;color:#8b8b9e;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);">${item.label}</td>
       <td style="padding:8px 0;color:#f0f0f4;font-size:13px;font-weight:500;text-align:right;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;">
         ${fmt(item.amount)}
-        <span style="color:#3a3a4a;font-size:11px;font-weight:400;font-family:inherit;">${PERIOD_LABELS[item.period] ?? ''}</span>
+        ${PERIOD_LABELS[item.period] ? `<span style="color:#3a3a4a;font-size:11px;font-weight:400;font-family:inherit;">${PERIOD_LABELS[item.period]}</span>` : ''}
       </td>
     </tr>
   `).join('')
@@ -473,38 +358,12 @@ function buildLineItemSection(title: string, items: LineItem[], discountPercent?
   `
 }
 
-function buildSubtotals(monthlySubtotal: number, oneTimeSubtotal: number, totalEmails: number) {
-  const rows: string[] = []
-  if (monthlySubtotal > 0) {
-    rows.push(`
-      <tr>
-        <td style="padding:6px 0;color:#5a5a6e;font-size:12px;">
-          Monthly / Recurring
-          <span style="color:#3a3a4a;font-size:11px;">(for ${totalEmails.toLocaleString()} emails/mo)</span>
-        </td>
-        <td style="padding:6px 0;color:#8b8b9e;font-size:12px;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">${fmt(monthlySubtotal)}/mo</td>
-      </tr>
-    `)
-  }
-  if (oneTimeSubtotal > 0) {
-    rows.push(`
-      <tr>
-        <td style="padding:6px 0;color:#5a5a6e;font-size:12px;">One-Time</td>
-        <td style="padding:6px 0;color:#8b8b9e;font-size:12px;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">${fmt(oneTimeSubtotal)}</td>
-      </tr>
-    `)
-  }
-  if (rows.length === 0) return ''
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">${rows.join('')}</table>`
-}
-
 function buildDiscounts(
   discountAmount: number,
   discountPercent: number,
   couponDiscountAmount: number,
   couponDiscountPercent: number,
   couponCode: string,
-  upworkFeeAmount: number
 ) {
   let html = ''
 
@@ -528,15 +387,6 @@ function buildDiscounts(
     `
   }
 
-  if (upworkFeeAmount > 0) {
-    html += `
-      <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td style="padding:6px 0;color:#5a5a6e;font-size:13px;">Upwork platform fee (+10%)</td>
-        <td style="padding:6px 0;color:#8b8b9e;font-size:13px;font-weight:600;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">+${fmt(upworkFeeAmount)}</td>
-      </tr></table>
-    `
-  }
-
   return html
 }
 
@@ -552,12 +402,11 @@ function buildTotalBar(formattedTotal: string, label: string) {
   `
 }
 
-function buildTimelineCard(isFirstMonthBranded: boolean, month1ActualEmails: number) {
-  if (!isFirstMonthBranded) return ''
+function buildTimelineCard(month1ActualEmails: number) {
   return `
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
       <tr><td style="background:#0c0c14;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;">
-        <div style="color:#5a5a6e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Pilot Month Timeline</div>
+        <div style="color:#5a5a6e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Campaign Timeline</div>
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr><td width="90" style="color:#5a5a6e;font-size:12px;padding:3px 0;">Day 1</td><td style="color:#8b8b9e;font-size:12px;padding:3px 0;">Infrastructure setup</td></tr>
           <tr><td width="90" style="color:#5a5a6e;font-size:12px;padding:3px 0;">Days 2&ndash;15</td><td style="color:#8b8b9e;font-size:12px;padding:3px 0;">Provider warmup &mdash; zero sends</td></tr>

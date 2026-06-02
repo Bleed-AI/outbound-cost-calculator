@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { formatCurrency, COUPON_CODES, getContractDates, UPWORK_FEE_PERCENT } from '@/lib/pricing'
+import { formatCurrency, getContractDates } from '@/lib/pricing'
+import { PRICING } from '@/lib/pricing.config'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
 import { MagneticButton } from '@/components/MagneticButton'
+import { EligibilityNudge } from '@/components/EligibilityNudge'
 import type { PricingResult, LineItem } from '@/lib/types'
 import { spring } from '@/lib/motion'
 
@@ -15,67 +17,25 @@ function formatDate(d: Date): string {
 interface CostBreakdownProps {
   result: PricingResult
   coupon: string
-  onCouponChange: (v: string) => void
-  upworkFee: boolean
-  onUpworkFeeChange: (v: boolean) => void
   onSubmit: () => void
 }
 
-const PERIOD_LABELS: Record<string, string> = {
-  'one-time': 'one-time',
-  monthly: '/mo',
-  'per-campaign': '/campaign',
-}
+export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) {
+  const { lineItems, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent } = result
 
-export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpworkFeeChange, onSubmit }: CostBreakdownProps) {
-  const { lineItems, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent, upworkFeeAmount, totalEmails } = result
+  // Group by period for transparency: "Campaign Costs" (monthly tag — for the ramp-billed month)
+  // and "Setup Fees" (one-time tag — paid once at start).
+  const campaignCosts = lineItems.filter((i) => i.period === 'monthly')
+  const setupFees = lineItems.filter((i) => i.period === 'one-time')
 
-  // For the individual line item listing we still split by period.
-  const monthlyItems = lineItems.filter((i) => i.period === 'monthly')
-  const oneTimeItems = lineItems.filter((i) => i.period === 'one-time')
-
-  // For the summary rows under Campaign Total we use the final
-  // (post-coupon, post-Upwork) split so the two rows always sum to `total`.
-  // Using raw lineItems sums here would silently drift under any surcharge.
-  const monthlySubtotal = result.monthlyRecurringTotal
-  const oneTimeSubtotal = result.oneTimeTotal
-
-  // Defer contract dates to client to avoid hydration mismatch (new Date() differs server vs client)
+  // Defer contract dates to client to avoid hydration mismatch.
   const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)
   useEffect(() => { setContractDates(getContractDates()) }, [])
 
-  const [typedCoupon, setTypedCoupon] = useState(coupon)
-  const [couponStatus, setCouponStatus] = useState<'idle' | 'applied' | 'invalid'>(
-    coupon ? 'applied' : 'idle'
-  )
-
-  function handleApply() {
-    const code = typedCoupon.trim().toUpperCase()
-    if (COUPON_CODES[code]) {
-      onCouponChange(code)
-      setCouponStatus('applied')
-    } else {
-      setCouponStatus('invalid')
-    }
-  }
-
-  function handleClear() {
-    setTypedCoupon('')
-    onCouponChange('')
-    setCouponStatus('idle')
-  }
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Enter') handleApply()
-  }
-
   return (
     <div>
-      {/* Double-bezel card with glass accent */}
       <div className="relative rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-px overflow-hidden">
-        {/* Ambient glow */}
         <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[var(--color-brand)] opacity-[0.04] blur-[60px] pointer-events-none" />
-        {/* Top glass shimmer */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
         <div className="relative rounded-[calc(var(--radius-card)-1px)] bg-[var(--color-surface-1)] px-5 py-5">
@@ -83,12 +43,12 @@ export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpw
           {/* Overline */}
           <div className="flex items-center gap-2 mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
-            <h2 className="text-[var(--color-text)] font-medium text-sm tracking-tight">Cost Breakdown</h2>
+            <h2 className="text-[var(--color-text)] font-medium text-sm tracking-tight">Your Campaign</h2>
           </div>
 
           {/* Contract period */}
           <div className="mb-4 rounded-[var(--radius-inner)] bg-[var(--color-surface-0)] border border-[var(--color-border)] px-3 py-2 flex items-center justify-between">
-            <span className="text-[var(--color-text-dim)] text-xs">Contract period</span>
+            <span className="text-[var(--color-text-dim)] text-xs">Campaign window</span>
             <span className="text-[var(--color-text-muted)] text-xs font-medium font-[family-name:var(--font-mono)] tabular-nums">
               {contractDates ? `${formatDate(contractDates.start)} – ${formatDate(contractDates.end)}` : '—'}
             </span>
@@ -96,29 +56,24 @@ export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpw
 
           {/* Line items */}
           <div className="space-y-1 mb-4">
-            {monthlyItems.length > 0 && (
+            {campaignCosts.length > 0 && (
               <>
                 <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-widest pt-1 pb-1">
-                  Monthly / Recurring{discountPercent > 0 && ` (${discountPercent}% volume discount applied)`}
-                  {result.isFirstMonthBranded && result.month1ActualEmails != null && (
-                    <span className="ml-1 normal-case tracking-normal font-normal text-[var(--color-text-ghost)]">
-                      — {result.month1ActualEmails.toLocaleString()} emails billed (month 1 ramp)
-                    </span>
-                  )}
+                  Campaign Costs{discountPercent > 0 && ` (${discountPercent}% volume discount applied)`}
                 </div>
-                {monthlyItems.map((item, i) => (
-                  <LineItemRow key={i} item={item} />
+                {campaignCosts.map((item, i) => (
+                  <LineItemRow key={`m-${i}`} item={item} />
                 ))}
               </>
             )}
 
-            {oneTimeItems.length > 0 && (
+            {setupFees.length > 0 && (
               <>
                 <div className="text-[var(--color-text-ghost)] text-[11px] font-medium uppercase tracking-widest pt-3 pb-1">
-                  One-Time Costs
+                  Setup Fees (one-time)
                 </div>
-                {oneTimeItems.map((item, i) => (
-                  <LineItemRow key={i} item={item} />
+                {setupFees.map((item, i) => (
+                  <LineItemRow key={`o-${i}`} item={item} />
                 ))}
               </>
             )}
@@ -135,9 +90,9 @@ export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpw
             </div>
           )}
 
-          {/* Coupon discount line */}
+          {/* Coupon discount line (only shown if URL has a valid coupon) */}
           {couponDiscountAmount > 0 && (
-            <div className="flex justify-between items-center text-sm mb-1">
+            <div className="flex justify-between items-center text-sm mb-3">
               <span className="text-[var(--color-text-dim)]">
                 Coupon{' '}
                 <span className="text-[var(--color-text-muted)] font-[family-name:var(--font-mono)] text-xs bg-[var(--color-surface-0)] px-1.5 py-0.5 rounded">
@@ -149,56 +104,7 @@ export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpw
             </div>
           )}
 
-          {/* Coupon input */}
-          {couponStatus === 'applied' ? (
-            <div className="flex items-center gap-2 mt-3 mb-4 bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.15)] rounded-[var(--radius-inner)] px-3 py-2">
-              <svg className="w-4 h-4 text-[var(--color-success)] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-[var(--color-success)] text-sm flex-1">
-                Code <span className="font-[family-name:var(--font-mono)] font-semibold">{coupon}</span> applied — {couponDiscountPercent}% off
-              </span>
-              <button
-                onClick={handleClear}
-                className="text-[var(--color-text-dim)] hover:text-[var(--color-text-muted)] text-xs transition-colors"
-              >
-                Remove
-              </button>
-            </div>
-          ) : (
-            <div className="mt-3 mb-4">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Coupon code"
-                    value={typedCoupon}
-                    onChange={(e) => {
-                      setTypedCoupon(e.target.value.toUpperCase())
-                      if (couponStatus === 'invalid') setCouponStatus('idle')
-                    }}
-                    onKeyDown={handleKeyDown}
-                    className={`w-full bg-[var(--color-bg)] border rounded-[var(--radius-inner)] px-3 py-2 text-[var(--color-text)] text-sm placeholder:text-[var(--color-text-ghost)] focus:outline-none transition-colors ${
-                      couponStatus === 'invalid'
-                        ? 'border-red-500/50 focus:border-red-500/70'
-                        : 'border-[var(--color-border-hover)] focus:border-[var(--color-border-active)]'
-                    }`}
-                  />
-                </div>
-                <button
-                  className="px-4 py-2 rounded-[var(--radius-inner)] border border-[var(--color-border-hover)] text-[var(--color-text-dim)] text-sm hover:border-[var(--color-border-active)] hover:text-[var(--color-text-muted)] transition-all"
-                  onClick={handleApply}
-                >
-                  Apply
-                </button>
-              </div>
-              {couponStatus === 'invalid' && (
-                <p className="text-red-400 text-xs mt-1.5">Invalid coupon code.</p>
-              )}
-            </div>
-          )}
-
-          {/* Grand total — animated */}
+          {/* Grand total */}
           <div className="flex justify-between items-center mb-1">
             <span className="text-[var(--color-text)] font-semibold">Campaign Total</span>
             <AnimatedNumber
@@ -206,69 +112,17 @@ export function CostBreakdown({ result, coupon, onCouponChange, upworkFee, onUpw
               className="text-[var(--color-text)] font-bold text-3xl font-[family-name:var(--font-mono)] tabular-nums"
             />
           </div>
-
-          {/* Breakdown by period */}
-          <div className="space-y-0.5 mb-4">
-            {monthlySubtotal > 0 && (
-              <div className="flex justify-between items-baseline text-xs text-[var(--color-text-dim)]">
-                <span>
-                  {result.isFirstMonthBranded ? 'Pilot Month Fee' : 'Monthly / Recurring'}
-                  <span className="text-[var(--color-text-ghost)] ml-1">
-                    {result.isFirstMonthBranded && result.month1ActualEmails != null
-                      ? `(for ${result.month1ActualEmails.toLocaleString()} ramp sends only)`
-                      : `(for ${totalEmails.toLocaleString()} emails/mo)`}
-                  </span>
-                </span>
-                <span className="font-[family-name:var(--font-mono)] tabular-nums">
-                  {formatCurrency(monthlySubtotal)}{result.isFirstMonthBranded ? '' : '/mo'}
-                </span>
-              </div>
-            )}
-            {oneTimeSubtotal > 0 && (
-              <div className="flex justify-between text-xs text-[var(--color-text-dim)]">
-                <span>One-Time</span>
-                <span className="font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(oneTimeSubtotal)}</span>
-              </div>
-            )}
+          <div className="text-[var(--color-text-ghost)] text-[11px] mb-4">
+            One-time charge — covers everything in this campaign.
           </div>
 
-          {/* Upwork fee toggle */}
-          <label className="flex items-center gap-2.5 mb-3 px-3 py-2 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] cursor-pointer hover:border-[var(--color-border-hover)] transition-colors">
-            <input
-              type="checkbox"
-              checked={upworkFee ?? false}
-              onChange={(e) => onUpworkFeeChange(e.target.checked)}
-              className="sr-only"
-            />
-            <span
-              className={`w-3.5 h-3.5 rounded-[3px] border flex-shrink-0 flex items-center justify-center transition-colors ${
-                upworkFee
-                  ? 'bg-[var(--color-brand)] border-[var(--color-brand)]'
-                  : 'border-[var(--color-border-hover)] bg-transparent'
-              }`}
-              aria-hidden="true"
-            >
-              {upworkFee && (
-                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </span>
-            <span className="text-[var(--color-text-dim)] text-xs flex-1">
-              Paying via Upwork
-              <span className="text-[var(--color-text-ghost)] ml-1">(+{UPWORK_FEE_PERCENT}% platform fee)</span>
-            </span>
-            {upworkFee && upworkFeeAmount > 0 && (
-              <span className="text-[var(--color-text-muted)] text-xs font-medium font-[family-name:var(--font-mono)] tabular-nums">
-                +{formatCurrency(upworkFeeAmount)}
-              </span>
-            )}
-          </label>
+          {/* Eligibility nudge — appears above ROI estimator when total crosses threshold */}
+          <EligibilityNudge total={total} threshold={PRICING.packageNudgeThreshold} />
 
           {/* ROI Estimator */}
           <RoiEstimator totalEmails={result.totalEmails} campaignCost={total} />
 
-          {/* Submit button — magnetic */}
+          {/* Submit button */}
           <MagneticButton
             onClick={onSubmit}
             className="w-full bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] active:bg-[#9a0f0c] text-white font-semibold py-3.5 px-6 rounded-[var(--radius-inner)] transition-colors text-base cursor-pointer"
@@ -414,7 +268,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
           >
             <div className="mt-2 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-3 space-y-3">
 
-              {/* Domain research */}
               <div>
                 <label className="text-[var(--color-text-dim)] text-[11px] block mb-1">Your website</label>
                 <div className="flex gap-2">
@@ -447,7 +300,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 )}
               </div>
 
-              {/* Loading state */}
               {researching && (
                 <div className="rounded-[var(--radius-inner)] bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.12)] px-3 py-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -463,7 +315,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 </div>
               )}
 
-              {/* AI research results */}
               {aiResult && !researching && (
                 <div className="rounded-[var(--radius-inner)] bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.12)] px-3 py-3 space-y-2">
                   <div className="flex items-start gap-2">
@@ -488,7 +339,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 </div>
               )}
 
-              {/* Deal value input */}
               <div>
                 <label className="text-[var(--color-text-dim)] text-[11px] block mb-1">Average deal / contract value</label>
                 <div className="relative">
@@ -507,7 +357,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 </div>
               </div>
 
-              {/* Conversion rates */}
               <div className="space-y-2 pt-1">
                 <div className="flex items-center justify-between">
                   <div className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-wider">Conversion Rates</div>
@@ -519,7 +368,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 <RateInput label="Close rate (of meetings)" value={closeRate} onChange={setCloseRate} />
               </div>
 
-              {/* Funnel results */}
               <div className="border-t border-[var(--color-border)] pt-3 space-y-1.5">
                 <div className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-wider mb-2">Estimated Funnel</div>
                 <FunnelRow label="Emails sent" value={totalEmails} />
@@ -529,7 +377,6 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 <FunnelRow label={`Deals closed (${closeRate}%)`} value={dealsClosed} strong />
               </div>
 
-              {/* Pipeline & revenue */}
               <div className="border-t border-[var(--color-border)] pt-3 space-y-2">
                 <div className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-wider mb-2">Projected Value</div>
 
@@ -588,6 +435,12 @@ function FunnelRow({ label, value, highlight, strong }: {
   )
 }
 
+const PERIOD_LABELS: Record<string, string> = {
+  'one-time': 'one-time',
+  monthly: '',
+  'per-campaign': '/campaign',
+}
+
 function LineItemRow({ item }: { item: LineItem }) {
   return (
     <div className="flex justify-between items-start gap-4 py-1.5">
@@ -596,7 +449,9 @@ function LineItemRow({ item }: { item: LineItem }) {
         <span className="text-[var(--color-text-muted)] text-xs font-medium font-[family-name:var(--font-mono)] tabular-nums">
           {formatCurrency(item.amount)}
         </span>
-        <span className="text-[var(--color-text-ghost)] text-[10px] ml-1">{PERIOD_LABELS[item.period]}</span>
+        {PERIOD_LABELS[item.period] && (
+          <span className="text-[var(--color-text-ghost)] text-[10px] ml-1">{PERIOD_LABELS[item.period]}</span>
+        )}
       </div>
     </div>
   )

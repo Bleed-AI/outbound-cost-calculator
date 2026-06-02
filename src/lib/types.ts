@@ -11,7 +11,7 @@ export type DataSource =
   | 'multi_platform'
 export type Enrichments = 'none' | 'standard' | 'advanced'
 export type CopywritingOption = 'finalized' | 'full_strategy'
-export type CampaignsCount = 1 | 2 | 3
+export type CampaignsCount = 1 | 2 | 3 | 4 | 5
 export type ReplyHandling = 'none' | 'ai_instantly' | 'custom_n8n'
 export type SupportTier = 'email' | 'slack_light' | 'slack_full'
 

@@ -78,7 +78,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
     ),
     enrichments: valid(params.get(P.enrich), ['none', 'standard', 'advanced'], DEFAULT_STATE.enrichments),
     copywriting: valid(params.get(P.copy), ['finalized', 'full_strategy'], DEFAULT_STATE.copywriting),
-    campaigns: validNum<CampaignsCount>(params.get(P.camps), [1, 2, 3], DEFAULT_STATE.campaigns),
+    campaigns: validNum<CampaignsCount>(params.get(P.camps), [1, 2, 3, 4, 5], DEFAULT_STATE.campaigns),
     replyHandling: valid(
       params.get(P.reply),
       ['none', 'ai_instantly', 'custom_n8n'],
