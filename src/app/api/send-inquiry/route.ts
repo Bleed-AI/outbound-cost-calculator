@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = `${firstName} ${lastName}`
-  const kindLabel = kind === 'package' ? 'Premium Package' : 'Trial Campaign'
+  const kindLabel = kind === 'package' ? 'Managed Outbound Package' : 'Trial Campaign'
   const subjectPrefix = kind === 'package' ? 'Package Order' : 'Trial Order'
 
   const ctaCopy = kind === 'trial'

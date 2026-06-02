@@ -74,7 +74,7 @@ export function PackagesView() {
         {/* Intro paragraph */}
         <div className="max-w-2xl mb-10">
           <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-            Our premium packages run <span className="text-[var(--color-text)] font-medium">end-to-end monthly outbound</span> for you — full ops, ongoing experiments, scaling what wins. Pick the tier that fits your stage.
+            We run <span className="text-[var(--color-text)] font-medium">end-to-end monthly outbound</span> for you — full ops, ongoing experiments, scaling what wins. Pick the tier that fits your stage.
           </p>
           <p className="text-[var(--color-text-dim)] text-xs mt-2 leading-relaxed">
             Want to test the model first? Run a <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Trial Campaign</a>. Just need a single send? <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Configure a one-off campaign</a>.

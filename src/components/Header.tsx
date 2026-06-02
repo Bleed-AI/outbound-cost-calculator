@@ -30,9 +30,9 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
     subtitle: 'We run multiple campaign experiments against different market segments — in parallel, on our pre-warmed infrastructure. End result: you know which campaigns hit in which market, and you walk away with a batch of high-quality leads.',
   },
   packages: {
-    line1: 'Our',
-    line2: { plain: '', accent: 'Premium', tail: 'Packages', accentMode: 'black' },
-    subtitle: 'Ongoing outbound built for serious B2B teams — multiple experiments, full ops, scaling what wins. Pick the tier that fits your stage.',
+    line1: '',
+    line2: { plain: '', accent: 'Managed', tail: 'Outbound Packages', accentMode: 'black' },
+    subtitle: 'End-to-end monthly outbound — built and operated by us, full ops, ongoing experiments, scaling what wins. Pick the tier that fits your stage.',
   },
 }
 
