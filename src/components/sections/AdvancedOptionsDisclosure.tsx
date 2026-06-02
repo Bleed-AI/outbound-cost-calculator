@@ -8,11 +8,14 @@ import { EnrichmentsSection } from '@/components/sections/EnrichmentsSection'
 import { CopywritingSection } from '@/components/sections/CopywritingSection'
 import { ReplyHandlingSection } from '@/components/sections/ReplyHandlingSection'
 import { SupportSection } from '@/components/sections/SupportSection'
-import type { SelectionState } from '@/lib/types'
+import { AddOnsSection } from '@/components/sections/AddOnsSection'
+import type { SelectionState, AddOns, PricingResult } from '@/lib/types'
 
 interface AdvancedOptionsDisclosureProps {
   state: SelectionState
+  result: PricingResult
   onUpdate: <K extends keyof SelectionState>(key: K, value: SelectionState[K]) => void
+  onAddOnChange: (key: keyof AddOns, value: boolean) => void
 }
 
 /**
@@ -20,7 +23,7 @@ interface AdvancedOptionsDisclosureProps {
  * who want to override them. Closed by default — most buyers should never
  * need to touch this.
  */
-export function AdvancedOptionsDisclosure({ state, onUpdate }: AdvancedOptionsDisclosureProps) {
+export function AdvancedOptionsDisclosure({ state, result, onUpdate, onAddOnChange }: AdvancedOptionsDisclosureProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -42,9 +45,9 @@ export function AdvancedOptionsDisclosure({ state, onUpdate }: AdvancedOptionsDi
             </svg>
           </span>
           <div>
-            <div className="text-[var(--color-text)] font-medium text-sm">Advanced Options</div>
+            <div className="text-[var(--color-text)] font-medium text-sm">Advanced Options &amp; Add-Ons</div>
             <div className="text-[var(--color-text-dim)] text-[11px]">
-              Override our defaults — data source, enrichments, copy depth, reply handling, support tier
+              Override defaults — data source, enrichments, copy, reply, support — plus optional add-ons (LinkedIn, CRM, drip, landing page, more)
             </div>
           </div>
         </div>
@@ -71,6 +74,12 @@ export function AdvancedOptionsDisclosure({ state, onUpdate }: AdvancedOptionsDi
               <CopywritingSection value={state.copywriting} onChange={(v) => onUpdate('copywriting', v)} />
               <ReplyHandlingSection value={state.replyHandling} onChange={(v) => onUpdate('replyHandling', v)} />
               <SupportSection value={state.support} onChange={(v) => onUpdate('support', v)} />
+              <AddOnsSection
+                value={state.addOns}
+                totalEmails={result.totalEmails}
+                baseTotal={result.baseTotal}
+                onChange={onAddOnChange}
+              />
             </div>
           </motion.div>
         )}

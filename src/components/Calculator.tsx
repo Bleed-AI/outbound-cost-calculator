@@ -5,8 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { LazyMotion, domAnimation } from 'framer-motion'
 
 import { parseState, serializeState } from '@/lib/url-state'
-import { calculateTotal, DEFAULT_STATE } from '@/lib/pricing'
-import type { SelectionState } from '@/lib/types'
+import { calculateTotal } from '@/lib/pricing'
+import type { SelectionState, AddOns } from '@/lib/types'
 
 import { CampaignVolumeSection } from '@/components/sections/CampaignVolumeSection'
 import { CampaignsSection } from '@/components/sections/CampaignsSection'
@@ -34,7 +34,7 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
       monthType: 'first_month',
       inboxOwnership: 'user_domains',
       upworkFee: false,
-      addOns: DEFAULT_STATE.addOns,
+      // Add-ons honour URL state (toggleable via Advanced Options).
     }
   })
   const [showOrder, setShowOrder] = useState(false)
@@ -53,6 +53,12 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
   const update = useCallback(
     <K extends keyof SelectionState>(key: K, value: SelectionState[K]) =>
       setState((prev) => ({ ...prev, [key]: value })),
+    []
+  )
+
+  const updateAddOn = useCallback(
+    (key: keyof AddOns, value: boolean) =>
+      setState((prev) => ({ ...prev, addOns: { ...prev.addOns, [key]: value } })),
     []
   )
 
@@ -106,7 +112,12 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
             totalEmails={result.totalEmails}
           />
 
-          <AdvancedOptionsDisclosure state={state} onUpdate={update} />
+          <AdvancedOptionsDisclosure
+            state={state}
+            result={result}
+            onUpdate={update}
+            onAddOnChange={updateAddOn}
+          />
 
           {/* Mobile-only: CostBreakdown in flow */}
           <div className="lg:hidden mt-6">
