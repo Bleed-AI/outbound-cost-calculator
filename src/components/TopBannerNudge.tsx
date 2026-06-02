@@ -15,6 +15,14 @@ interface TopBannerNudgeProps {
  * one-off campaign cost approaches package territory. Dismissible per session.
  * Plain CSS transitions — runs outside any LazyMotion context.
  */
+/** Returns the package tier whose monthly price is closest-without-exceeding the user's one-off total. */
+function recommendedTier(total: number): { name: 'Pilot' | 'Growth' | 'Scale'; tagline: string } {
+  const { growthMin, scaleMin } = PRICING.packageTiers
+  if (total >= scaleMin) return { name: 'Scale', tagline: 'serious volume + multi-segment experiments' }
+  if (total >= growthMin) return { name: 'Growth', tagline: 'ongoing experiments + full ops every month' }
+  return { name: 'Pilot', tagline: 'a working outbound machine, every month, from $1,500' }
+}
+
 export function TopBannerNudge({ total }: TopBannerNudgeProps) {
   const threshold = PRICING.packageNudgeThreshold
   const [dismissed, setDismissed] = useState(false)
@@ -33,6 +41,7 @@ export function TopBannerNudge({ total }: TopBannerNudgeProps) {
   }
 
   const visible = mounted && total >= threshold && !dismissed
+  const tier = recommendedTier(total)
 
   // Always render the element to allow CSS height/opacity transition.
   return (
@@ -61,9 +70,9 @@ export function TopBannerNudge({ total }: TopBannerNudgeProps) {
             href="/packages"
             className="text-[var(--color-brand)] font-semibold underline-offset-4 hover:underline"
           >
-            Growth premium package
+            {tier.name} package
           </a>
-          <span className="text-[var(--color-text-muted)]"> runs ongoing experiments + full ops every month — better long-term economics.</span>
+          <span className="text-[var(--color-text-muted)]"> gets you {tier.tagline} — likely better long-term economics.</span>
         </p>
 
         <a

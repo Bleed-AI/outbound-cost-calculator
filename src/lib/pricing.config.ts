@@ -58,9 +58,20 @@ export const PRICING = {
   // derived from this (n - 1) × pricePerAdditionalExperiment.
   pricePerAdditionalExperiment: 125,
 
-  // Calculator-side eligibility nudge: when grand total ≥ this, surface a
-  // visible (non-popup) prompt suggesting the Standard package.
-  packageNudgeThreshold: 2200,
+  // Calculator-side package nudge: when total ≥ this, surface the top banner
+  // recommending the right package tier. Threshold matches Pilot ($1,500/mo)
+  // so the comparison feels apt the moment a one-off crosses that mark.
+  packageNudgeThreshold: 1500,
+
+  // Package tier thresholds — drives which tier the banner recommends.
+  // total in [pilotMin, growthMin)  → Pilot
+  // total in [growthMin, scaleMin)  → Growth
+  // total in [scaleMin, ∞)          → Scale
+  packageTiers: {
+    pilotMin: 1500,
+    growthMin: 2450,
+    scaleMin: 3450,
+  } as const,
 
   replyHandling: {
     none:         0,    // $ per 1k emails sent
