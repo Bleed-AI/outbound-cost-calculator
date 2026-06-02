@@ -63,7 +63,7 @@ export function parseState(params: SearchParamsLike): SelectionState {
     monthType,
     leadsPerMonth: (() => {
       const n = Number(params.get(P.leads))
-      return !isNaN(n) && n >= 2000 && n <= 50000 ? Math.round(n / 500) * 500 : DEFAULT_STATE.leadsPerMonth
+      return !isNaN(n) && n >= 1500 && n <= 50000 ? Math.round(n / 500) * 500 : DEFAULT_STATE.leadsPerMonth
     })(),
     emailsPerProspect: validNum<EmailsPerProspect>(
       params.get(P.epp),

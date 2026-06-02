@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatCurrency, getContractDates } from '@/lib/pricing'
-import { PRICING } from '@/lib/pricing.config'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
 import { MagneticButton } from '@/components/MagneticButton'
-import { EligibilityNudge } from '@/components/EligibilityNudge'
 import type { PricingResult, LineItem } from '@/lib/types'
 import { spring } from '@/lib/motion'
 
@@ -29,8 +27,17 @@ export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) 
   const setupFees = lineItems.filter((i) => i.period === 'one-time')
 
   // Defer contract dates to client to avoid hydration mismatch.
+  // Window scales with the campaign volume — see computeCampaignDays.
   const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)
-  useEffect(() => { setContractDates(getContractDates()) }, [])
+  useEffect(() => { setContractDates(getContractDates(result.totalEmails)) }, [result.totalEmails])
+
+  // Inbox provider cost — paid directly to provider, NOT on BleedAI invoice.
+  // Surfaced under Campaign Total so the buyer sees the real all-in cost.
+  const inboxes = result.inboxesNeeded ?? Math.ceil(result.totalEmails / 500)
+  const domains = result.domainsNeeded ?? Math.ceil(result.totalEmails / 1500)
+  const inboxRate = inboxes >= 100 ? 3.00 : inboxes >= 30 ? 3.25 : 3.50
+  const providerDomainOneTime = domains * 12
+  const providerInboxMonthly = inboxes * inboxRate
 
   return (
     <div>
@@ -112,12 +119,24 @@ export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) 
               className="text-[var(--color-text)] font-bold text-3xl font-[family-name:var(--font-mono)] tabular-nums"
             />
           </div>
-          <div className="text-[var(--color-text-ghost)] text-[11px] mb-4">
-            One-time charge — covers everything in this campaign.
+          <div className="text-[var(--color-text-ghost)] text-[11px] mb-3">
+            One-time charge — covers everything we deliver.
           </div>
 
-          {/* Eligibility nudge — appears above ROI estimator when total crosses threshold */}
-          <EligibilityNudge total={total} threshold={PRICING.packageNudgeThreshold} />
+          {/* Inbox provider costs — paid directly to provider, not BleedAI */}
+          <div className="rounded-[var(--radius-inner)] bg-[var(--color-surface-0)] border border-dashed border-[var(--color-border-hover)] px-3 py-2.5 mb-4">
+            <div className="flex items-baseline justify-between gap-2 mb-0.5">
+              <span className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider font-semibold">
+                + Inbox Provider
+              </span>
+              <span className="text-[var(--color-text-muted)] text-[11px] font-medium font-[family-name:var(--font-mono)] tabular-nums whitespace-nowrap">
+                ≈{formatCurrency(providerDomainOneTime)} <span className="text-[var(--color-text-ghost)]">one-time</span> + ≈{formatCurrency(providerInboxMonthly)}<span className="text-[var(--color-text-ghost)]">/mo</span>
+              </span>
+            </div>
+            <div className="text-[var(--color-text-ghost)] text-[10px] leading-snug">
+              {domains} domain{domains !== 1 ? 's' : ''} + {inboxes} inbox{inboxes !== 1 ? 'es' : ''} — paid directly to your inbox provider, not BleedAI
+            </div>
+          </div>
 
           {/* ROI Estimator */}
           <RoiEstimator totalEmails={result.totalEmails} campaignCost={total} />

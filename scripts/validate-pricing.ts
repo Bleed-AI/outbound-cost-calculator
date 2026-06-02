@@ -52,7 +52,7 @@ for (const { name, state } of cases) {
 console.log('\n── Campaign experiment price check (each adds $125) ──')
 for (let n = 1; n <= 5; n++) {
   const r = calculateTotal(fix(DEFAULT_STATE, { campaigns: n as 1 | 2 | 3 | 4 | 5 }))
-  const campaignItem = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
+  const campaignItem = r.lineItems.find((i) => i.label.includes('Campaign Experiment'))
   const campaignCost = campaignItem ? campaignItem.amount : 0
   const expected = (n - 1) * 125
   const match = campaignCost === expected ? '✓' : '✗ EXPECTED ' + expected

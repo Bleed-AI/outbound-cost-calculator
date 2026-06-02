@@ -6,7 +6,7 @@ import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
 import { ResultsGallery } from '@/components/ResultsGallery'
 
 interface PackageTier {
-  id: 'standard' | 'pro' | 'premier'
+  id: 'pilot' | 'growth' | 'scale'
   name: string
   price: string
   priceNote: string
@@ -18,50 +18,49 @@ interface PackageTier {
 
 const TIERS: PackageTier[] = [
   {
-    id: 'standard',
-    name: 'Standard',
-    price: '$2,450',
+    id: 'pilot',
+    name: 'Pilot',
+    price: '$1,500',
     priceNote: '/ month',
-    positioning: 'Built for teams who want a complete outbound machine running every month — branded infra, multiple experiments, full ops.',
+    positioning: 'Entry-level monthly retainer for teams who want a working outbound machine — but at lower volume to start.',
     features: [
       'All associated costs, prospecting, system & infrastructure',
       'Your branded domains & inboxes',
-      'Send up to **20k–30k emails / month**',
-      'Test new market segments for your offer every month',
-      'Run multiple experiments to discover winning campaigns',
-      'Scale winning campaigns aggressively',
-      'Automate client responses with AI agents',
-      'Follow-up campaigns & strategy for hot leads',
-      'Slack support, 5 days a week',
+      'Send up to **10k emails / month**',
+      'One winning campaign running steady — no monthly experimentation',
+      'Automated client responses with AI agents',
+      'Follow-up strategy for hot leads',
+      'Email support throughout',
     ],
   },
   {
-    id: 'pro',
-    name: 'Pro',
+    id: 'growth',
+    name: 'Growth',
+    price: '$2,450',
+    priceNote: '/ month',
+    positioning: 'Built for teams who want a complete outbound machine — branded infra, ongoing experiments, full ops, every month.',
+    features: [
+      'Everything in Pilot',
+      'Send up to **20k–30k emails / month**',
+      'Test new market segments for your offer **every month**',
+      'Run **multiple experiments** to discover winning campaigns',
+      'Scale winning campaigns aggressively',
+      'Slack support, 5 days a week',
+    ],
+    emphasis: true,
+  },
+  {
+    id: 'scale',
+    name: 'Scale',
     price: '$3,450',
     priceNote: '/ month',
     positioning: 'For teams ready to scale volume or pressure-test multiple value props in parallel.',
     features: [
-      'Everything in Standard',
+      'Everything in Growth',
       'Additional experiments testing new value props in new markets — **OR** scale prospect volume to **50k–60k emails / month**',
       'Help creating **advanced reverse lead magnets**',
       'Experimenting with **advanced signal-based campaigns**',
     ],
-  },
-  {
-    id: 'premier',
-    name: 'Premier',
-    price: '$5,450',
-    priceNote: '/ month',
-    positioning: 'Maximum scale and depth — best for established teams ready to push to enterprise-volume outbound.',
-    features: [
-      'Everything in Pro',
-      'Additional experiments — **OR** scale prospect volume to **100k emails / month**',
-      'We create **advanced reverse lead magnets** for you',
-      'Advanced lead follow-up campaigns built end-to-end',
-      'Optionally going **multichannel** for your best segments & leads',
-    ],
-    emphasis: true,
   },
 ]
 
@@ -75,7 +74,7 @@ export function PackagesView() {
         {/* Intro paragraph */}
         <div className="max-w-2xl mb-10">
           <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-            Our retainer packages are for clients who&apos;ve validated cold outbound and want to <span className="text-[var(--color-text)] font-medium">scale it as a system</span>. Most clients start with a <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Trial Campaign</a> first to prove ROI, then move here.
+            Our premium packages are for clients who&apos;ve validated cold outbound and want to <span className="text-[var(--color-text)] font-medium">scale it as a system</span>. Most clients start with a <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Trial Campaign</a> first to prove ROI, then move here.
           </p>
         </div>
 
@@ -114,7 +113,7 @@ export function PackagesView() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <Step n="1" title="Trial Campaign" body="A short, focused test — we run experiments on our infrastructure to validate cold email works for your business." href="/trials" />
             <Step n="2" title="We Find What Works" body="Pause when we hit results. Or pivot if early signals say no — no commitments either way." />
-            <Step n="3" title="Move to Standard" body="Once validated, move to a monthly package to run the winning playbook at scale." />
+            <Step n="3" title="Move to a Package" body="Once validated, move to a monthly retainer to run the winning playbook every month." />
           </div>
         </motion.div>
       </div>

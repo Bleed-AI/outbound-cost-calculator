@@ -6,7 +6,7 @@ import { SectionCard } from '@/components/SectionCard'
 import { CampaignVolumeIllustration } from '@/components/SectionIllustrations'
 import type { LeadsPerMonth, EmailsPerProspect } from '@/lib/types'
 
-const SLIDER_MIN = 2000
+const SLIDER_MIN = 1500
 const SLIDER_MAX = 50000
 const SLIDER_STEP = 500
 

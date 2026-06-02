@@ -66,32 +66,57 @@ export function includedCampaignTier(_leads: LeadsPerMonth): CampaignsCount {
   return 1
 }
 
-/** Contract date range: start = today + 2 days, end = start + 30 days */
-export function getContractDates(): { start: Date; end: Date } {
+/**
+ * Compute how many days a single one-off campaign will run from kickoff
+ * to last email delivered, given the full lead volume.
+ *
+ * Phases:
+ *   - 1 day  setup
+ *   - 14 days inbox provider warmup (no sends)
+ *   - 14 days ramp (delivers ~210 emails/inbox)
+ *   - steady-state sends until totalEmails is exhausted (≈28 emails/inbox/day)
+ *
+ * Returns whole days. Floor of 14 (setup + warmup) even if zero emails.
+ */
+export function computeCampaignDays(totalEmails: number): number {
+  const inboxes = Math.max(1, Math.ceil(totalEmails / 500))
+  const { rampDays, startPerDay, dailyIncrement } = PRICING.warmup
+  const rampPerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement) // = 210
+  const rampEmails = inboxes * rampPerInbox
+  const remaining = Math.max(0, totalEmails - rampEmails)
+  const peakDailyVolume = inboxes * (startPerDay + (rampDays - 1) * dailyIncrement) // emails/day at peak
+  const steadyDays = remaining > 0 ? Math.ceil(remaining / peakDailyVolume) : 0
+  return 1 /* setup */ + 14 /* warmup */ + rampDays + steadyDays
+}
+
+/** Contract date range: start = today + 2 days, end = start + computed campaign days */
+export function getContractDates(totalEmails: number = 8000): { start: Date; end: Date } {
   const start = new Date()
   start.setDate(start.getDate() + 2)
   start.setHours(0, 0, 0, 0)
   const end = new Date(start)
-  end.setDate(end.getDate() + 30)
+  end.setDate(end.getDate() + computeCampaignDays(totalEmails))
   return { start, end }
 }
 
 export function calculateTotal(state: SelectionState): PricingResult {
-  // Full capacity emails (leads × emails per prospect)
+  // Full capacity emails (leads × emails per prospect) — this is also what we bill on.
+  // Simplified single-campaign mode bills for ALL sends, not just the ramp.
   const totalEmails = state.leadsPerMonth * state.emailsPerProspect
 
-  // Scenario 3: First Month + Branded Domains → billing based on ramp-phase emails only
+  // Branded setup applies whenever the user is getting branded domains spun up.
+  // In simplified single-campaign mode, monthType is locked to 'first_month' and
+  // inboxOwnership to 'user_domains', so this is always true today.
   const isFirstMonthBranded = state.monthType === 'first_month' && state.inboxOwnership === 'user_domains'
 
-  // Compute month 1 actual emails for Scenario 3
-  const { rampDays, startPerDay, dailyIncrement } = PRICING.warmup
-  const rampPerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement) // = 210
   const inboxesNeeded = isFirstMonthBranded ? Math.ceil(totalEmails / 500) : undefined
   const domainsNeeded = isFirstMonthBranded ? Math.ceil(totalEmails / 1500) : undefined
-  const month1ActualEmails = isFirstMonthBranded ? inboxesNeeded! * rampPerInbox : undefined
+  // For backward compatibility we still expose `month1ActualEmails` in the result,
+  // but it now mirrors `totalEmails` — every send is billed.
+  const month1ActualEmails = isFirstMonthBranded ? totalEmails : undefined
 
-  // Billing base: month1 actual emails for Scenario 3, full capacity for all other scenarios
-  const billingEmails = isFirstMonthBranded ? month1ActualEmails! : totalEmails
+  // Billing base is always the full email volume.
+  const billingEmails = totalEmails
 
   // Volume discount — based on lead count
   const discountPercent = Object.entries(PRICING.volumeDiscounts)
@@ -183,7 +208,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
       state.inboxOwnership === 'user_domains'
         ? "Client's Branded Domains & Inboxes"
         : "BleedAI's Warm Infrastructure"
-    })${isFirstMonthBranded ? ` — ${billingEmails.toLocaleString()} emails billed (ramp phase)` : ''}`,
+    })`,
     amount: fmt(inboxCostRaw * multiplier),
     type: 'variable',
     period: 'monthly',
@@ -226,7 +251,7 @@ export function calculateTotal(state: SelectionState): PricingResult {
         state.replyHandling === 'ai_instantly'
           ? 'AI Agent via Instantly.ai'
           : 'Custom n8n Agent'
-      })${isFirstMonthBranded ? ` — ${billingEmails.toLocaleString()} emails billed` : ''}`,
+      })`,
       amount: fmt(replyCostRaw * multiplier),
       type: 'variable',
       period: 'monthly',

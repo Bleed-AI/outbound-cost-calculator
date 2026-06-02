@@ -25,10 +25,9 @@ function fmtUSD(n: number): string {
 export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSummaryProps) {
   const [providerOpen, setProviderOpen] = useState(false)
 
-  // Derived setup stats — always in first-month branded mode for simplified calc.
+  // Derived setup stats.
   const inboxesNeeded = result.inboxesNeeded ?? Math.ceil(totalEmails / 500)
   const domainsNeeded = result.domainsNeeded ?? Math.ceil(totalEmails / 1500)
-  const month1ActualEmails = result.month1ActualEmails ?? inboxesNeeded * 210
   const setupFee = result.brandedSetupFee ?? PRICING.brandedSetup.baseSetupFee
 
   const providerInboxRate = getInboxRate(inboxesNeeded)
@@ -39,44 +38,82 @@ export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSumma
   return (
     <SectionCard
       title="What You Get"
-      description="Here's what we deliver as part of this campaign — and the setup timeline."
+      description="Everything we build and deliver as part of this campaign — end to end."
       illustration={<CampaignSetupIllustration />}
     >
-      {/* Included scope — locked defaults summary */}
-      <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3 mb-4">
-        <div className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-wider mb-2.5">
+      {/* Included scope — richer, more compelling */}
+      <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3.5 mb-4">
+        <div className="text-[var(--color-text-ghost)] text-[10px] font-medium uppercase tracking-wider mb-3">
           Included In Your Campaign
         </div>
-        <ul className="space-y-1.5 text-[12px] text-[var(--color-text-muted)]">
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">Branded domains &amp; inboxes</strong> set up under your domain — {inboxesNeeded} inbox{inboxesNeeded !== 1 ? 'es' : ''} across {domainsNeeded} domain{domainsNeeded !== 1 ? 's' : ''} ({formatCurrency(setupFee)} setup)</span></li>
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">Full DFY lead sourcing</strong> — BleedAI scrapes &amp; validates from LinkedIn, Apollo, directories</span></li>
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">Standard enrichments</strong> — website + AI personalisation</span></li>
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">Full strategy copywriting</strong> — angles, sequences, A/B variants</span></li>
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">AI reply agent</strong> — automated or human-in-the-loop modes</span></li>
-          <li className="flex gap-2"><span className="text-[var(--color-brand)] flex-shrink-0">✓</span><span><strong className="text-[var(--color-text)]">Email support</strong> throughout the campaign</span></li>
+        <ul className="space-y-2 text-[12.5px] text-[var(--color-text-muted)] leading-relaxed">
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Branded sending infrastructure</strong> — {inboxesNeeded} inboxes across {domainsNeeded} domains built under your domain, with 14-day provider warmup ({formatCurrency(setupFee)} setup included)</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Full DFY lead discovery</strong> — we scrape from LinkedIn Sales Nav, Apollo, Google Maps, and niche directories matched to your ICP</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">4-provider email-finding waterfall</strong> — TryKit + LeadMagic + FindyMail + internal finder, with catch-all verification on every contact</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Decision-maker identification</strong> — we find the right person in each company, not just any email</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">AI personalization on every lead</strong> — website research + custom personalization line written per prospect</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Full copy strategy</strong> — angles, hooks, subject lines, sequenced follow-ups, A/B variants, spam-blacklist filtered</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">AI reply agent</strong> — automated replies to common objections, with hot leads forwarded to you (or human-in-the-loop mode)</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Campaign launch on Instantly</strong> — AI inbox placement + sending optimization, monitored daily</span>
+          </li>
+          <li className="flex gap-2.5">
+            <span className="text-[var(--color-brand)] flex-shrink-0 mt-0.5">✓</span>
+            <span><strong className="text-[var(--color-text)]">Email support</strong> throughout the campaign — we&apos;re responsive when you need us</span>
+          </li>
         </ul>
       </div>
 
-      {/* Capacity vs actual sends */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-3 text-center">
-          <div className="text-[var(--color-text-ghost)] text-[10px] uppercase tracking-wider mb-1">Sends This Campaign</div>
-          <div className="text-[var(--color-text)] text-2xl font-bold tabular-nums">{month1ActualEmails.toLocaleString()}</div>
-          <div className="text-[var(--color-text-dim)] text-[10px] mt-0.5">14-day ramp on warmed inboxes</div>
+      {/* Compact stat rows — replaces the previous big cards */}
+      <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3 mb-4 space-y-1.5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[var(--color-text-dim)] text-xs">Sends This Campaign</span>
+          <span className="text-[var(--color-text)] font-semibold text-base font-[family-name:var(--font-mono)] tabular-nums">
+            {totalEmails.toLocaleString()}
+          </span>
         </div>
-        <div className="rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.25)] bg-[var(--color-brand-muted)] p-3 text-center">
-          <div className="text-[var(--color-brand)] text-[10px] uppercase tracking-wider mb-1">Capacity Built</div>
-          <div className="text-[var(--color-text)] text-2xl font-bold tabular-nums">{totalEmails.toLocaleString()}</div>
-          <div className="text-[var(--color-text-dim)] text-[10px] mt-0.5">infra ready for ongoing scale</div>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[var(--color-text-dim)] text-xs">Monthly Email Capacity Built</span>
+          <span className="text-[var(--color-text-muted)] font-medium text-sm font-[family-name:var(--font-mono)] tabular-nums">
+            {totalEmails.toLocaleString()}<span className="text-[var(--color-text-ghost)]"> / mo</span>
+          </span>
+        </div>
+        <div className="flex items-baseline justify-between gap-3 pt-1 border-t border-[var(--color-border)] mt-2">
+          <span className="text-[var(--color-text-dim)] text-xs">Inbox Infrastructure</span>
+          <span className="text-[var(--color-text-muted)] text-xs font-[family-name:var(--font-mono)] tabular-nums">
+            {inboxesNeeded} inbox{inboxesNeeded !== 1 ? 'es' : ''} · {domainsNeeded} domain{domainsNeeded !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
 
-      {/* Timeline */}
+      {/* Timeline — compact */}
       <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2.5 text-[11px] space-y-1 mb-4">
         <div className="text-[var(--color-text-dim)] text-[9px] uppercase tracking-wider mb-1.5 font-medium">Campaign Timeline</div>
-        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Day 1</span><span className="text-[var(--color-text-dim)]">Infrastructure setup</span></div>
-        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Days 2–15</span><span className="text-[var(--color-text-dim)]">Provider warmup — no sends</span></div>
-        <div className="flex gap-2"><span className="text-[var(--color-brand)] w-20 flex-shrink-0">Days 16–29</span><span className="text-[var(--color-text-muted)]">Outbound ramp — <strong className="text-[var(--color-text)]">{month1ActualEmails.toLocaleString()} sends</strong></span></div>
+        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Day 1</span><span className="text-[var(--color-text-dim)]">Infrastructure setup &amp; kickoff</span></div>
+        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Days 2–15</span><span className="text-[var(--color-text-dim)]">Provider warmup — zero sends, building reputation</span></div>
+        <div className="flex gap-2"><span className="text-[var(--color-brand)] w-20 flex-shrink-0">Days 16+</span><span className="text-[var(--color-text-muted)]">Outbound ramp into steady-state — <strong className="text-[var(--color-text)]">{totalEmails.toLocaleString()} emails delivered</strong></span></div>
       </div>
 
       {/* Provider cost disclosure — transparency */}
@@ -94,10 +131,10 @@ export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSumma
             <div className="min-w-0">
               <div className="text-[var(--color-text-muted)] text-[11px] font-medium">
                 Inbox provider costs
-                <span className="text-[var(--color-text-ghost)] font-normal"> — not on BleedAI&apos;s invoice</span>
+                <span className="text-[var(--color-text-ghost)] font-normal"> — paid directly to provider, not BleedAI</span>
               </div>
               <div className="text-[var(--color-text-ghost)] text-[10px] mt-0.5 tabular-nums">
-                ≈{fmtUSD(providerDomainOneTime)} one-time + ≈{fmtUSD(providerInboxMonthly)}/mo → your inbox provider
+                ≈{fmtUSD(providerDomainOneTime)} one-time + ≈{fmtUSD(providerInboxMonthly)}/mo
               </div>
             </div>
           </div>

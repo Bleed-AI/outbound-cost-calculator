@@ -20,9 +20,9 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   subtitle: string
 }> = {
   calculator: {
-    line1: 'Cold Outreach',
-    line2: { plain: '', accent: 'Cost', tail: 'Calculator', accentMode: 'black' },
-    subtitle: 'Price a single one-off campaign. Want to test cold email for your business first? Try a trial campaign instead.',
+    line1: 'Cost Calculator For',
+    line2: { plain: '', accent: 'One-Time', tail: 'Campaigns', accentMode: 'black' },
+    subtitle: 'If you want us to run an end-to-end one-time campaign for you, this calculator gives you the exact cost. Not sure cold outreach works for your business yet?',
   },
   trials: {
     line1: 'Trial',
@@ -30,9 +30,9 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
     subtitle: 'Short, focused campaign experiments — we set up, we send, we stop when we find the angle that works for you.',
   },
   packages: {
-    line1: 'Outbound',
-    line2: { plain: '', accent: 'Retainer', tail: 'Packages', accentMode: 'black' },
-    subtitle: 'Ongoing outbound built for serious B2B teams — multiple experiments, full ops, scaling what wins.',
+    line1: 'Our',
+    line2: { plain: '', accent: 'Premium', tail: 'Packages', accentMode: 'black' },
+    subtitle: 'Ongoing outbound built for serious B2B teams — multiple experiments, full ops, scaling what wins. Pick the tier that fits your stage.',
   },
 }
 
@@ -115,6 +115,7 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
               <>
                 {' '}
                 <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Try a trial campaign →</a>
+                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">Note: We only run Trial Campaigns for select companies.</span>
               </>
             )}
           </motion.p>
@@ -125,6 +126,7 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
               <>
                 {' '}
                 <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Try a trial campaign →</a>
+                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">Note: We only run Trial Campaigns for select companies.</span>
               </>
             )}
           </p>

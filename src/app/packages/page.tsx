@@ -2,8 +2,8 @@ import { Header } from '@/components/Header'
 import { PackagesView } from '@/components/PackagesView'
 
 export const metadata = {
-  title: 'BleedAI — Retainer Packages',
-  description: 'Standard, Pro, and Premier retainer packages for ongoing outbound campaigns.',
+  title: 'BleedAI — Premium Packages',
+  description: 'Pilot, Growth, and Scale packages for ongoing outbound campaigns.',
 }
 
 export default function PackagesPage() {

@@ -70,10 +70,13 @@ export const PRICING = {
   },
 
   support: {
-    email:       100,  // $ per month
-    slack_light: 250,  // $ per month
-    slack_full:  375,  // $ per month
+    email:       100,  // included with every campaign
+    slack_light: 200,  // upgrade: 5-day Slack channel
+    slack_full:  375,  // upgrade: full Slack + calls
   },
+
+  // Minimum leads the volume slider can drop to (UI floor).
+  leadsMin: 1500,
 
   addOns: {
     linkedin_monthly:  245,  // $/month
