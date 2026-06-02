@@ -104,11 +104,12 @@ export const PRICING = {
     extraPerInbox: 2,          // e.g. 100 inboxes → $250 + 50×$2 = $350
   },
 
-  // Month 1 timeline (Scenario 3: First Month + Branded Domains)
-  // Day 1: infrastructure setup | Days 2-15: provider warmup (zero sends) | Days 16-29: outbound ramp
+  // Campaign timeline (single-campaign mode, billed on full volume)
+  // Day 1: infrastructure setup | Days 2-15: provider warmup (zero sends)
+  // Days 16-30: outbound ramp | Days 31+: steady-state until all sends delivered
   warmup: {
     providerWarmupDays: 14, // days 2-15: inbox warmup with provider — no outbound sending
-    rampDays: 14,           // days 16-29: outbound ramp (billed)
+    rampDays: 15,           // days 16-30: outbound ramp
     startPerDay: 2,         // emails per inbox on ramp day 1
     dailyIncrement: 2,      // +N per day per inbox
   },

@@ -15,9 +15,12 @@ import { AdvancedOptionsDisclosure } from '@/components/sections/AdvancedOptions
 import { CostBreakdown } from '@/components/CostBreakdown'
 import { FloatingTotal } from '@/components/FloatingTotal'
 import { OrderModal } from '@/components/OrderModal'
-import { TopBannerNudge } from '@/components/TopBannerNudge'
 
-function CalculatorContent() {
+interface CalculatorContentProps {
+  onTotalChange?: (total: number) => void
+}
+
+function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -55,6 +58,11 @@ function CalculatorContent() {
 
   const result = calculateTotal(state)
 
+  // Push total upward so the parent shell can position the banner above Header.
+  useEffect(() => {
+    onTotalChange?.(result.total)
+  }, [result.total, onTotalChange])
+
   // Smooth sticky: pin to top when panel fits, anchor bottom when taller than viewport.
   const breakdownRef = useRef<HTMLDivElement>(null)
   const [stickyTop, setStickyTop] = useState(24)
@@ -75,9 +83,6 @@ function CalculatorContent() {
 
   return (
     <LazyMotion features={domAnimation}>
-      {/* Top banner — surfaces Growth package when one-off total crosses threshold */}
-      <TopBannerNudge total={result.total} />
-
       <div className="max-w-6xl mx-auto px-4 pt-6 pb-28 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-10 items-start">
 
         {/* ─── Left column: visible sections + advanced disclosure ─── */}
@@ -141,7 +146,11 @@ function CalculatorContent() {
   )
 }
 
-export function Calculator() {
+interface CalculatorProps {
+  onTotalChange?: (total: number) => void
+}
+
+export function Calculator({ onTotalChange }: CalculatorProps = {}) {
   return (
     <Suspense
       fallback={
@@ -150,7 +159,7 @@ export function Calculator() {
         </div>
       }
     >
-      <CalculatorContent />
+      <CalculatorContent onTotalChange={onTotalChange} />
     </Suspense>
   )
 }

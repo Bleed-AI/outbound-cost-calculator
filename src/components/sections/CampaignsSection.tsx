@@ -14,7 +14,7 @@ export function CampaignsSection({ value, onChange }: CampaignsSectionProps) {
   return (
     <SectionCard
       title="Campaign Experiments"
-      description="How many distinct campaign experiments should we run for you? Each tests a different ICP, offer angle, or messaging hook — meaningfully increases the chance of finding what actually works."
+      description="Each campaign experiment targets a completely different audience segment or ICP. A/B testing of hooks, subject lines, and offer angles is already built into every campaign — these are about parallel-testing fundamentally different markets to find which segment actually responds."
       illustration={<CopywritingIllustration />}
     >
       {/* Larger experiment buttons — 5 across with proper hit-target + visible price */}
@@ -66,7 +66,7 @@ export function CampaignsSection({ value, onChange }: CampaignsSectionProps) {
         </div>
         <p className="text-[var(--color-text-muted)] text-xs leading-relaxed">
           <span className="text-[var(--color-text)] font-medium">Tip: </span>
-          Running multiple parallel experiments dramatically improves your odds of finding a winner — each tests a different angle so you learn fast and double down on what hits.
+          Testing multiple ICPs in parallel is the fastest way to find which segment actually responds. We A/B test the messaging inside each — you find the winning market and double down.
         </p>
       </div>
     </SectionCard>

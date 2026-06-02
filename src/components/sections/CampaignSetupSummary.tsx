@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { SectionCard } from '@/components/SectionCard'
 import { CampaignSetupIllustration } from '@/components/SectionIllustrations'
 import { PRICING } from '@/lib/pricing.config'
-import { formatCurrency } from '@/lib/pricing'
+import { formatCurrency, computeCampaignPhases } from '@/lib/pricing'
 import type { PricingResult } from '@/lib/types'
 
 interface CampaignSetupSummaryProps {
@@ -108,13 +108,9 @@ export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSumma
         </div>
       </div>
 
-      {/* Timeline — compact */}
-      <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2.5 text-[11px] space-y-1 mb-4">
-        <div className="text-[var(--color-text-dim)] text-[9px] uppercase tracking-wider mb-1.5 font-medium">Campaign Timeline</div>
-        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Day 1</span><span className="text-[var(--color-text-dim)]">Infrastructure setup &amp; kickoff</span></div>
-        <div className="flex gap-2"><span className="text-[var(--color-text-ghost)] w-20 flex-shrink-0">Days 2–15</span><span className="text-[var(--color-text-dim)]">Provider warmup — zero sends, building reputation</span></div>
-        <div className="flex gap-2"><span className="text-[var(--color-brand)] w-20 flex-shrink-0">Days 16+</span><span className="text-[var(--color-text-muted)]">Outbound ramp into steady-state — <strong className="text-[var(--color-text)]">{totalEmails.toLocaleString()} emails delivered</strong></span></div>
-      </div>
+      {/* Timeline — 4 phases, exact day counts */}
+      <CampaignTimeline totalEmails={totalEmails} />
+
 
       {/* Provider cost disclosure — transparency */}
       <div>
@@ -146,6 +142,7 @@ export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSumma
           </svg>
         </button>
 
+        {/* Provider cost detail (collapsed by default) */}
         {providerOpen && (
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] p-3 space-y-1">
@@ -176,5 +173,49 @@ export function CampaignSetupSummary({ result, totalEmails }: CampaignSetupSumma
         )}
       </div>
     </SectionCard>
+  )
+}
+
+/* ── 4-phase campaign timeline ───────────────────────────── */
+
+function CampaignTimeline({ totalEmails }: { totalEmails: number }) {
+  const phases = computeCampaignPhases(totalEmails)
+
+  return (
+    <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-3 text-[11px] space-y-1.5 mb-4">
+      <div className="text-[var(--color-text-dim)] text-[9px] uppercase tracking-wider mb-2 font-medium">
+        Campaign Timeline · {phases.totalDays} days total
+      </div>
+
+      <div className="flex gap-2 items-baseline">
+        <span className="text-[var(--color-text-ghost)] w-24 flex-shrink-0 font-medium">Day 1</span>
+        <span className="text-[var(--color-text-dim)]">Infrastructure setup &amp; kickoff — domains registered, inboxes provisioned</span>
+      </div>
+
+      <div className="flex gap-2 items-baseline">
+        <span className="text-[var(--color-text-ghost)] w-24 flex-shrink-0 font-medium">Days 2 – 15</span>
+        <span className="text-[var(--color-text-dim)]">Provider warmup — zero sends, building inbox reputation</span>
+      </div>
+
+      <div className="flex gap-2 items-baseline">
+        <span className="text-[var(--color-brand)] w-24 flex-shrink-0 font-medium">Days {phases.rampStart} – {phases.rampEnd}</span>
+        <span className="text-[var(--color-text-muted)]">
+          Outbound ramp — <strong className="text-[var(--color-text)]">{phases.rampEmails.toLocaleString()} emails</strong> delivered as throughput climbs
+        </span>
+      </div>
+
+      {phases.steadyEmails > 0 && (
+        <div className="flex gap-2 items-baseline">
+          <span className="text-[var(--color-brand)] w-24 flex-shrink-0 font-medium">Days {phases.steadyStart} – {phases.steadyEnd}</span>
+          <span className="text-[var(--color-text-muted)]">
+            Steady-state sends — <strong className="text-[var(--color-text)]">{phases.steadyEmails.toLocaleString()} remaining emails</strong> delivered at peak rate
+          </span>
+        </div>
+      )}
+
+      <div className="pt-2 mt-2 border-t border-[var(--color-border)] text-[var(--color-text-ghost)] text-[10px] leading-relaxed">
+        Throughput math: {phases.inboxes} inbox{phases.inboxes !== 1 ? 'es' : ''} ramp from {PRICING.warmup.startPerDay}/day per inbox, +{PRICING.warmup.dailyIncrement}/day each day, until peak ~{PRICING.warmup.startPerDay + (PRICING.warmup.rampDays - 1) * PRICING.warmup.dailyIncrement}/day per inbox is reached.
+      </div>
+    </div>
   )
 }

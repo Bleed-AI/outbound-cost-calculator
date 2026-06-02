@@ -26,7 +26,7 @@ export const DEFAULT_STATE: SelectionState = {
   copywriting: 'full_strategy',
   campaigns: 1,
   replyHandling: 'ai_instantly',
-  support: 'email',                // forced — included
+  support: 'slack_light',          // default — standard Slack support at $200/mo
   addOns: {
     linkedin: false,
     crm: false,
@@ -67,26 +67,54 @@ export function includedCampaignTier(_leads: LeadsPerMonth): CampaignsCount {
 }
 
 /**
- * Compute how many days a single one-off campaign will run from kickoff
- * to last email delivered, given the full lead volume.
+ * Compute the 4-phase campaign timeline for a given full email volume.
  *
  * Phases:
- *   - 1 day  setup
- *   - 14 days inbox provider warmup (no sends)
- *   - 14 days ramp (delivers ~210 emails/inbox)
- *   - steady-state sends until totalEmails is exhausted (≈28 emails/inbox/day)
+ *   1. Day 1               — Infrastructure setup & kickoff
+ *   2. Days 2 – 15         — Provider warmup (zero sends)
+ *   3. Days 16 – (15+R)    — Outbound ramp (R = config.rampDays, delivers ~rampEmails)
+ *   4. Days (16+R) – total — Steady-state sends (remaining emails at peak inbox throughput)
  *
- * Returns whole days. Floor of 14 (setup + warmup) even if zero emails.
+ * Inbox throughput math: each inbox starts at `startPerDay` on ramp day 1 and
+ * climbs by `dailyIncrement` each day. After ramp ends, inbox sustains the
+ * peak (≈ startPerDay + (rampDays-1) × dailyIncrement) per day.
  */
-export function computeCampaignDays(totalEmails: number): number {
+export interface CampaignPhases {
+  inboxes: number
+  rampDays: number
+  rampEmails: number
+  steadyDays: number
+  steadyEmails: number
+  totalDays: number
+  /** Inclusive day labels for display, e.g. {rampStart: 16, rampEnd: 30, steadyStart: 31, steadyEnd: 39} */
+  rampStart: number
+  rampEnd: number
+  steadyStart: number
+  steadyEnd: number
+}
+
+export function computeCampaignPhases(totalEmails: number): CampaignPhases {
   const inboxes = Math.max(1, Math.ceil(totalEmails / 500))
   const { rampDays, startPerDay, dailyIncrement } = PRICING.warmup
-  const rampPerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement) // = 210
-  const rampEmails = inboxes * rampPerInbox
-  const remaining = Math.max(0, totalEmails - rampEmails)
-  const peakDailyVolume = inboxes * (startPerDay + (rampDays - 1) * dailyIncrement) // emails/day at peak
-  const steadyDays = remaining > 0 ? Math.ceil(remaining / peakDailyVolume) : 0
-  return 1 /* setup */ + 14 /* warmup */ + rampDays + steadyDays
+  const rampPerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement)
+  const rampEmails = Math.min(totalEmails, Math.round(inboxes * rampPerInbox))
+  const steadyEmails = Math.max(0, totalEmails - rampEmails)
+  const peakDailyVolume = inboxes * (startPerDay + (rampDays - 1) * dailyIncrement)
+  const steadyDays = steadyEmails > 0 ? Math.ceil(steadyEmails / peakDailyVolume) : 0
+  const totalDays = 1 /* setup */ + 14 /* warmup */ + rampDays + steadyDays
+
+  // Display day labels
+  const rampStart = 16
+  const rampEnd = 15 + rampDays
+  const steadyStart = rampEnd + 1
+  const steadyEnd = totalDays
+
+  return { inboxes, rampDays, rampEmails, steadyDays, steadyEmails, totalDays, rampStart, rampEnd, steadyStart, steadyEnd }
+}
+
+/** Total campaign duration in days. */
+export function computeCampaignDays(totalEmails: number): number {
+  return computeCampaignPhases(totalEmails).totalDays
 }
 
 /** Contract date range: start = today + 2 days, end = start + computed campaign days */

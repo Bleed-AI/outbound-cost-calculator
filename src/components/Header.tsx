@@ -20,8 +20,8 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   subtitle: string
 }> = {
   calculator: {
-    line1: 'Cost Calculator For',
-    line2: { plain: '', accent: 'One-Time', tail: 'Campaigns', accentMode: 'black' },
+    line1: 'Price Your',
+    line2: { plain: '', accent: 'One-Time', tail: 'Outbound Campaign', accentMode: 'black' },
     subtitle: 'If you want us to run an end-to-end one-time campaign for you, this calculator gives you the exact cost. Not sure cold outreach works for your business yet?',
   },
   trials: {
