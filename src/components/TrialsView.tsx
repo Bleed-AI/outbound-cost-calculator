@@ -27,7 +27,7 @@ const PACKAGES: TrialPackage[] = [
     duration: 'up to 2 weeks',
     experimentCountLabel: '1–2 experiments',
     positioning: 'For when you have a clear hypothesis about your best one or two ICPs — we validate them fast and confirm the signal.',
-    prices: { high: 750, mid: 550, low: 350 },
+    prices: { high: 580, mid: 465, low: 350 },
     features: [
       '**No warmup wait** — we launch on pre-warmed accounts from day 1',
       'We handle everything — copy, leads, sending, replies',
@@ -42,7 +42,7 @@ const PACKAGES: TrialPackage[] = [
     duration: 'up to 4 weeks',
     experimentCountLabel: '3–5 experiments',
     positioning: 'Higher chance of finding a winner — we test multiple markets in parallel so you discover which segment actually responds.',
-    prices: { high: 1100, mid: 850, low: 550 },
+    prices: { high: 1100, mid: 1000, low: 900 },
     features: [
       'Everything in the smaller package',
       '**3–5 different ICPs / segments tested simultaneously**',
