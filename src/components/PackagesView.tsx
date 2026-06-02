@@ -22,7 +22,7 @@ const TIERS: PackageTier[] = [
     name: 'Pilot',
     price: '$1,500',
     priceNote: '/ month',
-    positioning: 'Entry-level monthly retainer for teams who want a working outbound machine — but at lower volume to start.',
+    positioning: 'Entry-level monthly package for teams who want a working outbound machine — but at lower volume to start.',
     features: [
       'All associated costs, prospecting, system & infrastructure',
       'Your branded domains & inboxes',
@@ -113,7 +113,7 @@ export function PackagesView() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <Step n="1" title="Trial Campaign" body="A short, focused test — we run experiments on our infrastructure to validate cold email works for your business." href="/trials" />
             <Step n="2" title="We Find What Works" body="Pause when we hit results. Or pivot if early signals say no — no commitments either way." />
-            <Step n="3" title="Move to a Package" body="Once validated, move to a monthly retainer to run the winning playbook every month." />
+            <Step n="3" title="Move to a Package" body="Once validated, move to a monthly package to run the winning playbook at scale, every month." />
           </div>
         </motion.div>
       </div>
@@ -195,7 +195,7 @@ function TierCard({ tier, onInquire }: { tier: PackageTier; onInquire: () => voi
               : 'bg-[var(--color-bg)] hover:bg-[var(--color-brand-muted)] border border-[var(--color-border-hover)] hover:border-[var(--color-brand)] text-[var(--color-text)]'
           }`}
         >
-          Book a Strategy Call
+          Get Started →
         </button>
       </div>
     </div>

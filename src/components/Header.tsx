@@ -25,9 +25,9 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
     subtitle: 'If you want us to run an end-to-end one-time campaign for you, this calculator gives you the exact cost. Not sure cold outreach works for your business yet?',
   },
   trials: {
-    line1: 'Trial',
-    line2: { plain: '', accent: 'Cold Outreach', tail: 'Campaigns', accentMode: 'black' },
-    subtitle: 'Short, focused campaign experiments — we set up, we send, we stop when we find the angle that works for you.',
+    line1: '',
+    line2: { plain: '', accent: 'Trial', tail: 'Campaigns', accentMode: 'black' },
+    subtitle: 'We run multiple campaign experiments against different market segments — in parallel, on our pre-warmed infrastructure. End result: you know which campaigns hit in which market, and you walk away with a batch of high-quality leads.',
   },
   packages: {
     line1: 'Our',
@@ -80,16 +80,18 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...spring, delay: 0.05 }}
           >
-            <div className="flex flex-wrap gap-x-4">
-              {cfg.line1.split(' ').map((word) => (
-                <span
-                  key={word}
-                  className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
-                >
-                  {word}
-                </span>
-              ))}
-            </div>
+            {cfg.line1 && (
+              <div className="flex flex-wrap gap-x-4">
+                {cfg.line1.split(' ').map((word) => (
+                  <span
+                    key={word}
+                    className="text-[var(--color-text)] text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight"
+                  >
+                    {word}
+                  </span>
+                ))}
+              </div>
+            )}
             {renderLine2()}
           </motion.div>
         ) : (

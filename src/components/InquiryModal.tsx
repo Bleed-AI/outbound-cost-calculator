@@ -31,13 +31,28 @@ function isValidDomain(value: string): boolean {
 }
 
 const KIND_TITLES: Record<InquiryKind, string> = {
-  package: 'Book Your Strategy Call',
-  trial: 'Book Your Strategy Call',
+  package: 'Get Started',
+  trial: 'Start Your Trial',
 }
 
 const KIND_SUBTITLES: Record<InquiryKind, string> = {
-  package: "Tell us about your business and we'll prep the call around your specific outbound goals.",
-  trial: "Tell us about your business — we'll see if a trial campaign is the right fit before scheduling.",
+  package: "Tell us about your business so we can hit the ground running on your monthly outbound.",
+  trial: "Tell us about your business — we'll kick off with a short call to align on ICPs and offer, then launch experiments same day.",
+}
+
+const KIND_SUBMIT_LABELS: Record<InquiryKind, string> = {
+  package: 'Send Order & Continue →',
+  trial: 'Place Order & Continue →',
+}
+
+const KIND_SUCCESS_TITLES: Record<InquiryKind, string> = {
+  package: "Order received — let's kick this off",
+  trial: "Trial order received — let's launch",
+}
+
+const KIND_SUCCESS_BODIES: Record<InquiryKind, string> = {
+  package: "Your details are in. Pick a time below and we'll be prepared with context on your business.",
+  trial: "Your trial order is in. Pick a kickoff time below — we usually launch the same day or next.",
 }
 
 export function InquiryModal({ context, onClose }: InquiryModalProps) {
@@ -162,9 +177,9 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </motion.div>
-                      <h4 className="text-[var(--color-text)] font-semibold text-lg mb-2">Thanks — we&apos;ll be in touch.</h4>
+                      <h4 className="text-[var(--color-text)] font-semibold text-lg mb-2">{KIND_SUCCESS_TITLES[context.kind]}</h4>
                       <p className="text-[var(--color-text-muted)] text-sm leading-relaxed mb-6">
-                        We&apos;ve got your details. Pick a time on the next page and we&apos;ll prep the call around your business.
+                        {KIND_SUCCESS_BODIES[context.kind]}
                       </p>
                       <motion.a
                         whileHover={{ scale: 1.01 }}
@@ -174,7 +189,7 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
                         rel="noopener noreferrer"
                         className="block w-full bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] text-white font-semibold py-3 px-6 rounded-[var(--radius-inner)] transition-colors text-sm text-center mb-3"
                       >
-                        Pick a Time →
+                        Pick a Kickoff Time →
                       </motion.a>
                       <button
                         onClick={onClose}
@@ -241,7 +256,7 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
                         whileTap={{ scale: 0.98 }}
                         className="w-full bg-[var(--color-brand)] hover:bg-[var(--color-brand-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-[var(--radius-inner)] transition-colors text-sm"
                       >
-                        {submitState === 'loading' ? 'Sending...' : 'Continue to Booking'}
+                        {submitState === 'loading' ? 'Sending...' : KIND_SUBMIT_LABELS[context.kind]}
                       </motion.button>
                     </motion.form>
                   )}

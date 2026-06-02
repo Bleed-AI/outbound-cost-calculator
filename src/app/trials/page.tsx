@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 
 export const metadata = {
   title: 'BleedAI — Trial Campaigns',
-  description: 'Short, focused trial campaigns to test if cold email works for your business — before committing to a retainer.',
+  description: 'Parallel campaign experiments against different market segments — discover where your offer hits, walk away with leads.',
 }
 
 export default function TrialsPage() {

@@ -62,18 +62,25 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = `${firstName} ${lastName}`
-  const kindLabel = kind === 'package' ? 'Retainer Package' : 'Trial Campaign'
-  const subjectPrefix = kind === 'package' ? 'Package Inquiry' : 'Trial Inquiry'
+  const kindLabel = kind === 'package' ? 'Premium Package' : 'Trial Campaign'
+  const subjectPrefix = kind === 'package' ? 'Package Order' : 'Trial Order'
+
+  const ctaCopy = kind === 'trial'
+    ? 'Pick a kickoff time below — we usually launch the same day or next.'
+    : 'Pick a time below so we can kick off your monthly outbound.'
+  const introCopy = kind === 'trial'
+    ? `Thanks for placing your trial order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
+    : `Thanks for getting started with <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll use the kickoff call to align on goals and then start running monthly outbound for you.`
 
   const clientHtml = buildEmail({
-    title: `Your ${kindLabel} Strategy Call is on the way`,
-    preheader: `${tierLabel}${priceLabel ? ` · ${priceLabel}` : ''} · We'll prep around your business`,
+    title: `Your ${kindLabel} Order — Next Steps`,
+    preheader: `${tierLabel}${priceLabel ? ` · ${priceLabel}` : ''} · ${ctaCopy}`,
     body: `
       <p style="color:#d2d2dc;font-size:15px;line-height:1.7;margin:0 0 12px;">
         Hi ${firstName},
       </p>
       <p style="color:#8b8b9e;font-size:14px;line-height:1.7;margin:0 0 24px;">
-        Thanks for your interest in <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&apos;ve got your details and we&apos;re prepping a call around your business and outbound goals.
+        ${introCopy}
       </p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
@@ -85,13 +92,13 @@ export async function POST(req: NextRequest) {
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
         <tr><td style="background:#0c0c14;border:1px solid rgba(177,19,15,0.25);border-radius:12px;padding:24px;">
-          <p style="color:#f0f0f4;font-size:16px;font-weight:700;margin:0 0 6px;">Pick a Time</p>
+          <p style="color:#f0f0f4;font-size:16px;font-weight:700;margin:0 0 6px;">${kind === 'trial' ? 'Pick a Kickoff Time' : 'Pick a Time to Kick Off'}</p>
           <p style="color:#8b8b9e;font-size:13px;margin:0 0 20px;line-height:1.6;">
-            Grab a slot that works — we&apos;ll be ready with context on your business.
+            ${ctaCopy}
           </p>
           <table cellpadding="0" cellspacing="0"><tr><td style="background:#B1130F;border-radius:8px;">
             <a href="${BOOK_CALL_URL}" style="display:inline-block;color:#ffffff;font-weight:700;font-size:14px;padding:14px 32px;text-decoration:none;letter-spacing:0.02em;">
-              Book Your Strategy Call &rarr;
+              ${kind === 'trial' ? 'Schedule Kickoff &rarr;' : 'Schedule Kickoff Call &rarr;'}
             </a>
           </td></tr></table>
         </td></tr>
@@ -125,7 +132,7 @@ export async function POST(req: NextRequest) {
       getResend().emails.send({
         from: FROM_EMAIL,
         to: email,
-        subject: `Your ${kindLabel} Strategy Call — BleedAI`,
+        subject: `Your ${kindLabel} Order — ${tierLabel}`,
         html: clientHtml,
       }),
       getResend().emails.send({
