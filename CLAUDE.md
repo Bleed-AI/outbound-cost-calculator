@@ -1,6 +1,8 @@
 # Outbound Cost Calculator — Developer Guide
 
-> **🔑 Pricing thinking lives in [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md).** That doc is the canonical reference for *why* we price the way we do, which customers go where, and which decisions are guardrails. READ IT before changing any price, threshold, copy, or routing logic on this project — or before applying BleedAI pricing thinking to a different project.
+> **🔑 Pricing thinking is split across two docs:**
+> - [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) — short routing brain. Who gets which link (Calculator / Trials / Packages) and why. Read this before quoting prices verbally or deciding which link to share with a prospect.
+> - [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) — operational reference. Every default, every threshold, all 15 psychological design decisions baked into the calculator, file map, validation harness. Read this before touching `pricing.config.ts` or changing any default.
 
 <!-- BLEEDAI-SHARED-STACK:START — auto-managed by templates/lite-kit. Edit the template, not this block. -->
 ## 🔑 Shared tool stack (every BleedAI project knows this)
@@ -52,7 +54,7 @@ Three-page Next.js app at **`calculator.bleedai.com`** that routes cold-outreach
 | `/trials` | Trial Campaigns ($350–$1,100) | Prospects validating fit |
 | `/packages` | Managed Outbound Packages ($1,500–$3,450/mo, Pilot/Growth/Scale) | Committed monthly clients |
 
-**Read [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md)** for: customer types, qualification gates (A/B/C), routing matrix, 14+ psychological decisions, sales workflow, what we chose NOT to do, and why every default is what it is. **That doc supersedes this one for any pricing or copy decision.**
+**Routing thinking** (who gets which link, what to say) lives in [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md). **System mechanics** (defaults, thresholds, 15 design decisions, sales workflow, what we chose NOT to do, file map) live in [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md). Those docs supersede this one for any pricing or copy decision.
 
 ## Deployment
 
@@ -163,7 +165,7 @@ pricePerAdditionalExperiment: 125
 
 After any price change: run `npx tsx scripts/validate-pricing.ts` to confirm math holds, then `npm run build`.
 
-**Before changing thresholds or default state**, re-read [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) sections 3 (price points) and 4 (psychological decisions). The defaults are guardrails — changing them undoes intent.
+**Before changing thresholds or default state**, re-read [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §2 (defaults) and §8 (the 15 design decisions). The defaults are guardrails — changing them undoes intent.
 
 ---
 
@@ -191,7 +193,7 @@ Edit `src/components/PackagesView.tsx → TIERS`. Each tier:
 
 Edit `src/components/TrialsView.tsx → PACKAGES`. Each entry has a `prices: { high, low }` map. The default URL shows `high`. The toggle reaches `low` via `?p=low` or footer dot or Shift+P.
 
-**Don't reintroduce a `mid` tier without justification** — it was tried and dropped (no psychological purpose; see [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) §7).
+**Don't reintroduce a `mid` tier without justification** — it was tried and dropped (no psychological purpose; see [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §11 "What we chose NOT to do").
 
 ---
 
@@ -244,7 +246,7 @@ Every calculator selection is encoded in the URL query string (short keys in `ur
 
 Param keys: `s` setup · `l` leads · `e` epp · `i` inbox · `d` data · `en` enrich · `c` copy · `ca` campaigns · `r` reply · `su` support · `li` linkedin · `cr` crm · `dr` drip · `in` infra · `is` instantly · `lp` landing-page · `cp` coupon · `uw` upwork-fee · `mt` month-type
 
-**Trial-page URL param**: `?p=high` (default, public) or `?p=low` (Cat 1 best-fit prospects only — see philosophy §4.10).
+**Trial-page URL param**: `?p=high` (default, public) or `?p=low` (gated — only handed to select fit prospects we want as long-term clients; see [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) for routing rules and [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §4 for the toggle mechanics).
 
 **Legacy URLs** (old `s=full_dfy`, `i=user_domains_instantly`, etc.) parse cleanly — backward-compat handled in `url-state.ts`. Don't break this.
 
@@ -265,7 +267,7 @@ Param keys: `s` setup · `l` leads · `e` epp · `i` inbox · `d` data · `en` e
 3. POST to `/api/send-inquiry` with `kind: 'trial' | 'package'` → fires two Resend emails (kind-aware copy)
 4. Success state offers Calendly link to `bleedai.com/book-call/`
 
-**No Stripe yet** — manual invoice goes out after sales call confirms fit. See [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) §4.9 for why.
+**No Stripe yet** — manual invoice goes out after sales call confirms fit. See [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §8.9 for why.
 
 ---
 
