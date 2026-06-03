@@ -1,5 +1,6 @@
 # Outbound Cost Calculator — Developer Guide
 
+> **🔑 Pricing thinking lives in [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md).** That doc is the canonical reference for *why* we price the way we do, which customers go where, and which decisions are guardrails. READ IT before changing any price, threshold, copy, or routing logic on this project — or before applying BleedAI pricing thinking to a different project.
 
 <!-- BLEEDAI-SHARED-STACK:START — auto-managed by templates/lite-kit. Edit the template, not this block. -->
 ## 🔑 Shared tool stack (every BleedAI project knows this)
@@ -39,8 +40,19 @@
 **Security:** `.githooks/pre-commit` blocks commits containing `Bearer <long-token>`, `sk-...`, `apify_api_...`, and three known-leaked keys. Bypass (legit case only): `git commit --no-verify`. The hook is auto-wired by first-run-check.
 <!-- BLEEDAI-SHARED-STACK:END -->
 
-BleedAI branded pricing calculator for cold outreach campaigns.
-Users configure options → see a live total → submit an order → two emails fire (client + owner).
+---
+
+## What this project is
+
+Three-page Next.js app at **`calculator.bleedai.com`** that routes cold-outreach prospects into the right product:
+
+| Route | Product | Audience |
+|---|---|---|
+| `/` | Cost Calculator (One-Time Campaigns) | Decided one-off buyers |
+| `/trials` | Trial Campaigns ($350–$1,100) | Prospects validating fit |
+| `/packages` | Managed Outbound Packages ($1,500–$3,450/mo, Pilot/Growth/Scale) | Committed monthly clients |
+
+**Read [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md)** for: customer types, qualification gates (A/B/C), routing matrix, 14+ psychological decisions, sales workflow, what we chose NOT to do, and why every default is what it is. **That doc supersedes this one for any pricing or copy decision.**
 
 ## Deployment
 
@@ -51,13 +63,14 @@ Users configure options → see a live total → submit an order → two emails 
 
 ## Stack
 
-Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Resend (email) · Vercel
+Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · Resend (email) · Framer Motion (animation) · Vercel
 
 ## Dev Commands
 
 ```bash
-npm run dev     # localhost:3000
-npm run build   # production build + TypeScript check (run before every push)
+npm run dev                            # localhost:3000
+npm run build                          # production build + TypeScript check (run before every push)
+npx tsx scripts/validate-pricing.ts    # pricing math sanity check across floor/typical/ceiling configs
 ```
 
 ## Git / Deploy Workflow
@@ -68,205 +81,203 @@ npm run build   # production build + TypeScript check (run before every push)
 
 ---
 
-## File Map
+## File map
 
-| File | What it does |
+### Pricing engine + state
+| File | Role |
 |---|---|
-| `src/lib/pricing.config.ts` | **All prices & rates** — edit this to change any dollar amount |
-| `src/lib/pricing.ts` | `calculateTotal()`, `DEFAULT_STATE`, `COUPON_CODES`, `LEADS_OPTIONS` |
-| `src/lib/types.ts` | TypeScript interfaces: `SelectionState`, `PricingResult`, `LineItem` |
-| `src/lib/url-state.ts` | URL ↔ state serialization (short param keys) |
-| `src/components/Calculator.tsx` | Client orchestrator — holds state, syncs URL, renders all sections |
-| `src/components/CostBreakdown.tsx` | Right-panel breakdown, coupon Apply/Remove logic |
-| `src/components/FloatingTotal.tsx` | Sticky bottom bar with live total |
-| `src/components/OrderModal.tsx` | Modal form — collects name/company/email/description, posts to API |
-| `src/components/ResultsGallery.tsx` | Bottom gallery — hardcoded campaign cards with metrics + modal |
-| `src/components/Header.tsx` | Logo (links to bleedai.com) + hero title |
-| `src/components/RadioOption.tsx` | Reusable radio card (supports `strikePrice` for "Included" display) |
-| `src/components/sections/*.tsx` | One file per calculator section |
-| `src/app/api/send-order/route.ts` | POST handler — validates payload, sends emails via Resend |
-| `src/app/page.tsx` | Root page — renders Header, Calculator, ResultsGallery |
-| `src/app/icon.svg` | Favicon (red square with "B") — Next.js picks this up automatically |
-| `public/bleed-ai-logo.svg` | BleedAI wordmark used in the header |
-| `public/campaign-results/*.png` | Campaign screenshot images (7 PNGs) |
+| `src/lib/pricing.config.ts` | **All prices, thresholds, package tier mins, nudge threshold, volume discounts, support tiers, add-ons, warmup math** — edit this to change any dollar amount |
+| `src/lib/pricing.ts` | `calculateTotal()`, `computeCampaignPhases()`, `getContractDates()`, `DEFAULT_STATE`, `COUPON_CODES`, `LEADS_OPTIONS`, `CAMPAIGNS_OPTIONS` |
+| `src/lib/types.ts` | `SelectionState`, `PricingResult`, `LineItem`, all tier-key unions |
+| `src/lib/url-state.ts` | URL ↔ state serialization (short param keys) + backward-compat for legacy params |
+
+### Page shells
+| File | Role |
+|---|---|
+| `src/app/page.tsx` | `/` — renders `<HomeShell />` (banner above header + Calculator + ResultsGallery) |
+| `src/app/trials/page.tsx` | `/trials` — Header + `<TrialsView />` |
+| `src/app/packages/page.tsx` | `/packages` — Header + `<PackagesView />` |
+| `src/components/HomeShell.tsx` | Client wrapper that lifts the calculator's total so `<TopBannerNudge />` can sit above `<Header />` |
+
+### Calculator (`/`)
+| File | Role |
+|---|---|
+| `src/components/Calculator.tsx` | Client orchestrator — holds state, syncs URL, force-locks invisible fields (monthType, inboxOwnership, upworkFee) |
+| `src/components/CostBreakdown.tsx` | Right-panel breakdown card + ROI Estimator + Submit Order button + Inbox Provider cost row |
+| `src/components/CostBreakdown.tsx → RoiEstimator` | Collapsible AI ROI estimator (calls `/api/estimate-roi`) |
+| `src/components/FloatingTotal.tsx` | Mobile sticky bottom bar |
+| `src/components/OrderModal.tsx` | Calculator's order form |
+| `src/components/sections/CampaignVolumeSection.tsx` | Lead volume slider (1.5k–50k) + EPP buttons |
+| `src/components/sections/CampaignsSection.tsx` | Campaign Experiments 1-5 picker + tip distinguishing from A/B testing |
+| `src/components/sections/CampaignSetupSummary.tsx` | "What You Get" 9-item list + compact stats + 4-phase timeline + inbox provider disclosure |
+| `src/components/sections/AdvancedOptionsDisclosure.tsx` | Collapsible panel housing all hidden defaults + add-ons |
+| `src/components/sections/DataSection.tsx` etc. | Individual config sections (rendered only inside Advanced Options) |
+| `src/components/sections/AddOnsSection.tsx` | LinkedIn, CRM, drip, infra mgmt, Instantly setup, landing page checkboxes |
+
+### Banner + nav
+| File | Role |
+|---|---|
+| `src/components/TopBannerNudge.tsx` | Sticky top banner; tier-aware recommendation; sessionStorage dismissal |
+| `src/components/TopNav.tsx` | Calculator / Trials / Packages nav with active highlight |
+| `src/components/Header.tsx` | Hero copy per page variant (`calculator` / `trials` / `packages`) |
+
+### Trials + Packages
+| File | Role |
+|---|---|
+| `src/components/TrialsView.tsx` | Two pricing cards (1-2 / 3-5), `?p=high\|low` toggle, hidden footer button, Shift+P shortcut |
+| `src/components/PackagesView.tsx` | Three tiers (Pilot/Growth/Scale), intro paragraph linking to trials/calculator |
+| `src/components/InquiryModal.tsx` | Shared form modal for trial + package orders |
+| `src/components/ResultsGallery.tsx` | Hardcoded campaign cards with metrics + modal |
+
+### API routes
+| File | Role |
+|---|---|
+| `src/app/api/send-order/route.ts` | Calculator order — client + owner email via Resend |
+| `src/app/api/send-inquiry/route.ts` | Trial + package orders — client + owner email, kind-aware subject/body |
+| `src/app/api/estimate-roi/route.ts` | AI ROI estimator (OpenAI) |
+
+### Validation
+| File | Role |
+|---|---|
+| `scripts/validate-pricing.ts` | Run via `npx tsx` — confirms pricing math + experiment pricing + coupons + legacy URL backward-compat |
 
 ---
 
-## Pricing Engine (`src/lib/pricing.ts`)
-
-### Flow of `calculateTotal(state)`
-
-```
-1. Fixed costs   → setup fee + copywriting + campaign strategies + n8n build fee
-2. Variable costs → per-1k-email or per-1k-lead rates × multiplier (volume discount)
-3. Add-ons       → linkedin, crm, drip sequence, infra management
-4. baseTotal     → fixed + variable + addons  (used for support waiver checks)
-5. Support       → check if baseTotal >= waiver threshold → cost = 0 if so
-6. preDiscountTotal → baseTotal + support
-7. Coupon        → apply % off preDiscountTotal if code matches COUPON_CODES
-8. total         → preDiscountTotal - couponDiscountAmount
-```
-
-### Volume Discount
-
-Applies only to variable (per-1k) costs. Rates are in `pricing.config.ts → volumeDiscounts`.
-
-### Campaign Strategy Inclusion Tiers
-
-```ts
-// In pricing.ts
-includedCampaignTier(leads):
-  leads >= 10000 → 3 strategies included free
-  leads >= 7500  → 2 strategies included free
-  else           → 1 (no bonus)
-```
-
-Campaign cost = `price[selected] - price[includedTier]` (never negative).
-
-### Support Auto-Waiver
-
-`pricing.config.ts → supportWaiverThresholds`:
-- `email`: free if baseTotal ≥ $500
-- `slack_light`: free if baseTotal ≥ $1,000
-- `slack_full`: free if baseTotal ≥ $2,000
-
-### Infrastructure Management
-
-`$25/1k emails/month`. Auto-checked when `inboxOwnership === 'user_domains_instantly'`.
-Waived (shown as $0) if `baseTotal >= infraWaiverThreshold` ($2,000).
-
----
-
-## How to Change Prices
+## How to change prices
 
 Edit `src/lib/pricing.config.ts` only. No other file needs touching for price changes.
 
 ```ts
-// Example entries in PRICING object:
-setup: { full_dfy: 1500, branded_only: 500 }
-inboxOwnership: { user_domains: 5, user_domains_instantly: 3, dfy: 8 }  // per 1k emails
-dataSource: { dfy_scrape: 20, full_list: 5, ... }  // per 1k leads
-volumeDiscounts: { 2000: 0, 4000: 0.03, 7500: 0.08, ... }
-supportWaiverThresholds: { email: 500, slack_light: 1000, slack_full: 2000 }
-infraWaiverThreshold: 2000
-hourlyRate: 150
+// Example slots in PRICING:
+inboxOwnership: { user_domains: 35, dfy: 50 }       // $ per 1k emails
+dataSource: { dfy_scrape: 50, full_list: 20, ... }  // $ per 1k leads
+copywriting: { finalized: 50, full_strategy: 125 }  // one-time
+campaigns: { 1: 0, 2: 125, 3: 250, 4: 375, 5: 500 } // first included, +$125 each
+support: { email: 100, slack_light: 200, slack_full: 375 }
+volumeDiscounts: { 2000: 0, 4000: 0.05, 7500: 0.075, 10000: 0.10, 20000: 0.20, 40000: 0.25 }
+brandedSetup: { baseSetupFee: 250, extraInboxThreshold: 50, extraPerInbox: 2 }
+packageNudgeThreshold: 1500                         // banner fires at this total
+packageTiers: { pilotMin: 1500, growthMin: 2450, scaleMin: 3450 }  // banner tier selection
+pricePerAdditionalExperiment: 125
 ```
+
+After any price change: run `npx tsx scripts/validate-pricing.ts` to confirm math holds, then `npm run build`.
+
+**Before changing thresholds or default state**, re-read [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) sections 3 (price points) and 4 (psychological decisions). The defaults are guardrails — changing them undoes intent.
 
 ---
 
-## How to Add a New Section / Option
+## How to change package tiers (`/packages`)
 
-### 1. Add the type to `src/lib/types.ts`
-```ts
-export type MyOption = 'option_a' | 'option_b'
-// Add to SelectionState:
-myOption: MyOption
-```
-
-### 2. Add pricing to `src/lib/pricing.config.ts`
-```ts
-myOption: { option_a: 100, option_b: 200 }
-```
-
-### 3. Add to `DEFAULT_STATE` in `src/lib/pricing.ts`
-```ts
-myOption: 'option_a'
-```
-
-### 4. Add URL param key in `src/lib/url-state.ts`
-```ts
-// In KEYS map add e.g.: myOption: 'mo'
-// In serialize() and parse() handle it
-```
-
-### 5. Create a section component in `src/components/sections/`
-Copy an existing one (e.g. `EnrichmentsSection.tsx`) as a template.
-
-### 6. Wire it into the pricing logic in `src/lib/pricing.ts`
-Add a line item inside `calculateTotal()`.
-
-### 7. Add it to `Calculator.tsx`
-Import the section component, add `<MySection value={state.myOption} onChange={(v) => update('myOption', v)} />`.
-
----
-
-## Discount Codes
-
-Defined in `src/lib/pricing.ts`:
-```ts
-export const COUPON_CODES: Record<string, number> = {
-  NEW5: 5,       // 5% off
-  SPECIAL10: 10, // 10% off
-  VIP15: 15,     // 15% off
-  ULTRA20: 20,   // 20% off
-}
-```
-
-To add a new code: add a key/value to `COUPON_CODES`. That's it.
-
-The UX (Apply button, green banner, Remove button, "Invalid" error) is all in `CostBreakdown.tsx`.
-The discount applies to `preDiscountTotal` (after volume discount, before coupon).
-Coupon code is stored in URL state (param key `cp`) so shared links preserve it.
-
----
-
-## Results Gallery (`src/components/ResultsGallery.tsx`)
-
-Cards are **hardcoded** in the `CAMPAIGNS` array at the top of the file — data is not derived from filenames. Each entry:
+Edit `src/components/PackagesView.tsx → TIERS`. Each tier:
 
 ```ts
 {
-  title: string        // Display name
-  headline: string     // One-line results summary
-  metrics: [           // Exactly 4 metrics shown in the 2×2 grid
-    { label: string, value: string }
-  ]
-  image: string        // Path under /campaign-results/
+  id: 'pilot' | 'growth' | 'scale',
+  name: string,
+  price: string,                  // displayed (e.g. '$1,500')
+  priceNote: string,              // displayed (e.g. '/ month')
+  positioning: string,            // 1-line audience hook
+  features: string[],             // **bold** markdown supported
+  emphasis?: boolean,             // visually emphasized tier
 }
 ```
 
-To **add a new campaign card**:
-1. Drop the PNG into `public/campaign-results/`
-2. Add a new entry to the `CAMPAIGNS` array in `ResultsGallery.tsx`
-3. Extract the 4 key metrics from the screenshot (sequences, reply rate, positive reply rate, opportunities/pipeline value)
-
-Clicking the screenshot thumbnail opens an `ImageModal` with a scrollable full-size image and larger metrics.
+**If you change tier prices, also update `pricing.config.ts → packageTiers`** so the banner picks the right tier per user total.
 
 ---
 
-## URL State
+## How to change trial pricing (`/trials`)
 
-Every selection is encoded in the URL query string (short param keys defined in `url-state.ts`).
-Sharing the URL restores the exact configuration. The full URL is included in order emails.
+Edit `src/components/TrialsView.tsx → PACKAGES`. Each entry has a `prices: { high, low }` map. The default URL shows `high`. The toggle reaches `low` via `?p=low` or footer dot or Shift+P.
 
-Current param keys (from `url-state.ts`):
-`s` setup · `l` leads · `e` emails/prospect · `i` inbox · `d` data · `en` enrichments ·
-`c` copywriting · `ca` campaigns · `r` reply · `su` support · `li` linkedin · `cr` crm ·
-`dr` drip · `in` infra · `cp` coupon
+**Don't reintroduce a `mid` tier without justification** — it was tried and dropped (no psychological purpose; see [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) §7).
 
 ---
 
-## Order Flow
+## How to add a new calculator section / option
 
-1. User clicks "Submit Order" → `OrderModal` opens
-2. User fills: First Name, Last Name, Company Website, Email, optional description
-3. POST to `/api/send-order` with full payload (line items, total, coupon info, shareUrl)
-4. Resend fires two emails simultaneously:
-   - **Client**: full breakdown, volume stats, coupon discount, Calendly CTA button
-   - **Owner** (`owner@bleedai.com`): client details, breakdown, coupon discount, "View Their Configuration" link
+If adding a new visible section (rare — most additions belong inside Advanced Options):
 
-Calendly link (both emails + success state): `https://calendly.com/bleedai/pilot-campaign-launch`
+### 1. Add the type
+```ts
+// src/lib/types.ts
+export type MyOption = 'option_a' | 'option_b'
+// Add to SelectionState: myOption: MyOption
+```
+
+### 2. Add pricing
+```ts
+// src/lib/pricing.config.ts
+myOption: { option_a: 100, option_b: 200 }
+```
+
+### 3. Add to DEFAULT_STATE
+```ts
+// src/lib/pricing.ts
+myOption: 'option_a'
+```
+
+### 4. Add URL param key
+```ts
+// src/lib/url-state.ts: handle in P map + parse() + serialize()
+```
+
+### 5. Create a section component
+Copy `src/components/sections/EnrichmentsSection.tsx` as a template.
+
+### 6. Wire it into the pricing logic
+Add a line item inside `calculateTotal()` in `pricing.ts`.
+
+### 7. Render it
+- **Visible by default**: Add to `Calculator.tsx`
+- **Hidden by default** (most likely): Add to `AdvancedOptionsDisclosure.tsx`
+
+### 8. Validate
+Run `npx tsx scripts/validate-pricing.ts`, then `npm run build`.
 
 ---
 
-## Environment Variables
+## URL state
+
+Every calculator selection is encoded in the URL query string (short keys in `url-state.ts`). Sharing the URL restores the exact configuration; the URL is included in order emails.
+
+Param keys: `s` setup · `l` leads · `e` epp · `i` inbox · `d` data · `en` enrich · `c` copy · `ca` campaigns · `r` reply · `su` support · `li` linkedin · `cr` crm · `dr` drip · `in` infra · `is` instantly · `lp` landing-page · `cp` coupon · `uw` upwork-fee · `mt` month-type
+
+**Trial-page URL param**: `?p=high` (default, public) or `?p=low` (Cat 1 best-fit prospects only — see philosophy §4.10).
+
+**Legacy URLs** (old `s=full_dfy`, `i=user_domains_instantly`, etc.) parse cleanly — backward-compat handled in `url-state.ts`. Don't break this.
+
+---
+
+## Order flow
+
+### Calculator (`/`) one-off
+1. User configures, clicks "Submit Order"
+2. `OrderModal` collects first name / last name / company domain / email / optional description
+3. POST to `/api/send-order` → fires **two** Resend emails:
+   - **Client**: full breakdown, 4-phase timeline, Calendly link to `/pilot-campaign-launch`
+   - **Owner** (`owner@bleedai.com`): client details, breakdown, "View Their Configuration" link
+
+### Trials + Packages
+1. User clicks "Start Your Trial" (trials) or "Get Started" (packages)
+2. `InquiryModal` collects the same fields
+3. POST to `/api/send-inquiry` with `kind: 'trial' | 'package'` → fires two Resend emails (kind-aware copy)
+4. Success state offers Calendly link to `bleedai.com/book-call/`
+
+**No Stripe yet** — manual invoice goes out after sales call confirms fit. See [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) §4.9 for why.
+
+---
+
+## Environment variables
 
 | Key | Value | Where |
 |---|---|---|
 | `RESEND_API_KEY` | `re_...` | Vercel + `.env.local` |
 | `FROM_EMAIL` | `BleedAI <noreply@updates.bleedai.com>` | Vercel + `.env.local` |
+| `OpenAI` | OpenAI API key (legacy var name) | Vercel + `.env.local` |
 
-`.env.local` is gitignored. Never commit it. Add/change env vars in Vercel dashboard → Settings → Environment Variables, then redeploy.
+`.env.local` is gitignored. Add new env vars in Vercel dashboard → Settings → Environment Variables, then redeploy.
 
 ---
 
@@ -278,7 +289,7 @@ Calendly link (both emails + success state): `https://calendly.com/bleedai/pilot
 - Muted text: `text-gray-400` / `text-gray-500`
 - Font: Inter (Google Fonts, loaded in `layout.tsx`)
 - Logo: `public/bleed-ai-logo.svg`
-- Favicon: `src/app/icon.svg` (Next.js App Router auto-picks this up)
+- Favicon: `src/app/icon.svg` (Next.js App Router auto-picks)
 
 ---
 
@@ -287,4 +298,23 @@ Calendly link (both emails + success state): `https://calendly.com/bleedai/pilot
 - `.claude/` is gitignored (stores command history which may contain tokens)
 - `.env*` is gitignored — never commit
 - Resend is lazily initialized in `route.ts` (build won't fail without `RESEND_API_KEY`)
-- Email regex validation on both client (`OrderModal`) and server (`route.ts`)
+- Email regex validation on both client (`OrderModal` / `InquiryModal`) and server (route handlers)
+- Pre-commit hook (`.githooks/pre-commit`) blocks token-like strings from being committed
+
+---
+
+## Validation harness
+
+`scripts/validate-pricing.ts` exercises:
+- Floor / typical / ceiling configs (totals match expectations)
+- Campaign experiments 1-5 (line item == `(n-1) × $125`)
+- All six coupon codes (discount math is correct)
+- Six legacy URL patterns (backward-compat doesn't crash)
+
+Run after any change to `pricing.config.ts`, `pricing.ts`, or `url-state.ts`:
+
+```bash
+npx tsx scripts/validate-pricing.ts
+```
+
+If output shows ✗ on any line, fix before pushing.
