@@ -1,8 +1,9 @@
 # Outbound Cost Calculator — Developer Guide
 
-> **🔑 Pricing thinking is split across two docs:**
+> **🔑 Pricing thinking is split across three docs:**
 > - [`docs/pricing-philosophy.md`](docs/pricing-philosophy.md) — short routing brain. Who gets which link (Calculator / Trials / Packages) and why. Read this before quoting prices verbally or deciding which link to share with a prospect.
 > - [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) — operational reference. Every default, every threshold, all 15 psychological design decisions baked into the calculator, file map, validation harness. Read this before touching `pricing.config.ts` or changing any default.
+> - [`docs/pricing-learnings.md`](docs/pricing-learnings.md) — **central, evolving log** of how our pricing thinking changes over time, and *why*. This is the canonical place any AI agent (the proposal generator, a pricing-Q&A agent) reads to stay current. Append here when the thinking evolves; update the other two docs to match the new *current* state.
 
 <!-- BLEEDAI-SHARED-STACK:START — auto-managed by templates/lite-kit. Edit the template, not this block. -->
 ## 🔑 Shared tool stack (every BleedAI project knows this)

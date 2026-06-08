@@ -338,6 +338,7 @@ The validation harness exercises floor / typical / ceiling configs, all 5 campai
 ## See also
 
 - [`pricing-philosophy.md`](./pricing-philosophy.md) — short routing brain (who gets which link and why).
+- [`pricing-learnings.md`](./pricing-learnings.md) — central, evolving log of how pricing thinking changes over time (the *why/when* behind revisions to this doc).
 - `CLAUDE.md` (repo root) — links to both docs at the top.
 
 ---

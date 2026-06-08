@@ -137,8 +137,6 @@ Above $3,450/mo we drop into custom enterprise sales — not a packaged tier.
 - **Do not blast the trial link.** Trials are gatekept. Sending publicly turns the loss-leader into a loss.
 - **Do not anchor on the calculator ceiling in a verbal quote.** Lead with the starting price. The tool reveals the upper end when someone configures into it.
 - **Do not pitch trials to clearly unfit prospects** (solo founder, B2C, no LinkedIn presence). Send calculator. Be honest about scope.
-- **Do not pretend we take Stripe payments.** All money is invoiced manually after a kickoff call. The order forms collect commitment intent, not payment.
-- **Do not say "premium" or "retainer" in customer copy.** We say "managed" and "package". Reads honest.
 
 ---
 
@@ -151,6 +149,7 @@ Above $3,450/mo we drop into custom enterprise sales — not a packaged tier.
 ## See also
 
 - [`pricing-system-reference.md`](./pricing-system-reference.md) — operational reference: every default, every threshold, all 15 psychological design decisions baked into the calculator, the file map, the validation harness, sales workflow tables.
+- [`pricing-learnings.md`](./pricing-learnings.md) — **central, evolving log** of how our pricing thinking changes over time (read this to stay current; append here when the thinking evolves). Read by pricing agents + the proposal generator.
 - `CLAUDE.md` (repo root) — links to both docs at the top.
 
 ---
