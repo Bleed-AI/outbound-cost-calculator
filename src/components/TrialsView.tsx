@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, LazyMotion, domAnimation } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
+import { ToolStack } from '@/components/ToolStack'
 
 type PriceTier = 'high' | 'low'
 
@@ -16,6 +17,8 @@ interface TrialPackage {
   experimentCountLabel: string
   positioning: string
   prices: Record<PriceTier, number>
+  /** "Real" value the work would normally cost — struck through to anchor the trial price. */
+  anchor: number
   features: string[]
   emphasis?: boolean
 }
@@ -28,6 +31,7 @@ const PACKAGES: TrialPackage[] = [
     experimentCountLabel: '1–2 experiments',
     positioning: 'For when you have a clear hypothesis about your best one or two ICPs — we validate them fast and confirm the signal.',
     prices: { high: 580, low: 350 },
+    anchor: 1800,
     features: [
       '**No warmup wait** — we launch on pre-warmed accounts from day 1',
       'We handle everything — copy, leads, sending, replies',
@@ -43,6 +47,7 @@ const PACKAGES: TrialPackage[] = [
     experimentCountLabel: '3–5 experiments',
     positioning: 'Higher chance of finding a winner — we test multiple markets in parallel so you discover which segment actually responds.',
     prices: { high: 1100, low: 900 },
+    anchor: 3600,
     features: [
       'Everything in the smaller package',
       '**3–5 different ICPs / segments tested simultaneously**',
@@ -124,6 +129,11 @@ export function TrialsView() {
           ))}
         </div>
 
+        {/* The real machine behind every trial — same stack as full engagements */}
+        <div className="mt-12">
+          <ToolStack />
+        </div>
+
         {/* Already-validated CTA — link back to calculator for complete one-off campaigns */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -196,6 +206,7 @@ function TrialCard({ pkg, priceTier, onInquire }: {
 }) {
   const accent = pkg.emphasis
   const price = pkg.prices[priceTier]
+  const savePct = Math.round((1 - price / pkg.anchor) * 100)
 
   return (
     <div className={`relative h-full rounded-[var(--radius-card)] border ${
@@ -224,7 +235,17 @@ function TrialCard({ pkg, priceTier, onInquire }: {
 
         <div className="text-[var(--color-text)] text-lg font-semibold mb-1">{pkg.name}</div>
 
-        <div className="flex items-baseline gap-1.5 mb-3">
+        {/* Anchor: struck-through "real" value above the subsidized trial price */}
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[var(--color-text-ghost)] text-base line-through decoration-[var(--color-brand)] decoration-2 tabular-nums font-[family-name:var(--font-mono)]">
+            ${pkg.anchor.toLocaleString()}
+          </span>
+          <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--color-success)] bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.2)] px-1.5 py-0.5 rounded-full">
+            Save {savePct}%
+          </span>
+        </div>
+
+        <div className="flex items-baseline gap-1.5 mb-1.5">
           <motion.span
             key={priceTier}
             initial={{ opacity: 0, y: -4 }}
@@ -236,6 +257,10 @@ function TrialCard({ pkg, priceTier, onInquire }: {
           </motion.span>
           <span className="text-[var(--color-text-dim)] text-sm">one-time</span>
         </div>
+
+        <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-3">
+          This work normally runs <span className="text-[var(--color-text-dim)] font-medium">${pkg.anchor.toLocaleString()}+</span>. Trials are deliberately subsidized — we take the hit to prove cold email works for you before you commit.
+        </p>
 
         <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mb-5 min-h-[3rem]">
           {pkg.positioning}
