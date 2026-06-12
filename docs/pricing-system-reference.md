@@ -4,7 +4,7 @@
 >
 > For *who* gets which link and *why* (routing thinking), see [`pricing-philosophy.md`](./pricing-philosophy.md). This doc answers "where is X encoded?" not "should we offer X?".
 >
-> **Last updated**: 2026-06-03.
+> **Last updated**: 2026-06-12.
 
 ---
 
@@ -99,11 +99,15 @@ A mid tier was tried and removed — no psychological purpose.
 
 ## 5. Packages pricing
 
-| Tier | Price | Email volume | Differentiator |
-|---|---|---|---|
-| Pilot | $1,500/mo | up to 10k emails/mo | Entry tier, no monthly experimentation, email support |
-| Growth (emphasized) | $2,450/mo | 20k–30k emails/mo | Multiple experiments + new market testing + Slack 5 days/wk |
-| Scale | $3,450/mo | 50k–60k OR extra experiments | Advanced reverse leadmagnets + signal-based campaigns |
+**Primary axis is strategic effort / complexity — NOT email volume.** Tiers are positioned (and sold) by how deep and how hard the campaign strategy goes. Email volume is a *byproduct* of running more and harder campaigns, deliberately demoted on the page to a muted side-line. See §8.16.
+
+| Tier | Price | Effort level | Strategic differentiator (primary) | Volume (byproduct, secondary) |
+|---|---|---|---|---|
+| Pilot | $1,500/mo | ▰▱▱ | One proven campaign against a single core ICP, run steady; no monthly experimentation; email support | up to ~10k emails/mo (sizes down on request) |
+| Growth (emphasized) | $2,450/mo | ▰▰▱ | Multiple experiments across new market segments / directories / geographies, tested monthly; signal layers where they sharpen targeting; Slack 5 days/wk | ~20k–30k emails/mo |
+| Scale | $3,450/mo | ▰▰▰ | Advanced multi-signal campaigns + reverse lead magnets + parallel value-prop testing; the most build time and strategic effort | up to ~50k–60k emails/mo when a play calls for it |
+
+On `/packages` each tier card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume appears only as a small muted "side-detail" line, plus a page-level footnote stating volume is never a reason on its own to size up. Signals (Claygent, Prospeo, etc.) are *included across all tiers* — the higher tiers leverage **more** and **harder** strategy, they don't unlock a gated feature. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) sits above the grid for premium credibility.
 
 A fourth tier (~$5,450 Premier) was tried and dropped — at that level, custom enterprise sales work better than a packaged tier.
 
@@ -154,7 +158,7 @@ Banner is sticky (follows scroll) and dismissable per session (sessionStorage). 
 
 ---
 
-## 8. The 15 psychological design decisions
+## 8. The 16 psychological design decisions
 
 Each is a guardrail baked into the calculator code. Changing the calculator without considering these undoes intent.
 
@@ -243,6 +247,18 @@ The Calculator's "What You Get" section surfaces 9 deliverables (was 6) — pull
 9. Email support throughout
 
 Goal: customer feels the campaign price is a steal for what is included. Don't undersell scope.
+
+### 8.16 Packages are sold on strategic effort, not email volume
+
+The original `/packages` page bolded email volume as the headline differentiator (`**10k**`, `**20k–30k**`, `**50k–60k**`). This produced the #1 objection: *"I don't need to send that many emails."* — and the prospect was right. Some campaigns simply require more **effort and strategic complexity**, not more send volume. Repricing/repositioning the tiers on that axis:
+
+- **Pilot** — a single proven play against one core ICP, run steady. Lowest effort. Available even to prospects who explicitly don't want high volume (we size sending down).
+- **Growth** — multiple market segments / directories / geographies tested every month; signal layers where they sharpen targeting. Medium effort.
+- **Scale** — advanced multi-signal campaigns, reverse lead magnets, parallel value-prop testing. Highest effort.
+
+**Signals are included across all tiers** — Scale doesn't *unlock* signals, it *leverages more of them, harder*. On the page each card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume is demoted to a small muted side-line ("scales to fit the play… want fewer? we size it down"), plus a page footnote stating volume is never a reason on its own to size up. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) adds premium credibility without leaning on volume. The packages hero subtitle and intro now state the effort-not-volume thesis outright; the one-off / trial cross-links were rephrased to drop diminishing language ("just need a single send").
+
+Encoded in `src/components/PackagesView.tsx` (`PackageTier.headline` / `.effort` / `.volumeNote`, `EffortMeter`, `SourcingStack`) and `src/components/Header.tsx` (packages subtitle).
 
 ---
 

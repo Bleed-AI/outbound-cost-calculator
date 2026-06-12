@@ -10,8 +10,16 @@ interface PackageTier {
   name: string
   price: string
   priceNote: string
+  /** The hero line — what kind of strategic play this tier runs. This is the
+   *  primary differentiator, NOT email volume. */
+  headline: string
+  /** Strategic effort / complexity level 1–3 — drives the effort meter. */
+  effort: 1 | 2 | 3
   positioning: string
   features: string[]
+  /** Email throughput — deliberately demoted to a muted side-detail. Volume is a
+   *  byproduct of the strategy, never the reason to size up. */
+  volumeNote: string
   /** Visually emphasize this tier — uses brand accent on price/border. */
   emphasis?: boolean
 }
@@ -22,31 +30,37 @@ const TIERS: PackageTier[] = [
     name: 'Pilot',
     price: '$1,500',
     priceNote: '/ month',
-    positioning: 'Entry-level monthly package for teams who want a working outbound machine — but at lower volume to start.',
+    headline: 'One proven campaign, dialed in and run for you.',
+    effort: 1,
+    positioning: 'For teams who want a real outbound machine running against one core market — focused and steady, no constant experimentation.',
     features: [
       'All associated costs, prospecting, system & infrastructure',
       'Your branded domains & inboxes',
-      'Send up to **10k emails / month**',
-      'One winning campaign running steady — no monthly experimentation',
+      'One **sharp campaign** against a single core ICP, run steady',
+      'Full **DFY sourcing** — Claygent, Prospeo & our directory stack',
       'Automated client responses with AI agents',
       'Follow-up strategy for hot leads',
       'Email support throughout',
     ],
+    volumeNote: 'Sending scales to fit the play — up to ~10k emails / mo. Want fewer? We size it down.',
   },
   {
     id: 'growth',
     name: 'Growth',
     price: '$2,450',
     priceNote: '/ month',
-    positioning: 'Built for teams who want a complete outbound machine — branded infra, ongoing experiments, full ops, every month.',
+    headline: 'Multiple segments and angles, tested every month.',
+    effort: 2,
+    positioning: 'For teams who want us actively hunting — new markets, directories and geographies probed monthly to find what wins.',
     features: [
       'Everything in Pilot',
-      'Send up to **20k–30k emails / month**',
-      'Test new market segments for your offer **every month**',
-      'Run **multiple experiments** to discover winning campaigns',
+      'Test **new market segments** for your offer every month',
+      '**Multiple experiments** across directories, niches & geographies',
+      '**Signal layers** added wherever they sharpen targeting',
       'Scale winning campaigns aggressively',
       'Slack support, 5 days a week',
     ],
+    volumeNote: 'More plays in flight naturally means more sending — typically ~20k–30k emails / mo.',
     emphasis: true,
   },
   {
@@ -54,15 +68,21 @@ const TIERS: PackageTier[] = [
     name: 'Scale',
     price: '$3,450',
     priceNote: '/ month',
-    positioning: 'For teams ready to scale volume or pressure-test multiple value props in parallel.',
+    headline: 'High-effort, multi-signal campaigns at full strategic depth.',
+    effort: 3,
+    positioning: 'For teams who want the hardest, most strategic plays run in parallel — advanced intent signals and reverse lead magnets, built fresh each month.',
     features: [
       'Everything in Growth',
-      'Additional experiments testing new value props in new markets — **OR** scale prospect volume to **50k–60k emails / month**',
+      '**Advanced signal-based campaigns** — multiple intent signals layered per play',
       'Help creating **advanced reverse lead magnets**',
-      'Experimenting with **advanced signal-based campaigns**',
+      '**New value props** pressure-tested in new markets, in parallel',
+      'The most build time and strategic effort we put in, every month',
     ],
+    volumeNote: 'Capacity for up to ~50k–60k emails / mo when a play calls for it — never the reason to be here.',
   },
 ]
+
+const SOURCING_STACK = ['Claygent', 'Prospeo', 'LinkedIn Sales Nav', 'Apollo', 'Google Maps', 'Niche Directories']
 
 export function PackagesView() {
   const [inquiry, setInquiry] = useState<InquiryContext | null>(null)
@@ -71,15 +91,18 @@ export function PackagesView() {
     <LazyMotion features={domAnimation}>
       <div className="max-w-6xl mx-auto px-4 pt-8 pb-16">
 
-        {/* Intro paragraph */}
-        <div className="max-w-2xl mb-10">
+        {/* Intro paragraph — leads with the effort-over-volume thesis */}
+        <div className="max-w-2xl mb-8">
           <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-            We run <span className="text-[var(--color-text)] font-medium">end-to-end monthly outbound</span> for you — full ops, ongoing experiments, scaling what wins. Pick the tier that fits your stage.
+            We run <span className="text-[var(--color-text)] font-medium">end-to-end outbound</span> for you every month — sourcing, copy, infrastructure and experiments, all operated by us. <span className="text-[var(--color-text)] font-medium">The tiers scale by how deep and how hard the strategy goes — not by how many emails we send.</span> Pick the level of effort your market needs.
           </p>
           <p className="text-[var(--color-text-dim)] text-xs mt-2 leading-relaxed">
-            Want to test the model first? Run a <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Trial Campaign</a>. Just need a single send? <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Configure a one-off campaign</a>.
+            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate the model with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a> in the calculator.
           </p>
         </div>
+
+        {/* Sourcing stack — premium credibility strip (the real list-building tools we operate) */}
+        <SourcingStack />
 
         {/* Tier grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 items-stretch">
@@ -100,6 +123,11 @@ export function PackagesView() {
             </motion.div>
           ))}
         </div>
+
+        {/* Volume footnote — reinforces that throughput is a byproduct, not the axis */}
+        <p className="mt-5 text-[var(--color-text-ghost)] text-xs leading-relaxed max-w-3xl">
+          Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
+        </p>
 
         {/* Journey explainer */}
         <motion.div
@@ -131,6 +159,57 @@ export function PackagesView() {
   )
 }
 
+/* ── Sourcing stack strip ──────────────────────────────── */
+
+function SourcingStack() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-10"
+    >
+      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-ghost)] mb-3">
+        Built on our sourcing stack
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {SOURCING_STACK.map((name) => (
+          <span
+            key={name}
+            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-border-active)]"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] opacity-80" />
+            {name}
+          </span>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+/* ── Effort meter ──────────────────────────────────────── */
+
+function EffortMeter({ level }: { level: 1 | 2 | 3 }) {
+  return (
+    <div className="flex items-center gap-2.5 mb-4">
+      <div className="flex gap-1" role="img" aria-label={`Strategic effort level ${level} of 3`}>
+        {[1, 2, 3].map((i) => (
+          <span
+            key={i}
+            className={`h-3 w-6 rounded-[3px] transition-colors ${
+              i <= level ? 'bg-[var(--color-brand)]' : 'bg-[var(--color-border)]'
+            }`}
+          />
+        ))}
+      </div>
+      <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--color-text-ghost)]">
+        Effort &amp; strategy
+      </span>
+    </div>
+  )
+}
+
 /* ── Tier card ─────────────────────────────────────────── */
 
 function TierCard({ tier, onInquire }: { tier: PackageTier; onInquire: () => void }) {
@@ -156,17 +235,23 @@ function TierCard({ tier, onInquire }: { tier: PackageTier; onInquire: () => voi
         </div>
 
         {/* Price */}
-        <div className="flex items-baseline gap-1 mb-1">
-          <span className={`text-4xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight ${
-            accent ? 'text-[var(--color-text)]' : 'text-[var(--color-text)]'
-          }`}>
+        <div className="flex items-baseline gap-1 mb-3">
+          <span className="text-4xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)]">
             {tier.price}
           </span>
           <span className="text-[var(--color-text-dim)] text-sm">{tier.priceNote}</span>
         </div>
 
+        {/* Headline — the primary differentiator */}
+        <p className="text-[var(--color-text)] text-[15px] font-semibold leading-snug mb-4 min-h-[2.75rem]">
+          {tier.headline}
+        </p>
+
+        {/* Effort meter */}
+        <EffortMeter level={tier.effort} />
+
         {/* Positioning */}
-        <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mb-5 min-h-[3rem]">
+        <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mb-5 min-h-[3.5rem]">
           {tier.positioning}
         </p>
 
@@ -178,7 +263,7 @@ function TierCard({ tier, onInquire }: { tier: PackageTier; onInquire: () => voi
         } mb-5`} />
 
         {/* Features */}
-        <ul className="space-y-2.5 mb-7 flex-1">
+        <ul className="space-y-2.5 mb-5 flex-1">
           {tier.features.map((feat, i) => (
             <li key={i} className="flex gap-2.5 text-[13px] leading-relaxed text-[var(--color-text-muted)]">
               <svg className={`w-3.5 h-3.5 flex-shrink-0 mt-1 ${accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text-dim)]'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -188,6 +273,14 @@ function TierCard({ tier, onInquire }: { tier: PackageTier; onInquire: () => voi
             </li>
           ))}
         </ul>
+
+        {/* Volume — demoted side-detail */}
+        <div className="flex items-start gap-2 mb-5 text-[11px] leading-relaxed text-[var(--color-text-ghost)]">
+          <svg className="w-3.5 h-3.5 flex-shrink-0 mt-px opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <span>{tier.volumeNote}</span>
+        </div>
 
         {/* CTA */}
         <button

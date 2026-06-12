@@ -6,7 +6,7 @@
 >
 > **Audience**: any human teammate or AI agent answering pricing questions on BleedAI's behalf.
 >
-> **Last updated**: 2026-06-03. This thinking will evolve — keep the date current when you revise.
+> **Last updated**: 2026-06-12. This thinking will evolve — keep the date current when you revise.
 
 ---
 
@@ -124,9 +124,11 @@ We are not really making money on trials. The value is the conversion path: succ
 
 Where we want fit clients to land. Recurring monthly engagement, full ops, ongoing experiments.
 
-- **Pilot** — $1,500/mo. Entry tier. One winning campaign on autopilot, no monthly experimentation, email support.
-- **Growth** — $2,450/mo (emphasized). Multiple monthly experiments, new market testing, Slack support 5 days/week.
-- **Scale** — $3,450/mo. Higher volume, advanced reverse leadmagnets, signal-based campaigns.
+**Sell these on strategic effort/complexity, not email volume.** The tier differs by *how deep and how hard the campaign strategy goes* — not how many emails go out. Volume is a byproduct. (This directly defuses the #1 objection — "I don't need to send that many emails." They're right; sell the effort, not the send count. See system-reference §8.16.)
+
+- **Pilot** — $1,500/mo. One proven campaign against a single core ICP, run steady. Lowest effort, no monthly experimentation, email support. Fine for prospects who explicitly *don't* want high volume — we size the sending down.
+- **Growth** — $2,450/mo (emphasized). Multiple experiments across new market segments / directories / geographies, tested monthly; signal layers where they sharpen targeting; Slack 5 days/wk.
+- **Scale** — $3,450/mo. Highest effort — advanced multi-signal campaigns, reverse lead magnets, parallel value-prop testing. Signals are included at every tier; Scale just runs *more of them, harder*.
 
 Above $3,450/mo we drop into custom enterprise sales — not a packaged tier.
 

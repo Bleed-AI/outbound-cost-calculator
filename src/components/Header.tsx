@@ -32,7 +32,7 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   packages: {
     line1: '',
     line2: { plain: '', accent: 'Managed', tail: 'Outbound Packages', accentMode: 'black' },
-    subtitle: 'End-to-end monthly outbound — built and operated by us, full ops, ongoing experiments, scaling what wins. Pick the tier that fits your stage.',
+    subtitle: 'End-to-end monthly outbound, built and operated by us. Tiers scale by strategic depth and effort — not by email count. Pick the level your market needs.',
   },
 }
 
