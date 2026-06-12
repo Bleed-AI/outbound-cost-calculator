@@ -139,7 +139,7 @@ describe('campaign strategy pricing (no inclusion tiers)', () => {
   it('charges full price for 2 strategies regardless of lead volume', () => {
     for (const leads of [2000, 7500, 10000, 40000] as const) {
       const r = calculateTotal(state({ leadsPerMonth: leads, campaigns: 2 }))
-      const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
+      const line = r.lineItems.find((i) => i.label.includes('Campaign Experiment'))
       expect(line?.amount).toBe(PRICING.campaigns[2])
     }
   })
@@ -147,7 +147,7 @@ describe('campaign strategy pricing (no inclusion tiers)', () => {
   it('charges full price for 3 strategies regardless of lead volume', () => {
     for (const leads of [2000, 7500, 10000, 40000] as const) {
       const r = calculateTotal(state({ leadsPerMonth: leads, campaigns: 3 }))
-      const line = r.lineItems.find((i) => i.label.includes('Campaign Strateg'))
+      const line = r.lineItems.find((i) => i.label.includes('Campaign Experiment'))
       expect(line?.amount).toBe(PRICING.campaigns[3])
     }
   })
@@ -161,21 +161,21 @@ describe('campaign strategy pricing (no inclusion tiers)', () => {
 })
 
 // ────────────────────────────────────────────────────────────────
-// Pilot Month + Branded — ramp-phase billing
+// Branded campaign — full-volume billing (no ramp) + included infra
 // ────────────────────────────────────────────────────────────────
 
-describe('pilot month + branded (ramp-phase billing)', () => {
+describe('branded campaign (full-volume billing, no ramp)', () => {
   it('sets isFirstMonthBranded flag only when both conditions met', () => {
     expect(calculateTotal(state({ monthType: 'first_month', inboxOwnership: 'user_domains' })).isFirstMonthBranded).toBe(true)
     expect(calculateTotal(state({ monthType: 'first_month', inboxOwnership: 'dfy' })).isFirstMonthBranded).toBeUndefined()
     expect(calculateTotal(state({ monthType: 'normal_month', inboxOwnership: 'user_domains' })).isFirstMonthBranded).toBeUndefined()
   })
 
-  it('bills variable (inbox) cost on ramp emails, not full capacity', () => {
+  it('bills the managed-sending line on full volume — no ramp discount', () => {
     const pilot = calculateTotal(state({
       monthType: 'first_month',
       inboxOwnership: 'user_domains',
-      leadsPerMonth: 10000,   // 20k emails capacity at EPP=2
+      leadsPerMonth: 10000,
       emailsPerProspect: 2,
     }))
     const normal = calculateTotal(state({
@@ -184,10 +184,10 @@ describe('pilot month + branded (ramp-phase billing)', () => {
       leadsPerMonth: 10000,
       emailsPerProspect: 2,
     }))
-    // Pilot inbox cost should be < normal inbox cost (ramp emails < full capacity).
-    const pilotInbox = pilot.lineItems.find((i) => i.label.startsWith('Inbox & Infrastructure'))!
-    const normalInbox = normal.lineItems.find((i) => i.label.startsWith('Inbox & Infrastructure'))!
-    expect(pilotInbox.amount).toBeLessThan(normalInbox.amount)
+    // No ramp: the same full volume is billed in both modes.
+    const pilotSend = pilot.lineItems.find((i) => i.label.startsWith('Managed Sending'))!
+    const normalSend = normal.lineItems.find((i) => i.label.startsWith('Managed Sending'))!
+    expect(pilotSend.amount).toBe(normalSend.amount)
   })
 
   it('includes a branded setup one-time line item', () => {
@@ -202,16 +202,31 @@ describe('pilot month + branded (ramp-phase billing)', () => {
     expect(setup!.amount).toBeGreaterThan(0)
   })
 
-  it('computes month1ActualEmails = inboxes × 210 (ramp-phase formula)', () => {
+  it('bills full volume (month1ActualEmails === totalEmails) and sizes inboxes by capacity', () => {
     const r = calculateTotal(state({
       monthType: 'first_month',
       inboxOwnership: 'user_domains',
       leadsPerMonth: 10000,
       emailsPerProspect: 2,
     }))
-    // 20k capacity → ceil(20000/500) = 40 inboxes → 40 × 210 = 8,400 ramp emails
-    expect(r.inboxesNeeded).toBe(40)
-    expect(r.month1ActualEmails).toBe(40 * 210)
+    // No ramp — every send is billed.
+    expect(r.month1ActualEmails).toBe(r.totalEmails) // 20,000
+    // 20k emails → ceil(20000/540)=38 sending inboxes + floor(20000/5000)*3=12 backup = 50.
+    expect(r.inboxesNeeded).toBe(50)
+  })
+
+  it('folds branded domains + inboxes into the total as a non-discounted included cost', () => {
+    const r = calculateTotal(state({
+      monthType: 'first_month',
+      inboxOwnership: 'user_domains',
+      leadsPerMonth: 4000,
+      emailsPerProspect: 2,
+    }))
+    expect(r.infraIncludedCost).toBeGreaterThan(0)
+    expect(r.infraDomainCost + r.infraInboxCost).toBeCloseTo(r.infraIncludedCost, 2)
+    // It is NOT a line item (rendered separately), so total = lineItems + infra.
+    const lineSum = r.lineItems.reduce((s, i) => s + i.amount, 0)
+    expect(r.total).toBeCloseTo(lineSum + r.infraIncludedCost, 2)
   })
 
   it("Normal Month price at same config = what Month 2+ card promises", () => {
@@ -285,13 +300,14 @@ describe('monthlyRecurringTotal / oneTimeTotal split', () => {
     expect(r.monthlyRecurringTotal).toBeCloseTo(expected, 2)
   })
 
-  it('oneTimeTotal equals sum of line items with period === one-time', () => {
+  it('oneTimeTotal equals sum of one-time line items + included infra', () => {
     const r = calculateTotal(state({
       addOns: { ...DEFAULT_STATE.addOns, landingPage: true, instantlySetup: true },
     }))
+    // Branded infra is one-time-natured and folded into the total outside line items.
     const expected = r.lineItems
       .filter((i) => i.period === 'one-time')
-      .reduce((s, i) => s + i.amount, 0)
+      .reduce((s, i) => s + i.amount, 0) + r.infraIncludedCost
     expect(r.oneTimeTotal).toBeCloseTo(expected, 2)
     // And it should be non-zero given we enabled 2 one-time add-ons.
     expect(r.oneTimeTotal).toBeGreaterThan(0)
@@ -333,10 +349,10 @@ describe('monthlyRecurringTotal / oneTimeTotal split', () => {
     expect(withUpwork.oneTimeTotal).toBeCloseTo(withoutUpwork.oneTimeTotal * grossUp, 1)
   })
 
-  it('REGRESSION: coupon flows into monthlyRecurringTotal + oneTimeTotal', () => {
-    // Same invariant with a coupon applied. Both figures must reflect
-    // the discounted amounts so the Pilot card split and Month 2+ recurring
-    // figure match the grand total the client actually pays.
+  it('REGRESSION: coupon flows into the total; sum invariant holds; infra is NOT discounted', () => {
+    // Coupons apply to the campaign services only — the folded-in branded infra
+    // is charged at cost and never discounted. The monthly+oneTime split must
+    // still sum to the grand total.
     const base = state({
       leadsPerMonth: 5000,
       addOns: { ...DEFAULT_STATE.addOns, landingPage: true },
@@ -346,10 +362,14 @@ describe('monthlyRecurringTotal / oneTimeTotal split', () => {
 
     expect(withCoupon.monthlyRecurringTotal + withCoupon.oneTimeTotal)
       .toBeCloseTo(withCoupon.total, 2)
+    expect(withCoupon.total).toBeLessThan(withoutCoupon.total)
 
-    // Monthly recurring scales down by 5% with NEW5.
-    expect(withCoupon.monthlyRecurringTotal).toBeCloseTo(withoutCoupon.monthlyRecurringTotal * 0.95, 1)
-    expect(withCoupon.oneTimeTotal).toBeCloseTo(withoutCoupon.oneTimeTotal * 0.95, 1)
+    // Infra-included cost is identical with/without the coupon.
+    expect(withCoupon.infraIncludedCost).toBeCloseTo(withoutCoupon.infraIncludedCost, 2)
+
+    // Coupon discount = 5% of the couponable (services) base only, excluding infra.
+    const couponableBase = withoutCoupon.total - withoutCoupon.infraIncludedCost
+    expect(withCoupon.couponDiscountAmount).toBeCloseTo(couponableBase * 0.05, 1)
   })
 
   it('REGRESSION: coupon + Upwork combined — invariant still holds', () => {
@@ -402,11 +422,10 @@ describe('grand total invariant', () => {
       leadsPerMonth: 7500,
       addOns: { ...DEFAULT_STATE.addOns, linkedin: true, landingPage: true },
     }))
-    const sum = r.lineItems.reduce((s, i) => s + i.amount, 0)
-    // preDiscountTotal is line items before volume discount is already baked
-    // into variable items. So sum of line items == preDiscountTotal (≡ total
-    // with no coupon/upwork/volume discount reapplied).
     // Volume discount is already applied inside each variable line item.
+    // The branded infra cost is folded into the total but rendered OUTSIDE
+    // lineItems, so the invariant is: total === Σ lineItems + infraIncludedCost.
+    const sum = r.lineItems.reduce((s, i) => s + i.amount, 0) + r.infraIncludedCost
     const expectedTotal = +(sum).toFixed(2)
     expect(r.total).toBeCloseTo(expectedTotal, 2)
   })

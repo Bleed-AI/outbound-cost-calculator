@@ -37,6 +37,12 @@ interface OrderPayload {
   brandedSetupFee: number
   inboxesNeeded: number
   domainsNeeded: number
+  monthlyCapacity: number
+  infraIncludedCost: number
+  infraDomainCost: number
+  infraInboxCost: number
+  inboxMonthlyRate: number
+  monthsIncluded: number
   shareUrl: string
 }
 
@@ -69,6 +75,12 @@ export async function POST(req: NextRequest) {
     brandedSetupFee,
     inboxesNeeded,
     domainsNeeded,
+    monthlyCapacity,
+    infraIncludedCost,
+    infraDomainCost,
+    infraInboxCost,
+    inboxMonthlyRate,
+    monthsIncluded,
     shareUrl,
   } = payload
 
@@ -119,9 +131,16 @@ export async function POST(req: NextRequest) {
         couponDiscountPercent,
         couponCode,
         total,
+        infraIncludedCost: infraIncludedCost ?? 0,
+        infraDomainCost: infraDomainCost ?? 0,
+        infraInboxCost: infraInboxCost ?? 0,
+        inboxesNeeded: inboxesNeeded ?? 0,
+        domainsNeeded: domainsNeeded ?? 0,
+        inboxMonthlyRate: inboxMonthlyRate ?? 0,
+        monthsIncluded: monthsIncluded ?? 0,
       })}
 
-      ${buildTimelineCard(month1ActualEmails ?? 0)}
+      ${buildTimelineCard(totalEmails)}
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 0;">
@@ -158,9 +177,9 @@ export async function POST(req: NextRequest) {
         ${buildDetailRow('Company', companyDomain)}
         ${buildDetailRow('Email', `<a href="mailto:${email}" style="color:#B1130F;text-decoration:none;">${email}</a>`)}
         ${buildDetailRow('Campaign Total', formattedTotal)}
-        ${buildDetailRow('Capacity (emails/mo)', totalEmails.toLocaleString())}
-        ${buildDetailRow('Sends This Campaign', (month1ActualEmails ?? 0).toLocaleString())}
-        ${buildDetailRow('Branded Infra', `${inboxesNeeded ?? 0} inboxes / ${domainsNeeded ?? 0} domains`)}
+        ${buildDetailRow('Total Sends This Campaign', totalEmails.toLocaleString())}
+        ${buildDetailRow('System Capacity Built', `≈${(monthlyCapacity ?? totalEmails).toLocaleString()} / mo`)}
+        ${buildDetailRow('Branded Infra (included)', `${inboxesNeeded ?? 0} inboxes / ${domainsNeeded ?? 0} domains · ${fmt(infraIncludedCost ?? 0)}`)}
         ${description ? buildDetailRow('Description', description) : ''}
       </table>
 
@@ -174,6 +193,13 @@ export async function POST(req: NextRequest) {
         couponDiscountPercent,
         couponCode,
         total,
+        infraIncludedCost: infraIncludedCost ?? 0,
+        infraDomainCost: infraDomainCost ?? 0,
+        infraInboxCost: infraInboxCost ?? 0,
+        inboxesNeeded: inboxesNeeded ?? 0,
+        domainsNeeded: domainsNeeded ?? 0,
+        inboxMonthlyRate: inboxMonthlyRate ?? 0,
+        monthsIncluded: monthsIncluded ?? 0,
       })}
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
@@ -252,19 +278,19 @@ interface SummaryCtx {
 
 function buildCampaignSummaryCard(ctx: SummaryCtx) {
   const bullets: string[] = [
-    `Branded infrastructure built &amp; warmed (${ctx.inboxesNeeded} inboxes across ${ctx.domainsNeeded} domains)`,
-    `<strong>${ctx.month1ActualEmails.toLocaleString()} sends</strong> during ramp phase &mdash; on ${ctx.totalEmails.toLocaleString()} total monthly capacity built`,
+    `Branded infrastructure built &amp; warmed (${ctx.inboxesNeeded} inboxes across ${ctx.domainsNeeded} domains) &mdash; yours to keep`,
+    `<strong>${ctx.totalEmails.toLocaleString()} total emails</strong> sent across the campaign, at full capacity (no ramp)`,
   ]
   if (ctx.brandedSetupFee > 0) {
     bullets.push(`${fmt(ctx.brandedSetupFee)} setup fee &mdash; one-time, included in this total`)
   }
-  bullets.push('Full DFY lead sourcing, copy, reply handling, support &mdash; included')
+  bullets.push('Full DFY lead sourcing, copy, reply handling, Slack support &mdash; included')
 
   const split = (ctx.monthlyRecurring > 0 || ctx.oneTime > 0) ? `
     <div style="padding-top:10px;margin-top:10px;border-top:1px solid rgba(177,19,15,0.2);">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
-          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">Campaign costs (ramp-billed)</td>
+          <td style="color:#8b8b9e;font-size:11px;padding:3px 0;">Campaign services</td>
           <td style="color:#f0f0f4;font-size:11px;font-weight:500;text-align:right;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;padding:3px 0;">${fmt(ctx.monthlyRecurring)}</td>
         </tr>
         ${ctx.oneTime > 0 ? `
@@ -312,6 +338,13 @@ interface ContractCtx {
   couponDiscountPercent: number
   couponCode: string
   total: number
+  infraIncludedCost: number
+  infraDomainCost: number
+  infraInboxCost: number
+  inboxesNeeded: number
+  domainsNeeded: number
+  inboxMonthlyRate: number
+  monthsIncluded: number
 }
 
 function buildFullContract(c: ContractCtx) {
@@ -322,10 +355,31 @@ function buildFullContract(c: ContractCtx) {
       </tr>
     </table>
 
-    ${buildLineItemSection('Campaign Costs', c.campaignItems, c.discountPercent)}
+    ${buildLineItemSection('Campaign Services', c.campaignItems, c.discountPercent)}
     ${buildLineItemSection('Setup Fees (one-time)', c.setupItems)}
     ${buildDiscounts(c.discountAmount, c.discountPercent, c.couponDiscountAmount, c.couponDiscountPercent, c.couponCode)}
+    ${buildInfraSection(c)}
     ${buildTotalBar(fmt(c.total), 'Campaign Total')}
+  `
+}
+
+/** Branded domains + inboxes — folded into the total, framed as an included bonus. */
+function buildInfraSection(c: ContractCtx) {
+  if (!c.infraIncludedCost || c.infraIncludedCost <= 0) return ''
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 0;">
+      <tr><td colspan="2" style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:12px 14px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="color:#34d399;font-size:11px;font-weight:700;">&#10003;&nbsp; Branded domains &amp; inboxes &mdash; included, yours to keep</td>
+            <td style="text-align:right;color:#f0f0f4;font-size:12px;font-weight:600;font-family:'SF Mono',SFMono-Regular,Menlo,monospace;white-space:nowrap;">${fmt(c.infraIncludedCost)}</td>
+          </tr>
+          <tr><td colspan="2" style="padding-top:6px;color:#8b8b9e;font-size:11px;line-height:1.5;">
+            ${c.domainsNeeded} domains (1-yr registration, ${fmt(c.infraDomainCost)}) + ${c.inboxesNeeded} inboxes (${fmt(c.inboxMonthlyRate)}/mo &times; ${c.monthsIncluded} mo, ${fmt(c.infraInboxCost)}). Built under your brand and yours to keep &mdash; already in the total above, and discounts don&apos;t apply to it.
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
   `
 }
 
@@ -402,15 +456,14 @@ function buildTotalBar(formattedTotal: string, label: string) {
   `
 }
 
-function buildTimelineCard(month1ActualEmails: number) {
+function buildTimelineCard(totalEmails: number) {
   return `
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
       <tr><td style="background:#0c0c14;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:16px;">
-        <div style="color:#5a5a6e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Campaign Timeline</div>
+        <div style="color:#5a5a6e;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:10px;">Campaign Timeline &middot; 6 weeks</div>
         <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td width="90" style="color:#5a5a6e;font-size:12px;padding:3px 0;">Day 1</td><td style="color:#8b8b9e;font-size:12px;padding:3px 0;">Infrastructure setup</td></tr>
-          <tr><td width="90" style="color:#5a5a6e;font-size:12px;padding:3px 0;">Days 2&ndash;15</td><td style="color:#8b8b9e;font-size:12px;padding:3px 0;">Provider warmup &mdash; zero sends</td></tr>
-          <tr><td width="90" style="color:#B1130F;font-size:12px;font-weight:600;padding:3px 0;">Days 16&ndash;29</td><td style="color:#f0f0f4;font-size:12px;padding:3px 0;">Outbound ramp &mdash; <strong>${month1ActualEmails.toLocaleString()} emails sent</strong></td></tr>
+          <tr><td width="90" style="color:#5a5a6e;font-size:12px;padding:3px 0;">Weeks 1&ndash;2</td><td style="color:#8b8b9e;font-size:12px;padding:3px 0;">Inbox warmup &mdash; zero sends, building sender reputation</td></tr>
+          <tr><td width="90" style="color:#B1130F;font-size:12px;font-weight:600;padding:3px 0;">Weeks 3&ndash;6</td><td style="color:#f0f0f4;font-size:12px;padding:3px 0;">Full-capacity sending &mdash; <strong>all ${totalEmails.toLocaleString()} emails</strong> delivered (no ramp)</td></tr>
         </table>
       </td></tr>
     </table>

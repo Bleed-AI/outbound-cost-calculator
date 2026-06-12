@@ -25,6 +25,8 @@ interface CampaignVolumeSectionProps {
   leads: LeadsPerMonth
   emailsPerProspect: EmailsPerProspect
   totalEmails: number
+  /** Monthly system capacity of the provisioned inboxes — shown as a side-note. */
+  monthlyCapacity: number
   onLeadsChange: (v: LeadsPerMonth) => void
   onEmailsChange: (v: EmailsPerProspect) => void
 }
@@ -39,6 +41,7 @@ export function CampaignVolumeSection({
   leads,
   emailsPerProspect,
   totalEmails,
+  monthlyCapacity,
   onLeadsChange,
   onEmailsChange,
 }: CampaignVolumeSectionProps) {
@@ -49,13 +52,13 @@ export function CampaignVolumeSection({
   return (
     <SectionCard
       title="Campaign Volume"
-      description="How many leads do you want to reach per month, and how many follow-up emails per prospect?"
+      description="How many leads do you want to reach in this campaign, and how many follow-up emails per prospect?"
       illustration={<CampaignVolumeIllustration />}
     >
-      {/* Leads per month — free-range slider */}
+      {/* Total leads — free-range slider */}
       <div className="mb-6">
         <label className="text-[var(--color-text-muted)] text-xs font-medium uppercase tracking-wider mb-3 block">
-          Leads per Month
+          Total Leads
         </label>
 
         {/* Current value + discount badge */}
@@ -63,7 +66,7 @@ export function CampaignVolumeSection({
           <span className="text-[var(--color-text)] text-2xl font-bold tabular-nums">
             {leads.toLocaleString()}
           </span>
-          <span className="text-[var(--color-text-muted)] text-sm">leads / month</span>
+          <span className="text-[var(--color-text-muted)] text-sm">leads</span>
           {discountPct > 0 && (
             <span className="ml-1 bg-[var(--color-success-bg)] text-[var(--color-success)] text-xs font-semibold px-2 py-0.5 rounded-full">
               -{discountPct}% volume discount
@@ -138,22 +141,32 @@ export function CampaignVolumeSection({
         </div>
       </div>
 
-      {/* Total email count */}
-      <div className="flex items-center gap-3 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-[var(--radius-inner)] px-4 py-3">
-        <div className="w-8 h-8 rounded-[var(--radius-inner)] bg-[var(--color-brand-muted)] flex items-center justify-center flex-shrink-0">
-          <svg className="w-4 h-4 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {/* Total emails this campaign — the prominent number */}
+      <div className="flex items-center gap-3 bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.25)] rounded-[var(--radius-inner)] px-4 py-3.5">
+        <div className="w-10 h-10 rounded-[var(--radius-inner)] bg-[var(--color-brand)]/15 flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
         <div>
-          <div className="text-[var(--color-text-dim)] text-xs">Monthly Email Capacity</div>
-          <div className="text-[var(--color-text)] font-bold text-lg tabular-nums">
+          <div className="text-[var(--color-text-dim)] text-[11px] uppercase tracking-wider font-medium">Total Emails This Campaign</div>
+          <div className="text-[var(--color-text)] font-bold text-2xl tabular-nums leading-tight">
             {totalEmails.toLocaleString()}
           </div>
         </div>
         <div className="ml-auto text-[var(--color-text-ghost)] text-xs text-right">
           {leads.toLocaleString()} leads<br />× {emailsPerProspect} emails
         </div>
+      </div>
+
+      {/* Monthly system capacity — small side note, not the point */}
+      <div className="mt-2 flex items-center gap-1.5 text-[var(--color-text-ghost)] text-[11px] leading-relaxed">
+        <svg className="w-3.5 h-3.5 flex-shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span>
+          The infrastructure we build for this has a standing capacity of <strong className="text-[var(--color-text-dim)] font-medium tabular-nums">≈{Math.round(monthlyCapacity / 100) * 100 >= 1000 ? `${(Math.round(monthlyCapacity / 100) * 100 / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })}k` : monthlyCapacity.toLocaleString()}</strong> emails / month — just so you know what you&apos;re getting.
+        </span>
       </div>
     </SectionCard>
   )

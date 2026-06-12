@@ -67,54 +67,113 @@ export function includedCampaignTier(_leads: LeadsPerMonth): CampaignsCount {
 }
 
 /**
- * Compute the 4-phase campaign timeline for a given full email volume.
+ * Sending-infrastructure counts for a given full email volume.
  *
- * Phases:
- *   1. Day 1               — Infrastructure setup & kickoff
- *   2. Days 2 – 15         — Provider warmup (zero sends)
- *   3. Days 16 – (15+R)    — Outbound ramp (R = config.rampDays, delivers ~rampEmails)
- *   4. Days (16+R) – total — Steady-state sends (remaining emails at peak inbox throughput)
- *
- * Inbox throughput math: each inbox starts at `startPerDay` on ramp day 1 and
- * climbs by `dailyIncrement` each day. After ramp ends, inbox sustains the
- * peak (≈ startPerDay + (rampDays-1) × dailyIncrement) per day.
+ * Capacity model (NO ramp): after a 2-week warmup, each inbox sends at full
+ * capacity (`emailsPerInboxPerDay`) on weekdays for a fixed 4-week window.
+ *   emails an inbox sends across the campaign = perDay × (sendingWeeks × sendingDaysPerWeek)
+ * Inboxes scale to fit the selected volume into that window; domains hold
+ * `inboxesPerDomain` inboxes each. A small failover buffer adds one backup
+ * domain (with its inboxes) per `backupDomainPerEmails` of total volume.
+ */
+export interface InfraCounts {
+  /** Inboxes that actually carry the send volume. */
+  sendingInboxes: number
+  /** Domains holding the sending inboxes. */
+  primaryDomains: number
+  /** Failover backup domains (one per `backupDomainPerEmails`). */
+  backupDomains: number
+  /** Inboxes on the backup domains. */
+  backupInboxes: number
+  /** Total inboxes provisioned (sending + backup) — what the client keeps. */
+  inboxes: number
+  /** Total domains provisioned (primary + backup). */
+  domains: number
+  /** Weekday sending days across the 4-week window. */
+  sendingDays: number
+  /** Emails a single inbox sends across the whole campaign. */
+  perInbox: number
+}
+
+export function computeInfraCounts(totalEmails: number): InfraCounts {
+  const c = PRICING.capacity
+  const sendingDays = c.sendingWeeks * c.sendingDaysPerWeek           // 4 × 5 = 20
+  const perInbox = c.emailsPerInboxPerDay * sendingDays               // 27 × 20 = 540
+  const sendingInboxes = Math.max(1, Math.ceil(totalEmails / perInbox))
+  const primaryDomains = Math.max(1, Math.ceil(sendingInboxes / c.inboxesPerDomain))
+  const backupDomains = Math.floor(totalEmails / c.backupDomainPerEmails)
+  const backupInboxes = backupDomains * c.inboxesPerDomain
+  return {
+    sendingInboxes,
+    primaryDomains,
+    backupDomains,
+    backupInboxes,
+    inboxes: sendingInboxes + backupInboxes,
+    domains: primaryDomains + backupDomains,
+    sendingDays,
+    perInbox,
+  }
+}
+
+/** Volume-tiered per-inbox monthly hosting rate (cheaper at scale). */
+export function inboxMonthlyRate(inboxCount: number): number {
+  const r = PRICING.infraIncluded
+  if (inboxCount >= 100) return r.inboxRateHigh
+  if (inboxCount >= 30) return r.inboxRateMid
+  return r.inboxRateBase
+}
+
+/**
+ * Two-phase campaign timeline (NO ramp): 2 weeks warmup → 4 weeks full-capacity
+ * sending. Duration is a fixed 6 weeks regardless of volume; inbox count flexes
+ * to deliver the selected volume inside the sending window.
  */
 export interface CampaignPhases {
   inboxes: number
-  rampDays: number
-  rampEmails: number
-  steadyDays: number
-  steadyEmails: number
-  totalDays: number
-  /** Inclusive day labels for display, e.g. {rampStart: 16, rampEnd: 30, steadyStart: 31, steadyEnd: 39} */
-  rampStart: number
-  rampEnd: number
-  steadyStart: number
-  steadyEnd: number
+  domains: number
+  sendingInboxes: number
+  warmupDays: number
+  sendingDays: number          // weekday sends
+  sendingCalendarDays: number  // 4 weeks = 28 calendar days
+  totalDays: number            // 42 (6 weeks)
+  dailyVolume: number          // full-capacity emails/day once sending
+  warmupStart: number
+  warmupEnd: number
+  sendStart: number
+  sendEnd: number
 }
 
 export function computeCampaignPhases(totalEmails: number): CampaignPhases {
-  const inboxes = Math.max(1, Math.ceil(totalEmails / 500))
-  const { rampDays, startPerDay, dailyIncrement } = PRICING.warmup
-  const rampPerInbox = (rampDays / 2) * (2 * startPerDay + (rampDays - 1) * dailyIncrement)
-  const rampEmails = Math.min(totalEmails, Math.round(inboxes * rampPerInbox))
-  const steadyEmails = Math.max(0, totalEmails - rampEmails)
-  const peakDailyVolume = inboxes * (startPerDay + (rampDays - 1) * dailyIncrement)
-  const steadyDays = steadyEmails > 0 ? Math.ceil(steadyEmails / peakDailyVolume) : 0
-  const totalDays = 1 /* setup */ + 14 /* warmup */ + rampDays + steadyDays
-
-  // Display day labels
-  const rampStart = 16
-  const rampEnd = 15 + rampDays
-  const steadyStart = rampEnd + 1
-  const steadyEnd = totalDays
-
-  return { inboxes, rampDays, rampEmails, steadyDays, steadyEmails, totalDays, rampStart, rampEnd, steadyStart, steadyEnd }
+  const counts = computeInfraCounts(totalEmails)
+  const c = PRICING.capacity
+  const sendingCalendarDays = c.sendingWeeks * 7           // 28
+  const totalDays = c.warmupDays + sendingCalendarDays     // 14 + 28 = 42
+  const dailyVolume = counts.sendingInboxes * c.emailsPerInboxPerDay
+  return {
+    inboxes: counts.inboxes,
+    domains: counts.domains,
+    sendingInboxes: counts.sendingInboxes,
+    warmupDays: c.warmupDays,
+    sendingDays: counts.sendingDays,
+    sendingCalendarDays,
+    totalDays,
+    dailyVolume,
+    warmupStart: 1,
+    warmupEnd: c.warmupDays,
+    sendStart: c.warmupDays + 1,
+    sendEnd: totalDays,
+  }
 }
 
-/** Total campaign duration in days. */
-export function computeCampaignDays(totalEmails: number): number {
-  return computeCampaignPhases(totalEmails).totalDays
+/** Total campaign duration in days (fixed 6-week window). */
+export function computeCampaignDays(_totalEmails: number): number {
+  return PRICING.capacity.warmupDays + PRICING.capacity.sendingWeeks * 7
+}
+
+/** Monthly system capacity the provisioned inboxes could sustain (side-note only). */
+export function computeMonthlyCapacity(inboxes: number): number {
+  const c = PRICING.capacity
+  return inboxes * c.emailsPerInboxPerDay * c.weekdaysPerMonth
 }
 
 /** Contract date range: start = today + 2 days, end = start + computed campaign days */
@@ -137,8 +196,10 @@ export function calculateTotal(state: SelectionState): PricingResult {
   // inboxOwnership to 'user_domains', so this is always true today.
   const isFirstMonthBranded = state.monthType === 'first_month' && state.inboxOwnership === 'user_domains'
 
-  const inboxesNeeded = isFirstMonthBranded ? Math.ceil(totalEmails / 500) : undefined
-  const domainsNeeded = isFirstMonthBranded ? Math.ceil(totalEmails / 1500) : undefined
+  // Sending-infrastructure counts from the no-ramp capacity model.
+  const infra = computeInfraCounts(totalEmails)
+  const inboxesNeeded = isFirstMonthBranded ? infra.inboxes : undefined
+  const domainsNeeded = isFirstMonthBranded ? infra.domains : undefined
   // For backward compatibility we still expose `month1ActualEmails` in the result,
   // but it now mirrors `totalEmails` — every send is billed.
   const month1ActualEmails = isFirstMonthBranded ? totalEmails : undefined
@@ -230,13 +291,13 @@ export function calculateTotal(state: SelectionState): PricingResult {
 
   // ── Variable costs (volume discount applied, using billingEmails) ─────────
 
+  // Managed sending & deliverability — the SERVICE of running the sends on the
+  // branded infra (warmup oversight, inbox rotation, AI inbox placement, daily
+  // monitoring). The physical domains+inboxes themselves are priced separately
+  // and folded into the total as an included bonus (see infraIncludedCost below).
   const inboxCostRaw = (billingEmails / 1000) * inboxRate
   lineItems.push({
-    label: `Inbox & Infrastructure — $${inboxRate}/1k emails (${
-      state.inboxOwnership === 'user_domains'
-        ? "Client's Branded Domains & Inboxes"
-        : "BleedAI's Warm Infrastructure"
-    })`,
+    label: `Managed Sending & Deliverability — $${inboxRate}/1k emails (warmup, inbox rotation, AI placement & daily monitoring)`,
     amount: fmt(inboxCostRaw * multiplier),
     type: 'variable',
     period: 'monthly',
@@ -414,19 +475,38 @@ export function calculateTotal(state: SelectionState): PricingResult {
   const couponPercent = COUPON_CODES[state.coupon?.toUpperCase?.() ?? ''] ?? 0
   const couponDiscountAmount = couponPercent > 0 ? fmt(preDiscountTotal * (couponPercent / 100)) : 0
   const afterDiscounts = fmt(preDiscountTotal - couponDiscountAmount)
+
+  // ── Branded domains + inboxes folded into the total (NOT discounted) ──────
+  // Client keeps these assets: domains registered 1 year + inboxes hosted for
+  // `monthsIncluded` months. Volume discount and coupons do NOT touch this —
+  // it's added on top as an included bonus. Only present for branded campaigns.
+  const inboxRateUsed = inboxMonthlyRate(infra.inboxes)
+  const infraDomainCost = isFirstMonthBranded
+    ? fmt(infra.domains * PRICING.infraIncluded.domainCostPerYear)
+    : 0
+  const infraInboxCost = isFirstMonthBranded
+    ? fmt(infra.inboxes * inboxRateUsed * PRICING.infraIncluded.monthsIncluded)
+    : 0
+  const infraIncludedCost = fmt(infraDomainCost + infraInboxCost)
+
+  const afterDiscountsWithInfra = fmt(afterDiscounts + infraIncludedCost)
+
   // Gross-up: Upwork deducts the fee from what the client pays, so we must
-  // raise the charge so the NET we receive equals `afterDiscounts`.
-  // total = afterDiscounts / (1 - fee); upworkFeeAmount = total - afterDiscounts.
+  // raise the charge so the NET we receive equals `afterDiscountsWithInfra`.
   const feeRate = UPWORK_FEE_PERCENT / 100
-  const total = state.upworkFee ? fmt(afterDiscounts / (1 - feeRate)) : fmt(afterDiscounts)
-  const upworkFeeAmount = state.upworkFee ? fmt(total - afterDiscounts) : 0
+  const total = state.upworkFee ? fmt(afterDiscountsWithInfra / (1 - feeRate)) : fmt(afterDiscountsWithInfra)
+  const upworkFeeAmount = state.upworkFee ? fmt(total - afterDiscountsWithInfra) : 0
+
+  const monthlyCapacity = isFirstMonthBranded ? computeMonthlyCapacity(infra.inboxes) : totalEmails
 
   // Split the final `total` proportionally between monthly and one-time.
   // Both the Pilot card and Month 2+ card read these fields, so they must
   // include coupon discount AND Upwork fee — otherwise the cards silently
   // drift from the grand total when those surcharges are toggled.
   // Computing oneTime as a subtraction guarantees monthly + oneTime === total.
-  const rawSum = monthlyRecurringRaw + oneTimeRaw
+  // Infra-included counts as a one-time asset cost for the monthly/one-time split.
+  const oneTimeRawWithInfra = oneTimeRaw + infraIncludedCost
+  const rawSum = monthlyRecurringRaw + oneTimeRawWithInfra
   const monthlyRatio = rawSum > 0 ? monthlyRecurringRaw / rawSum : 1
   const monthlyRecurringTotal = fmt(total * monthlyRatio)
   const oneTimeTotal = fmt(total - monthlyRecurringTotal)
@@ -449,6 +529,15 @@ export function calculateTotal(state: SelectionState): PricingResult {
     couponDiscountAmount,
     couponDiscountPercent: couponPercent,
     upworkFeeAmount,
+    // Branded infra folded into the total (NOT discounted) — surfaced for the
+    // "included, yours to keep" block + its on-demand breakdown.
+    infraIncludedCost,
+    infraDomainCost,
+    infraInboxCost,
+    inboxMonthlyRate: inboxRateUsed,
+    monthsIncluded: PRICING.infraIncluded.monthsIncluded,
+    monthlyCapacity,
+    backupDomains: infra.backupDomains,
     ...(isFirstMonthBranded && {
       isFirstMonthBranded: true,
       month1ActualEmails,

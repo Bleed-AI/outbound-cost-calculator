@@ -9,6 +9,9 @@ interface SupportSectionProps {
   onChange: (v: SupportTier) => void
 }
 
+// Every campaign includes a dedicated Slack channel — email-only support was
+// retired (it signalled a no-touch engagement). The choice is now how much
+// access, not whether you get Slack.
 const OPTIONS: {
   value: SupportTier
   label: string
@@ -16,16 +19,10 @@ const OPTIONS: {
   badge?: string
 }[] = [
   {
-    value: 'email',
-    label: 'Email Support',
-    description:
-      'Minimal async email support for status updates. Best only if you don\'t plan to iterate — if you want ongoing adjustments throughout the campaign, pick a Slack tier instead.',
-  },
-  {
     value: 'slack_light',
     label: 'Standard Slack Support',
     description:
-      'Dedicated Slack channel with same-day responses during the campaign. Request optimisations as often as you want. No scheduled calls included — all async over Slack.',
+      'Dedicated Slack channel with same-day responses throughout the campaign. Request optimisations as often as you want — all async over Slack.',
     badge: 'Recommended',
   },
   {
@@ -40,7 +37,7 @@ export function SupportSection({ value, onChange }: SupportSectionProps) {
   return (
     <SectionCard
       title="Support"
-      description="What level of ongoing support do you need during the campaign?"
+      description="Every campaign includes a dedicated Slack channel. How much access do you want?"
       illustration={<SupportIllustration />}
     >
       <div className="space-y-2">

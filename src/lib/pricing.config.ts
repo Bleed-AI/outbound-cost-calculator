@@ -108,21 +108,40 @@ export const PRICING = {
   // Infra management waiver — waived if baseTotal (without infra) >= this
   infraWaiverThreshold: 2000,
 
-  // Branded domains setup — flat fee
+  // Branded domains setup — flat labour fee for spinning up the infrastructure.
   brandedSetup: {
     baseSetupFee: 250,         // flat setup fee for up to extraInboxThreshold inboxes
     extraInboxThreshold: 50,   // above this count, add extraPerInbox per inbox
     extraPerInbox: 2,          // e.g. 100 inboxes → $250 + 50×$2 = $350
   },
 
-  // Campaign timeline (single-campaign mode, billed on full volume)
-  // Day 1: infrastructure setup | Days 2-15: provider warmup (zero sends)
-  // Days 16-30: outbound ramp | Days 31+: steady-state until all sends delivered
-  warmup: {
-    providerWarmupDays: 14, // days 2-15: inbox warmup with provider — no outbound sending
-    rampDays: 15,           // days 16-30: outbound ramp
-    startPerDay: 2,         // emails per inbox on ramp day 1
-    dailyIncrement: 2,      // +N per day per inbox
+  // ── Sending-capacity model (one-off campaign) ────────────────────────────
+  // Timeline is a FIXED 6 weeks: 2 weeks inbox warmup (zero sends) followed by
+  // 4 weeks of full-capacity sending. NO ramp — after warmup, every inbox sends
+  // at full capacity immediately. Inbox count scales to fit the selected email
+  // volume into the 4-week sending window.
+  capacity: {
+    emailsPerInboxPerDay: 27,    // full capacity per inbox per sending day (post-warmup)
+    warmupDays: 14,              // 2 weeks of warmup, zero outbound
+    sendingWeeks: 4,             // 4 weeks of full-capacity sending
+    sendingDaysPerWeek: 5,       // weekdays only
+    inboxesPerDomain: 3,         // inboxes provisioned per sending domain
+    backupDomainPerEmails: 5000, // +1 backup domain (3 inboxes) per 5k total emails — failover buffer
+    weekdaysPerMonth: 22,        // for the "monthly system capacity" side-note only
+  },
+
+  // ── Branded sending infrastructure folded INTO the campaign total ────────
+  // The client keeps these assets: domains registered for a full year + inboxes
+  // hosted for `monthsIncluded` months. This is added to the total and is NOT
+  // discounted (volume discount + coupons apply only to campaign services).
+  // Presented as an included bonus ("yours to keep"), broken out on demand.
+  infraIncluded: {
+    domainCostPerYear: 12,   // $/domain — 1-year registration
+    monthsIncluded: 2,       // months of inbox hosting bundled into the campaign price
+    // Inbox monthly rate is volume-tiered (cheaper at scale) — see inboxMonthlyRate().
+    inboxRateBase: 3.50,     // < 30 inboxes
+    inboxRateMid: 3.25,      // ≥ 30 inboxes
+    inboxRateHigh: 3.00,     // ≥ 100 inboxes
   },
 
   hourlyRate: 37,  // Additional work rate (displayed as a note)

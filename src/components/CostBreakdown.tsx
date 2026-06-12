@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatCurrency, getContractDates } from '@/lib/pricing'
+import { PRICING } from '@/lib/pricing.config'
 import { AnimatedNumber } from '@/components/AnimatedNumber'
 import { MagneticButton } from '@/components/MagneticButton'
 import type { PricingResult, LineItem } from '@/lib/types'
@@ -15,10 +16,11 @@ function formatDate(d: Date): string {
 interface CostBreakdownProps {
   result: PricingResult
   coupon: string
+  onCouponChange?: (v: string) => void
   onSubmit: () => void
 }
 
-export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) {
+export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: CostBreakdownProps) {
   const { lineItems, discountAmount, discountPercent, total, couponDiscountAmount, couponDiscountPercent } = result
 
   // Group by period for transparency: "Campaign Costs" (monthly tag — for the ramp-billed month)
@@ -30,14 +32,6 @@ export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) 
   // Window scales with the campaign volume — see computeCampaignDays.
   const [contractDates, setContractDates] = useState<{ start: Date; end: Date } | null>(null)
   useEffect(() => { setContractDates(getContractDates(result.totalEmails)) }, [result.totalEmails])
-
-  // Inbox provider cost — paid directly to provider, NOT on BleedAI invoice.
-  // Surfaced under Campaign Total so the buyer sees the real all-in cost.
-  const inboxes = result.inboxesNeeded ?? Math.ceil(result.totalEmails / 500)
-  const domains = result.domainsNeeded ?? Math.ceil(result.totalEmails / 1500)
-  const inboxRate = inboxes >= 100 ? 3.00 : inboxes >= 30 ? 3.25 : 3.50
-  const providerDomainOneTime = domains * 12
-  const providerInboxMonthly = inboxes * inboxRate
 
   return (
     <div>
@@ -120,23 +114,20 @@ export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) 
             />
           </div>
           <div className="text-[var(--color-text-ghost)] text-[11px] mb-3">
-            One-time charge — covers everything we deliver.
+            One-time charge — covers everything we deliver, infrastructure included.
           </div>
 
-          {/* Inbox provider costs — paid directly to provider, not BleedAI */}
-          <div className="rounded-[var(--radius-inner)] bg-[var(--color-surface-0)] border border-dashed border-[var(--color-border-hover)] px-3 py-2.5 mb-4">
-            <div className="flex items-baseline justify-between gap-2 mb-0.5">
-              <span className="text-[var(--color-text-dim)] text-[10px] uppercase tracking-wider font-semibold">
-                + Inbox Provider
-              </span>
-              <span className="text-[var(--color-text-muted)] text-[11px] font-medium font-[family-name:var(--font-mono)] tabular-nums whitespace-nowrap">
-                ≈{formatCurrency(providerDomainOneTime)} <span className="text-[var(--color-text-ghost)]">one-time</span> + ≈{formatCurrency(providerInboxMonthly)}<span className="text-[var(--color-text-ghost)]">/mo</span>
-              </span>
-            </div>
-            <div className="text-[var(--color-text-ghost)] text-[10px] leading-snug">
-              {domains} domain{domains !== 1 ? 's' : ''} + {inboxes} inbox{inboxes !== 1 ? 'es' : ''} — paid directly to your inbox provider, not BleedAI
-            </div>
-          </div>
+          {/* Branded domains + inboxes — included in the total, yours to keep */}
+          {result.infraIncludedCost > 0 && <InfraIncluded result={result} />}
+
+          {/* Coupon — tucked behind a toggle below the total */}
+          {onCouponChange && (
+            <CouponToggle
+              coupon={coupon}
+              applied={couponDiscountPercent > 0}
+              onChange={onCouponChange}
+            />
+          )}
 
           {/* ROI Estimator */}
           <RoiEstimator totalEmails={result.totalEmails} campaignCost={total} />
@@ -155,6 +146,105 @@ export function CostBreakdown({ result, coupon, onSubmit }: CostBreakdownProps) 
 }
 
 /* ── Helper components ──────────────────────────────────── */
+
+/** Branded domains + inboxes — folded into the total, framed as an included bonus. */
+function InfraIncluded({ result }: { result: PricingResult }) {
+  const [open, setOpen] = useState(false)
+  const domains = result.domainsNeeded ?? 0
+  const inboxes = result.inboxesNeeded ?? 0
+  const months = result.monthsIncluded
+
+  return (
+    <div className="rounded-[var(--radius-inner)] border border-[rgba(52,211,153,0.2)] bg-[var(--color-success-bg)] px-3 py-2.5 mb-4">
+      <div className="flex items-start gap-2.5">
+        <svg className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+        </svg>
+        <div className="flex-1 min-w-0">
+          <div className="text-[var(--color-text)] text-xs font-semibold">
+            Branded domains &amp; inboxes — included
+          </div>
+          <div className="text-[var(--color-text-dim)] text-[11px] mt-0.5 leading-relaxed">
+            {domains} domain{domains !== 1 ? 's' : ''} registered for a <strong className="text-[var(--color-text-muted)]">full year</strong> + {inboxes} inbox{inboxes !== 1 ? 'es' : ''} hosted for <strong className="text-[var(--color-text-muted)]">{months} months</strong>, built under your brand — <strong className="text-[var(--color-text-muted)]">yours to keep</strong>. Already in your total above.
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-[var(--color-text-ghost)] hover:text-[var(--color-text-muted)] transition-colors"
+          >
+            {open ? 'Hide' : 'See'} what&apos;s included
+            <svg className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+
+          {open && (
+            <div className="mt-2 space-y-1.5 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3 py-2.5">
+              <div className="flex justify-between gap-3 text-[11px]">
+                <span className="text-[var(--color-text-dim)]">Domains — {domains} × {formatCurrency(PRICING.infraIncluded.domainCostPerYear)}/yr (1 year)</span>
+                <span className="text-[var(--color-text-muted)] font-medium font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(result.infraDomainCost)}</span>
+              </div>
+              <div className="flex justify-between gap-3 text-[11px]">
+                <span className="text-[var(--color-text-dim)]">Inboxes — {inboxes} × {formatCurrency(result.inboxMonthlyRate)}/mo × {months} mo</span>
+                <span className="text-[var(--color-text-muted)] font-medium font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(result.infraInboxCost)}</span>
+              </div>
+              <div className="flex justify-between gap-3 text-[11px] pt-1.5 border-t border-[var(--color-border)]">
+                <span className="text-[var(--color-text-muted)] font-medium">Infrastructure value</span>
+                <span className="text-[var(--color-text)] font-semibold font-[family-name:var(--font-mono)] tabular-nums">{formatCurrency(result.infraIncludedCost)}</span>
+              </div>
+              <div className="text-[var(--color-text-ghost)] text-[10px] leading-snug pt-0.5">
+                Charged at cost — discounts don&apos;t apply here. After your campaign, renew the domains/inboxes yourself for a few dollars a month, or we keep running them.
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** "Have a coupon?" — collapsed by default, sits below the total. */
+function CouponToggle({ coupon, applied, onChange }: {
+  coupon: string; applied: boolean; onChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(!!coupon)
+  const hasCode = coupon.trim().length > 0
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mb-4 text-[11px] font-medium text-[var(--color-text-ghost)] hover:text-[var(--color-text-muted)] transition-colors inline-flex items-center gap-1"
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5a1.99 1.99 0 011.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.99 1.99 0 014 12V7a4 4 0 014-4z" />
+        </svg>
+        Have a coupon code?
+      </button>
+    )
+  }
+
+  return (
+    <div className="mb-4">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={coupon}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
+          placeholder="Enter coupon code"
+          className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border-hover)] rounded-[var(--radius-inner)] px-3 py-2 text-[var(--color-text)] text-xs uppercase tracking-wide placeholder:text-[var(--color-text-ghost)] placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:border-[var(--color-border-active)] transition-colors"
+        />
+        {hasCode && (
+          <span className={`flex items-center px-2 text-[11px] font-medium ${applied ? 'text-[var(--color-success)]' : 'text-[var(--color-text-ghost)]'}`}>
+            {applied ? 'Applied ✓' : 'Invalid'}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function RateInput({ label, value, onChange }: {
   label: string; value: number; onChange: (v: number) => void

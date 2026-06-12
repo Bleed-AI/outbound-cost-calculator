@@ -97,6 +97,7 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
             leads={state.leadsPerMonth}
             emailsPerProspect={state.emailsPerProspect}
             totalEmails={result.totalEmails}
+            monthlyCapacity={result.monthlyCapacity}
             onLeadsChange={(v) => update('leadsPerMonth', v)}
             onEmailsChange={(v) => update('emailsPerProspect', v)}
           />
@@ -124,6 +125,7 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
             <CostBreakdown
               result={result}
               coupon={state.coupon}
+              onCouponChange={(v) => update('coupon', v)}
               onSubmit={() => setShowOrder(true)}
             />
           </div>
@@ -138,6 +140,7 @@ function CalculatorContent({ onTotalChange }: CalculatorContentProps) {
           <CostBreakdown
             result={result}
             coupon={state.coupon}
+            onCouponChange={(v) => update('coupon', v)}
             onSubmit={() => setShowOrder(true)}
           />
         </div>

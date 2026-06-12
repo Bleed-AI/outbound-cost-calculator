@@ -17,7 +17,7 @@ function fix(state: SelectionState, overrides: Partial<SelectionState> = {}): Se
 }
 
 const cases: { name: string; state: SelectionState }[] = [
-  { name: 'Floor: 2k leads, 1 EPP, 1 campaign', state: fix(DEFAULT_STATE, { leadsPerMonth: 2000, emailsPerProspect: 1, campaigns: 1 }) },
+  { name: 'Floor: 1.5k leads, 1 EPP, 1 campaign', state: fix(DEFAULT_STATE, { leadsPerMonth: 1500, emailsPerProspect: 1, campaigns: 1 }) },
   { name: 'Default state (4k×2, 1 campaign)', state: DEFAULT_STATE },
   { name: '4k leads, 2 EPP, 2 campaigns', state: fix(DEFAULT_STATE, { leadsPerMonth: 4000, emailsPerProspect: 2, campaigns: 2 }) },
   { name: '4k leads, 2 EPP, 5 campaigns', state: fix(DEFAULT_STATE, { leadsPerMonth: 4000, emailsPerProspect: 2, campaigns: 5 }) },
@@ -31,21 +31,21 @@ const cases: { name: string; state: SelectionState }[] = [
 
 console.log('\nNUDGE THRESHOLD:', fmt(PRICING.packageNudgeThreshold))
 console.log('PRICE PER ADDITIONAL EXPERIMENT:', fmt(PRICING.pricePerAdditionalExperiment))
+console.log('CAPACITY: 27 emails/inbox/day · 2wk warmup + 4wk send (6wk) · 3 inboxes/domain · +1 backup domain / 5k emails')
 console.log('\nPricing scenarios:\n')
-console.log(['Case'.padEnd(50), 'Total'.padStart(11), 'Nudge?'.padStart(7), 'Sends', '/', 'Capacity'].join('  '))
-console.log('─'.repeat(95))
+console.log(['Case'.padEnd(46), 'Total'.padStart(11), 'Infra'.padStart(9), 'Nudge'.padStart(6), 'Sends'.padStart(7), 'Inbox/Dom'.padStart(10)].join('  '))
+console.log('─'.repeat(100))
 
 for (const { name, state } of cases) {
   const result = calculateTotal(state)
-  const sends = result.month1ActualEmails ?? result.totalEmails
   const nudge = result.total >= PRICING.packageNudgeThreshold ? 'YES' : '—'
   console.log([
-    name.padEnd(50),
+    name.padEnd(46),
     fmt(result.total),
-    nudge.padStart(7),
-    String(sends).padStart(6),
-    '/',
-    String(result.totalEmails).padStart(6),
+    fmt(result.infraIncludedCost),
+    nudge.padStart(6),
+    String(result.totalEmails).padStart(7),
+    `${result.inboxesNeeded ?? 0}/${result.domainsNeeded ?? 0}`.padStart(10),
   ].join('  '))
 }
 
@@ -59,13 +59,16 @@ for (let n = 1; n <= 5; n++) {
   console.log(`  ${n} experiment(s): line item = ${fmt(campaignCost)} ${match}`)
 }
 
-console.log('\n── Coupon math sanity ──')
+console.log('\n── Coupon math sanity (coupons apply to services only — NOT the included infra) ──')
 for (const code of ['NEW5', 'SPECIAL10', 'VIP15', 'ULTRA20', 'PLATINUM25', 'DIAMOND33']) {
   const noCoupon = calculateTotal(fix(DEFAULT_STATE, { leadsPerMonth: 10000 }))
   const withCoupon = calculateTotal(fix(DEFAULT_STATE, { leadsPerMonth: 10000, coupon: code }))
   const pct = COUPON_CODES[code]
-  const expectedDiscount = Math.round((noCoupon.total * pct / 100) * 100) / 100
-  console.log(`  ${code} (${pct}%): pre=${fmt(noCoupon.total)} post=${fmt(withCoupon.total)} discount=${fmt(withCoupon.couponDiscountAmount)} expected≈${fmt(expectedDiscount)}`)
+  // Couponable base excludes the non-discounted infra-included cost.
+  const couponableBase = noCoupon.total - noCoupon.infraIncludedCost
+  const expectedDiscount = Math.round((couponableBase * pct / 100) * 100) / 100
+  const ok = Math.abs(withCoupon.couponDiscountAmount - expectedDiscount) < 0.02 ? '✓' : '✗'
+  console.log(`  ${ok} ${code} (${pct}%): pre=${fmt(noCoupon.total)} post=${fmt(withCoupon.total)} discount=${fmt(withCoupon.couponDiscountAmount)} expected≈${fmt(expectedDiscount)}`)
 }
 
 // URL state backward compatibility

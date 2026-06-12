@@ -67,6 +67,20 @@ export interface PricingResult {
   couponDiscountAmount: number
   couponDiscountPercent: number
   upworkFeeAmount: number
+  /** Branded domains + inboxes folded into the total (NOT discounted) — see below. */
+  infraIncludedCost: number
+  /** 1-year domain registration cost portion of infraIncludedCost. */
+  infraDomainCost: number
+  /** N-months inbox hosting cost portion of infraIncludedCost. */
+  infraInboxCost: number
+  /** Per-inbox monthly hosting rate used (volume-tiered). */
+  inboxMonthlyRate: number
+  /** Months of inbox hosting bundled into the campaign price. */
+  monthsIncluded: number
+  /** Monthly system capacity the provisioned inboxes could sustain (side-note). */
+  monthlyCapacity: number
+  /** Failover backup domains included in the counts. */
+  backupDomains?: number
   // Scenario 3 fields (only present when monthType === 'first_month' && inboxOwnership === 'user_domains')
   isFirstMonthBranded?: boolean
   month1ActualEmails?: number

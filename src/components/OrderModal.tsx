@@ -66,6 +66,12 @@ export function OrderModal({ result, shareUrl, coupon, onClose }: OrderModalProp
           brandedSetupFee: result.brandedSetupFee ?? 0,
           inboxesNeeded: result.inboxesNeeded ?? 0,
           domainsNeeded: result.domainsNeeded ?? 0,
+          monthlyCapacity: result.monthlyCapacity,
+          infraIncludedCost: result.infraIncludedCost,
+          infraDomainCost: result.infraDomainCost,
+          infraInboxCost: result.infraInboxCost,
+          inboxMonthlyRate: result.inboxMonthlyRate,
+          monthsIncluded: result.monthsIncluded,
           shareUrl,
         }),
       })

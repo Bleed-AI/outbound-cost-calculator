@@ -48,7 +48,7 @@ export function CopywritingSection({ value, onChange }: CopywritingSectionProps)
               label={opt.label}
               description={opt.description}
               price={`$${price}`}
-              priceNote="per month"
+              priceNote="one-time"
               badge={opt.badge}
               selected={value === opt.value}
               onSelect={() => onChange(opt.value)}
