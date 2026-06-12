@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, LazyMotion, domAnimation } from 'framer-motion'
 import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
 import { ResultsGallery } from '@/components/ResultsGallery'
+import { ToolStack } from '@/components/ToolStack'
 
 interface PackageTier {
   id: 'pilot' | 'growth' | 'scale'
@@ -40,7 +41,7 @@ const TIERS: PackageTier[] = [
       'Full **DFY sourcing** — Claygent, Prospeo & our directory stack',
       'Automated client responses with AI agents',
       'Follow-up strategy for hot leads',
-      'Email support throughout',
+      'Dedicated Slack support throughout',
     ],
     volumeNote: 'Sending scales to fit the play — up to ~10k emails / mo. Want fewer? We size it down.',
   },
@@ -82,8 +83,6 @@ const TIERS: PackageTier[] = [
   },
 ]
 
-const SOURCING_STACK = ['Claygent', 'Prospeo', 'LinkedIn Sales Nav', 'Apollo', 'Google Maps', 'Niche Directories']
-
 export function PackagesView() {
   const [inquiry, setInquiry] = useState<InquiryContext | null>(null)
 
@@ -91,18 +90,16 @@ export function PackagesView() {
     <LazyMotion features={domAnimation}>
       <div className="max-w-6xl mx-auto px-4 pt-8 pb-16">
 
-        {/* Intro paragraph — leads with the effort-over-volume thesis */}
-        <div className="max-w-2xl mb-8">
+        {/* Short lead-in — the effort-over-volume thesis already lives in the hero,
+            so this stays tight and just frames the choice + the off-ramps. */}
+        <div className="max-w-2xl mb-9">
           <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-            We run <span className="text-[var(--color-text)] font-medium">end-to-end outbound</span> for you every month — sourcing, copy, infrastructure and experiments, all operated by us. <span className="text-[var(--color-text)] font-medium">The tiers scale by how deep and how hard the strategy goes — not by how many emails we send.</span> Pick the level of effort your market needs.
+            Every tier is the <span className="text-[var(--color-text)] font-medium">full machine</span> — sourcing, copy, infrastructure and experiments, run for you each month. You&rsquo;re choosing the <span className="text-[var(--color-text)] font-medium">level of effort your market needs</span>, not a bigger email number.
           </p>
-          <p className="text-[var(--color-text-dim)] text-xs mt-2 leading-relaxed">
-            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate the model with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a> in the calculator.
+          <p className="text-[var(--color-text-dim)] text-xs mt-2.5 leading-relaxed">
+            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.
           </p>
         </div>
-
-        {/* Sourcing stack — premium credibility strip (the real list-building tools we operate) */}
-        <SourcingStack />
 
         {/* Tier grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 items-stretch">
@@ -125,9 +122,12 @@ export function PackagesView() {
         </div>
 
         {/* Volume footnote — reinforces that throughput is a byproduct, not the axis */}
-        <p className="mt-5 text-[var(--color-text-ghost)] text-xs leading-relaxed max-w-3xl">
+        <p className="mt-5 mb-12 text-[var(--color-text-ghost)] text-xs leading-relaxed max-w-3xl">
           Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
         </p>
+
+        {/* The real tool stack — premium credibility */}
+        <ToolStack />
 
         {/* Journey explainer */}
         <motion.div
@@ -156,35 +156,6 @@ export function PackagesView() {
         <InquiryModal context={inquiry} onClose={() => setInquiry(null)} />
       )}
     </LazyMotion>
-  )
-}
-
-/* ── Sourcing stack strip ──────────────────────────────── */
-
-function SourcingStack() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-10"
-    >
-      <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-ghost)] mb-3">
-        Built on our sourcing stack
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {SOURCING_STACK.map((name) => (
-          <span
-            key={name}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-1)] px-3 py-1.5 text-[11px] font-medium text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-border-active)]"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)] opacity-80" />
-            {name}
-          </span>
-        ))}
-      </div>
-    </motion.div>
   )
 }
 
