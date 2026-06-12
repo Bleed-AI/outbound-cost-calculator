@@ -107,14 +107,17 @@ export function CostBreakdown({ result, coupon, onCouponChange, onSubmit }: Cost
 
           {/* Grand total */}
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[var(--color-text)] font-semibold">Campaign Total</span>
+            <span className="flex items-center gap-2">
+              <span className="text-[var(--color-text)] font-semibold">Campaign Total</span>
+              <span className="text-[9px] uppercase tracking-[0.1em] font-semibold text-[var(--color-text-dim)] bg-[var(--color-surface-0)] border border-[var(--color-border)] px-1.5 py-0.5 rounded-full">one-time</span>
+            </span>
             <AnimatedNumber
               value={total}
               className="text-[var(--color-text)] font-bold text-3xl font-[family-name:var(--font-mono)] tabular-nums"
             />
           </div>
           <div className="text-[var(--color-text-ghost)] text-[11px] mb-3">
-            One-time charge — covers everything we deliver, infrastructure included.
+            A single one-time charge — covers everything we deliver, infrastructure included. Not a subscription.
           </div>
 
           {/* Branded domains + inboxes — included in the total, yours to keep */}

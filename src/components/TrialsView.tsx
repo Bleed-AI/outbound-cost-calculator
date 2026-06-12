@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, LazyMotion, domAnimation } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
-import { ToolStack } from '@/components/ToolStack'
 
 type PriceTier = 'high' | 'low'
 
@@ -129,11 +128,6 @@ export function TrialsView() {
           ))}
         </div>
 
-        {/* The real machine behind every trial — same stack as full engagements */}
-        <div className="mt-12">
-          <ToolStack />
-        </div>
-
         {/* Already-validated CTA — link back to calculator for complete one-off campaigns */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -206,7 +200,6 @@ function TrialCard({ pkg, priceTier, onInquire }: {
 }) {
   const accent = pkg.emphasis
   const price = pkg.prices[priceTier]
-  const savePct = Math.round((1 - price / pkg.anchor) * 100)
 
   return (
     <div className={`relative h-full rounded-[var(--radius-card)] border ${
@@ -233,33 +226,37 @@ function TrialCard({ pkg, priceTier, onInquire }: {
           </div>
         </div>
 
-        <div className="text-[var(--color-text)] text-lg font-semibold mb-1">{pkg.name}</div>
+        <div className="text-[var(--color-text)] text-lg font-semibold mb-2">{pkg.name}</div>
 
-        {/* Anchor: struck-through "real" value above the subsidized trial price */}
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[var(--color-text-ghost)] text-base line-through decoration-[var(--color-brand)] decoration-2 tabular-nums font-[family-name:var(--font-mono)]">
+        {/* Anchor — the ORIGINAL price is the emphasized, struck-through number;
+            the subsidized trial price sits smaller beneath it. */}
+        <div className="mb-0.5 flex items-baseline gap-2">
+          <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-text-ghost)]">Normally</span>
+        </div>
+        <div className="relative inline-block mb-2">
+          <span className="text-[40px] leading-none font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text-dim)]">
             ${pkg.anchor.toLocaleString()}
           </span>
-          <span className="text-[9px] uppercase tracking-wider font-bold text-[var(--color-success)] bg-[var(--color-success-bg)] border border-[rgba(52,211,153,0.2)] px-1.5 py-0.5 rounded-full">
-            Save {savePct}%
-          </span>
+          {/* hand-drawn-ish strike across the original */}
+          <span className="pointer-events-none absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 -rotate-[3deg] rounded-full bg-[var(--color-brand)]" />
         </div>
 
-        <div className="flex items-baseline gap-1.5 mb-1.5">
+        <div className="flex items-baseline gap-1.5 mb-3">
+          <span className="text-[var(--color-text-ghost)] text-xs">trial price</span>
           <motion.span
             key={priceTier}
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="text-4xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)]"
+            className="text-2xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)]"
           >
             ${price.toLocaleString()}
           </motion.span>
-          <span className="text-[var(--color-text-dim)] text-sm">one-time</span>
+          <span className="text-[var(--color-text-dim)] text-xs">one-time</span>
         </div>
 
         <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-3">
-          This work normally runs <span className="text-[var(--color-text-dim)] font-medium">${pkg.anchor.toLocaleString()}+</span>. Trials are deliberately subsidized — we take the hit to prove cold email works for you before you commit.
+          Trials are deliberately subsidized — we take the hit to prove cold email works for you before you commit.
         </p>
 
         <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mb-5 min-h-[3rem]">

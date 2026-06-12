@@ -71,11 +71,11 @@ const TIERS: PackageTier[] = [
     priceNote: '/ month',
     headline: 'High-effort, multi-signal campaigns at full strategic depth.',
     effort: 3,
-    positioning: 'For teams who want the hardest, most strategic plays run in parallel — advanced intent signals and reverse lead magnets, built fresh each month.',
+    positioning: 'For teams who want the hardest, most strategic plays run in parallel — fresh intent signals, advanced targeting, and reverse lead magnets where a campaign calls for one.',
     features: [
       'Everything in Growth',
       '**Advanced signal-based campaigns** — multiple intent signals layered per play',
-      'Help creating **advanced reverse lead magnets**',
+      'Help building **advanced reverse lead magnets** where they fit',
       '**New value props** pressure-tested in new markets, in parallel',
       'The most build time and strategic effort we put in, every month',
     ],
@@ -90,9 +90,16 @@ export function PackagesView() {
     <LazyMotion features={domAnimation}>
       <div className="max-w-6xl mx-auto px-4 pt-8 pb-16">
 
+        {/* Lead-in after the hero — frames the off-ramps and leads into the tiers */}
+        <p className="max-w-2xl mb-7 text-[var(--color-text-dim)] text-sm leading-relaxed">
+          Most teams reach a package through a{' '}
+          <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">trial campaign</a>{' '}or a{' '}
+          <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">single one-off</a>{' '}first — validate the model on our infrastructure, then move to a monthly tier once it&rsquo;s working. Already know it works? Pick your level of effort below.
+        </p>
+
         {/* Compact tool stack — sits ABOVE the cards so the stack and all
             pricing tiers are visible on load. */}
-        <div className="mb-6">
+        <div className="mb-8">
           <ToolStack />
         </div>
 
