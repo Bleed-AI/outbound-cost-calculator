@@ -93,7 +93,6 @@ npx tsx scripts/validate-pricing.ts    # pricing math sanity check across floor/
 | `src/lib/pricing.ts` | `calculateTotal()`, `computeCampaignPhases()`, `getContractDates()`, `DEFAULT_STATE`, `COUPON_CODES`, `LEADS_OPTIONS`, `CAMPAIGNS_OPTIONS` |
 | `src/lib/types.ts` | `SelectionState`, `PricingResult`, `LineItem`, all tier-key unions |
 | `src/lib/url-state.ts` | URL ↔ state serialization (short param keys) + backward-compat for legacy params |
-| `src/lib/brand-icons.ts` | Official brand icon SVG path data (extracted from simple-icons) consumed by `ToolStack.tsx` |
 
 ### Page shells
 | File | Role |
@@ -132,7 +131,7 @@ npx tsx scripts/validate-pricing.ts    # pricing math sanity check across floor/
 | `src/components/PackagesView.tsx` | Three tiers (Pilot/Growth/Scale), intro paragraph linking to trials/calculator |
 | `src/components/InquiryModal.tsx` | Shared form modal for trial + package orders |
 | `src/components/ResultsGallery.tsx` | Hardcoded campaign cards with metrics + modal |
-| `src/components/ToolStack.tsx` | Categorized animated tool-stack showcase (Sourcing/Email-finding/Enrichment/Orchestration/Sending) — real vector marks + named tiles. Used on `/packages` AND `/trials`. |
+| `src/components/ToolStack.tsx` | Compact categorized tool-stack strip (Sourcing/Email-finding/Enrichment/Orchestration/Sending) — small real logo chips from `public/logos/*.png` (monogram fallback). Sits above the cards. Used on `/packages` AND `/trials`. |
 
 ### API routes
 | File | Role |

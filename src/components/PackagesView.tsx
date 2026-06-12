@@ -90,15 +90,10 @@ export function PackagesView() {
     <LazyMotion features={domAnimation}>
       <div className="max-w-6xl mx-auto px-4 pt-8 pb-16">
 
-        {/* Short lead-in — the effort-over-volume thesis already lives in the hero,
-            so this stays tight and just frames the choice + the off-ramps. */}
-        <div className="max-w-2xl mb-9">
-          <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-            Every tier is the <span className="text-[var(--color-text)] font-medium">full machine</span> — sourcing, copy, infrastructure and experiments, run for you each month. You&rsquo;re choosing the <span className="text-[var(--color-text)] font-medium">level of effort your market needs</span>, not a bigger email number.
-          </p>
-          <p className="text-[var(--color-text-dim)] text-xs mt-2.5 leading-relaxed">
-            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.
-          </p>
+        {/* Compact tool stack — sits ABOVE the cards so the stack and all
+            pricing tiers are visible on load. */}
+        <div className="mb-6">
+          <ToolStack />
         </div>
 
         {/* Tier grid */}
@@ -121,13 +116,15 @@ export function PackagesView() {
           ))}
         </div>
 
-        {/* Volume footnote — reinforces that throughput is a byproduct, not the axis */}
-        <p className="mt-5 mb-12 text-[var(--color-text-ghost)] text-xs leading-relaxed max-w-3xl">
-          Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
-        </p>
-
-        {/* The real tool stack — premium credibility */}
-        <ToolStack />
+        {/* Footnote + off-ramps — cleanly grouped below the cards */}
+        <div className="mt-6 max-w-3xl space-y-2.5">
+          <p className="text-[var(--color-text-ghost)] text-xs leading-relaxed">
+            Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
+          </p>
+          <p className="text-[var(--color-text-dim)] text-xs leading-relaxed">
+            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.
+          </p>
+        </div>
 
         {/* Journey explainer */}
         <motion.div

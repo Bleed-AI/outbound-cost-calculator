@@ -1,151 +1,128 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { BRAND_ICONS } from '@/lib/brand-icons'
 
 /**
- * Premium, categorized showcase of the real tools BleedAI operates. Where an
- * official vector mark is available (Google Maps, Claude, n8n, Supabase,
- * Cloudflare) we render it; everything else gets a clean monogram tile. Every
- * tile carries the tool name so the grid reads as a deliberate, legit stack.
- * Tiles float gently and lift/accent on hover.
+ * Compact, categorized showcase of the real tools BleedAI operates — small
+ * logo chips in tight rows so the whole stack sits ABOVE the pricing cards and
+ * everything stays visible on load. Real brand logos live in /public/logos;
+ * a monogram fallback renders if an image is missing.
  */
 
-type Tool = {
-  name: string
-  /** key into BRAND_ICONS for an official vector mark */
-  icon?: keyof typeof BRAND_ICONS
-  /** monogram shown when there's no vector mark */
-  mono?: string
-}
-
-type Category = {
-  label: string
-  blurb: string
-  tools: Tool[]
-}
+type Tool = { name: string; logo?: string; mono?: string }
+type Category = { label: string; tools: Tool[] }
 
 const CATEGORIES: Category[] = [
   {
     label: 'Sourcing',
-    blurb: 'finding the right companies & people',
     tools: [
-      { name: 'LinkedIn Sales Nav', mono: 'in' },
-      { name: 'Google Maps', icon: 'googlemaps' },
-      { name: 'Apollo', mono: 'Ap' },
-      { name: 'Apify', mono: 'ay' },
+      { name: 'LinkedIn Sales Nav', logo: 'linkedin' },
+      { name: 'Google Maps', logo: 'googlemaps' },
+      { name: 'Apollo', logo: 'apollo' },
+      { name: 'Apify', logo: 'apify' },
       { name: 'Niche Directories', mono: '☰' },
     ],
   },
   {
     label: 'Email Finding',
-    blurb: 'verified emails, multi-provider waterfall',
     tools: [
-      { name: 'Prospeo', mono: 'P' },
-      { name: 'TryKit', mono: 'K' },
-      { name: 'LeadMagic', mono: 'LM' },
-      { name: 'FindyMail', mono: 'FM' },
+      { name: 'Prospeo', logo: 'prospeo' },
+      { name: 'TryKit', logo: 'trykit' },
+      { name: 'LeadMagic', logo: 'leadmagic' },
+      { name: 'FindyMail', logo: 'findymail' },
     ],
   },
   {
     label: 'Enrichment',
-    blurb: 'context & signals on every lead',
     tools: [
-      { name: 'Parallel.ai', mono: '∥' },
-      { name: 'Serper', mono: 'Se' },
-      { name: 'OpenWebNinja', mono: 'ON' },
-      { name: 'AI Personalization', mono: '✦' },
+      { name: 'Parallel.ai', logo: 'parallel' },
+      { name: 'Serper', logo: 'serper' },
+      { name: 'OpenWebNinja', logo: 'openwebninja' },
     ],
   },
   {
     label: 'Orchestration & AI',
-    blurb: 'running the whole machine',
     tools: [
-      { name: 'Clay', mono: 'Cl' },
-      { name: 'Claude Code', icon: 'claude' },
-      { name: 'OpenAI', mono: 'AI' },
-      { name: 'n8n', icon: 'n8n' },
+      { name: 'Clay', logo: 'clay' },
+      { name: 'Claude Code', logo: 'claude' },
+      { name: 'OpenAI', logo: 'openai' },
+      { name: 'n8n', logo: 'n8n' },
     ],
   },
   {
     label: 'Sending & Infra',
-    blurb: 'branded inboxes, delivery, data',
     tools: [
-      { name: 'Instantly', mono: 'I' },
-      { name: 'Supabase', icon: 'supabase' },
-      { name: 'Cloudflare', icon: 'cloudflare' },
+      { name: 'Instantly', logo: 'instantly' },
+      { name: 'Supabase', logo: 'supabase' },
+      { name: 'Cloudflare', logo: 'cloudflare' },
     ],
   },
 ]
 
 export function ToolStack() {
   return (
-    <div className="mb-12">
-      {/* Heading */}
-      <div className="flex items-center gap-3 mb-1.5">
-        <span className="h-px w-6 bg-[var(--color-brand)]" />
-        <h3 className="text-[var(--color-text)] text-sm font-semibold tracking-tight">The stack we run for you</h3>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)]/60 px-4 py-3.5"
+    >
+      <div className="flex items-baseline gap-2.5 mb-3">
+        <span className="h-px w-5 bg-[var(--color-brand)]" />
+        <h3 className="text-[var(--color-text)] text-xs font-semibold tracking-tight">The machine we run for you</h3>
+        <span className="hidden sm:inline text-[var(--color-text-ghost)] text-[10.5px]">— every tier runs the full stack; higher tiers point more of it at harder problems</span>
       </div>
-      <p className="text-[var(--color-text-dim)] text-xs mb-6 max-w-2xl leading-relaxed">
-        Not a freelancer with a list — a full sourcing, enrichment and sending operation. The same tooling powers every tier; higher tiers just point more of it at harder problems.
-      </p>
 
-      {/* Category grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {CATEGORIES.map((cat, ci) => (
-          <motion.div
-            key={cat.label}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
-            transition={{ duration: 0.5, delay: ci * 0.06, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-4"
-          >
-            <div className="mb-3">
-              <div className="text-[var(--color-text)] text-xs font-semibold uppercase tracking-[0.14em]">{cat.label}</div>
-              <div className="text-[var(--color-text-ghost)] text-[10px] mt-0.5">{cat.blurb}</div>
+      <div className="space-y-2">
+        {CATEGORIES.map((cat) => (
+          <div key={cat.label} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+            <div className="sm:w-[124px] shrink-0 text-[9.5px] font-semibold uppercase tracking-[0.13em] text-[var(--color-text-dim)]">
+              {cat.label}
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              {cat.tools.map((tool, ti) => (
-                <ToolTile key={tool.name} tool={tool} delay={ci * 0.06 + ti * 0.04} />
+            <div className="flex flex-wrap gap-1.5">
+              {cat.tools.map((tool, i) => (
+                <ToolChip key={tool.name} tool={tool} index={i} />
               ))}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
-function ToolTile({ tool, delay }: { tool: Tool; delay: number }) {
-  const brand = tool.icon ? BRAND_ICONS[tool.icon] : null
+function ToolChip({ tool, index }: { tool: Tool; index: number }) {
+  const [failed, setFailed] = useState(false)
+  const showMono = !tool.logo || failed
+  const mono = tool.mono ?? tool.name.slice(0, 2)
 
   return (
     <motion.div
-      // gentle continuous float — staggered per tile
-      animate={{ y: [0, -3, 0] }}
-      transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: delay % 1 }}
-      className="group/tile"
+      initial={{ opacity: 0, scale: 0.85 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, delay: index * 0.03 }}
       title={tool.name}
+      className="group/chip relative w-8 h-8 rounded-[9px] bg-white border border-black/[0.06] flex items-center justify-center overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_16px_-6px_rgba(0,0,0,0.6)] cursor-default"
     >
-      <div className="flex flex-col items-center gap-1.5 w-[68px]">
-        <div
-          className="w-12 h-12 rounded-[12px] border border-[var(--color-border)] bg-[var(--color-surface-0)] flex items-center justify-center text-[var(--color-text-muted)] transition-all duration-300 group-hover/tile:-translate-y-1 group-hover/tile:border-[var(--color-brand)] group-hover/tile:text-[var(--color-brand)] group-hover/tile:shadow-[0_8px_24px_-8px_rgba(177,19,15,0.5)]"
-        >
-          {brand ? (
-            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" aria-hidden="true">
-              <path d={brand.path} />
-            </svg>
-          ) : (
-            <span className="text-[15px] font-bold leading-none font-[family-name:var(--font-mono)] tracking-tight">
-              {tool.mono}
-            </span>
-          )}
-        </div>
-        <span className="text-[var(--color-text-dim)] text-[9.5px] leading-tight text-center group-hover/tile:text-[var(--color-text-muted)] transition-colors">
-          {tool.name}
-        </span>
-      </div>
+      {showMono ? (
+        <span className="text-[11px] font-bold text-gray-700 leading-none">{mono}</span>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={`/logos/${tool.logo}.png`}
+          alt={tool.name}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="w-full h-full object-contain p-[5px]"
+        />
+      )}
+      {/* tooltip */}
+      <span className="pointer-events-none absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-[var(--color-surface-0)] border border-[var(--color-border)] px-1.5 py-0.5 text-[9px] text-[var(--color-text-muted)] opacity-0 group-hover/chip:opacity-100 transition-opacity z-10">
+        {tool.name}
+      </span>
     </motion.div>
   )
 }
