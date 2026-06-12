@@ -156,9 +156,11 @@ inboxOwnership: { user_domains: 35, dfy: 50 }       // $ per 1k emails
 dataSource: { dfy_scrape: 50, full_list: 20, ... }  // $ per 1k leads
 copywriting: { finalized: 50, full_strategy: 125 }  // one-time
 campaigns: { 1: 0, 2: 125, 3: 250, 4: 375, 5: 500 } // first included, +$125 each
-support: { email: 100, slack_light: 200, slack_full: 375 }
+support: { email: 100, slack_light: 200, slack_full: 375 }  // email retired from UI — Slack-only (see system-ref §8.2)
 volumeDiscounts: { 2000: 0, 4000: 0.05, 7500: 0.075, 10000: 0.10, 20000: 0.20, 40000: 0.25 }
 brandedSetup: { baseSetupFee: 250, extraInboxThreshold: 50, extraPerInbox: 2 }
+capacity: { emailsPerInboxPerDay: 27, warmupDays: 14, sendingWeeks: 4, sendingDaysPerWeek: 5, inboxesPerDomain: 3, backupDomainPerEmails: 5000 }  // no-ramp 6wk model
+infraIncluded: { domainCostPerYear: 12, monthsIncluded: 2, inboxRateBase: 3.50, inboxRateMid: 3.25, inboxRateHigh: 3.00 }  // domains+inboxes folded into total, NOT discounted
 packageNudgeThreshold: 1500                         // banner fires at this total
 packageTiers: { pilotMin: 1500, growthMin: 2450, scaleMin: 3450 }  // banner tier selection
 pricePerAdditionalExperiment: 125
@@ -166,7 +168,9 @@ pricePerAdditionalExperiment: 125
 
 After any price change: run `npx tsx scripts/validate-pricing.ts` to confirm math holds, then `npm run build`.
 
-**Before changing thresholds or default state**, re-read [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §2 (defaults) and §8 (the 15 design decisions). The defaults are guardrails — changing them undoes intent.
+**Capacity/infra model (2026-06-12):** fixed 6-week campaign (2wk warmup + 4wk full-capacity sending at 27 emails/inbox/day, **no ramp**). Inboxes = `ceil(totalEmails/540)`, 3/domain, +1 backup domain per 5k emails. Branded domains (1yr) + inboxes (2mo) are folded into the total at cost (never discounted), shown as "included, yours to keep." Helpers: `computeInfraCounts`, `inboxMonthlyRate`, `computeCampaignPhases` in `pricing.ts`.
+
+**Before changing thresholds or default state**, re-read [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md) §2 (defaults) and §8 (the 18 design decisions). The defaults are guardrails — changing them undoes intent.
 
 ---
 

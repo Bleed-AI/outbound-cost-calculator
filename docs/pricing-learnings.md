@@ -65,4 +65,34 @@ depth, not email throughput.
 **Triggered by:** Taha — recurring real-deal objection that the only visible difference between tiers was email
 volume (2026-06-12 session). Premium-look + sourcing-icons request handled in the same pass.
 
+### 2026-06-12 — Calculator no-ramp model, infra folded into total, real tool stack, trial anchoring
+**What changed:** Big pass across all three pages.
+- **Calculator capacity/timeline:** retired the ramp model. Now a fixed 6 weeks — 2wk warmup + 4wk full-capacity
+  sending at **27 emails/inbox/day** (weekdays). Inboxes = `ceil(totalEmails/540)`, 3 inboxes/domain, +1 backup
+  domain per 5k emails. Duration is fixed; inbox count scales with volume.
+- **Infrastructure now folded into the total:** branded domains (1 yr) + inboxes (2 mo) are added to the campaign
+  total **at cost, not discounted**, framed as "included, yours to keep" with an on-demand breakdown. Previously
+  shown as a separate "pay your provider ≈$X" estimate. The `$35/1k` line was relabelled *Managed Sending &
+  Deliverability* (the service) so it doesn't read as double-charging the assets. Default config total moved
+  ~$1,263 → ~$1,461.
+- **One-off framing:** dropped "/month" — prominent number is now *Total Emails This Campaign*; monthly capacity
+  demoted to a side-note. Slack-only support (email retired). "What You Get" now icon-per-item. Coupon box back
+  (behind a toggle below the total).
+- **Packages/Trials:** real categorized tool stack (Sourcing/Email-finding/Enrichment/Orchestration/Sending) with
+  official marks where available; "Clay" (not Claygent). Trials now anchor with a struck-through "real" value
+  ($1,800 / $3,600) above the subsidized fee.
+**Why (the intuition):** (1) Prospects were confused by "leads/month" on a one-off tool and by multiple separate
+infra costs — the fix is one number, "everything included," with detail on demand. (2) The infra is real value the
+client keeps; folding it in (vs "you'll also owe your provider $X") makes the price feel complete and generous
+rather than nickel-and-dimed. (3) The real timeline genuinely changed operationally (full capacity after warmup,
+no ramp), so the calculator had to match reality. (4) Showing the actual tool stack with real logos makes BleedAI
+read as a legit operation, not a freelancer. (5) Trials are loss-leaders — anchoring the "real" price makes the
+subsidy legible and raises perceived value.
+**Where reflected:** pricing.config.ts/pricing.ts/types.ts + CostBreakdown/CampaignVolumeSection/CampaignSetupSummary/
+SupportSection/PackagesView/TrialsView/Header + ToolStack.tsx + brand-icons.ts + send-order email; system-reference.md
+§2/§3/§8.1/§8.2/§8.17/§8.18; this log. Proposal generator: quote campaigns as 6-week, infra-included; sell trials
+with the anchor framing.
+**Triggered by:** Taha — break-time batch of corrections (2026-06-12): "calculator is one-off, why leads/month";
+new ramp/capacity numbers; "include domain + 2mo inboxes, feel like a good deal"; real tool logos; trial strikethrough.
+
 <!-- Append new dated entries above this line, most recent first. -->

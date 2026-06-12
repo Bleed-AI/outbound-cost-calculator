@@ -1,5 +1,12 @@
 # Pricing Rules — Ground Truth
 
+> **⚠️ 2026-06-12: canonical mechanics now live in [`docs/pricing-system-reference.md`](docs/pricing-system-reference.md).**
+> That doc is current; this file is kept for the calculation-flow detail but several sections below were written
+> against the **old ramp model** and have been corrected inline. Where they conflict, the code + system-reference win.
+> Key changes since this file was first written: **no ramp** (fixed 6-week: 2wk warmup + 4wk full-capacity at
+> 27 emails/inbox/day); branded **domains+inboxes folded into the total** (not a separate provider estimate);
+> **Slack-only support** (email retired); `MonthTypeSection.tsx` and `WarmupInfoPanel.tsx` **deleted**.
+
 This document is the **single source of truth** for how pricing works in this
 calculator. Whenever you change prices or the calculation logic, update:
 
@@ -23,10 +30,12 @@ The calculator has two orthogonal toggles that combine into four scenarios:
 | `normal_month` | `dfy` (BleedAI warm) | **1. Normal + DFY** — full recurring billing, full capacity |
 | `normal_month` | `user_domains` (Branded) | **2. Normal + Branded** — full recurring billing, full capacity |
 | `first_month` | `dfy` | **3. Pilot + DFY** — full recurring billing (no warmup needed) |
-| `first_month` | `user_domains` | **4. Pilot + Branded** — ramp-phase billing + one-time setup fee |
+| `first_month` | `user_domains` | **4. Branded one-off** — full-volume billing + one-time setup fee + included infra |
 
-Only **Scenario 4** triggers special ramp-phase logic. The Pilot Month panel
-in the UI (`MonthTypeSection.tsx`) only shows when Scenario 4 is selected.
+> **Corrected 2026-06-12:** Scenario 4 no longer does ramp-phase billing. Every send is billed (full volume), the
+> timeline is a fixed 6 weeks with **no ramp**, and branded domains+inboxes are folded into the total as a
+> non-discounted included cost (`infraIncludedCost`). `MonthTypeSection.tsx` (the old Pilot Month panel) was deleted —
+> in production only Scenario 4 ever renders, since `monthType`/`inboxOwnership` are locked.
 
 ---
 
@@ -60,9 +69,8 @@ This is enforced in `pricing.ts` via the `sumMonthly()` helper. The tests
 ```
 For each calculateTotal(state):
 
-  1. Compute billingEmails
-     └─ Scenario 4: month1ActualEmails (= inboxes × 210 ramp formula)
-     └─ All others: totalEmails (= leadsPerMonth × emailsPerProspect)
+  1. Compute billingEmails = totalEmails (= leadsPerMonth × emailsPerProspect)
+     └─ No ramp: every send is billed in all scenarios (month1ActualEmails === totalEmails)
 
   2. Compute discountPercent from volumeDiscounts table (leads-based)
 
@@ -127,10 +135,11 @@ For each calculateTotal(state):
    One-time fees (branded setup, instantly setup, n8n build, drip one-time,
    landing page) are invoiced but don't count toward these thresholds.
 
-6. **Scenario 4 (Pilot + Branded) bills variable costs on ramp emails**
-   (`month1ActualEmails = inboxesNeeded × 210`), not on full capacity.
-   - Ramp formula: inboxes × (rampDays/2) × (2 × startPerDay + (rampDays-1) × dailyIncrement)
-   - With default config: rampDays=14, startPerDay=2, dailyIncrement=2 → 210 emails/inbox over 14 days.
+6. **~~Scenario 4 bills on ramp emails~~ — REMOVED 2026-06-12.** No ramp. Every send is billed on full
+   volume (`month1ActualEmails === totalEmails`). Inboxes = `ceil(totalEmails / 540)` (27/inbox/day × 20
+   weekday sends), 3 inboxes/domain, +1 backup domain per 5k emails. Branded domains+inboxes are added to the
+   total as a non-discounted `infraIncludedCost` (1-yr domains + 2-mo inboxes), rendered OUTSIDE `lineItems`, so
+   the grand-total invariant is `total === Σ lineItems + infraIncludedCost`.
 
 7. **The "Month 2 Onwards" card in the Pilot panel is computed by calling
    `calculateTotal()` with `monthType: 'normal_month'`** and the same other
@@ -142,31 +151,25 @@ For each calculateTotal(state):
 
 ---
 
-## 5. Provider costs (NOT on BleedAI's invoice)
+## 5. Branded domains + inboxes — INCLUDED in the total (2026-06-12)
 
-In Scenario 4, the UI shows "provider cost estimates" inside the Pilot Month
-panel. These are **paid by the client directly to their inbox provider** (e.g.
-Instantly, MailReef, Maildoso) — BleedAI does not invoice them.
+> **Rewritten 2026-06-12.** Previously these were "provider costs paid directly to the client's provider, NOT on
+> BleedAI's invoice." That's gone. The domains + inboxes are now **provisioned by BleedAI and folded into the
+> campaign total** as an included bonus the client keeps. The old separate "+ to provider" rows and the
+> `MonthTypeSection.tsx` estimator were removed.
 
-Calculation (in `MonthTypeSection.tsx`, function `InfraEstimator`):
+Computed in `pricing.ts → calculateTotal` (and helpers `computeInfraCounts`, `inboxMonthlyRate`):
 
-- **Inboxes needed** = ceil(capacity / 500)
-- **Domains needed** = ceil(capacity / 1500)
-- **Domain cost (one-time)** = domains × $12
-- **Inbox cost (monthly)** = inboxes × tier_rate
-- **Inbox tier rates:**
-  - 1–29 inboxes: $3.50/mo each
-  - 30–99 inboxes: $3.25/mo each
-  - 100+ inboxes: $3.00/mo each
-
-**Pilot card "+ to provider" row**: domains one-time + inboxes month 1 = lump
-sum to set up + run the first month.
-
-**Month 2+ card "+ to provider" row**: inboxes monthly only (no new domains).
-
-If you change the provider cost calculation, keep the two rows in
-`MonthTypeSection.tsx` (pilot card + month 2 card) and the `InfraEstimator`
-component in sync.
+- **Sending inboxes** = ceil(totalEmails / 540)   (27/inbox/day × 20 weekday sends)
+- **Primary domains** = ceil(sendingInboxes / 3)
+- **Backup domains** = floor(totalEmails / 5000)   → +3 inboxes each (failover buffer)
+- **Total inboxes / domains** = sending + backup
+- **`infraDomainCost`** = totalDomains × $12 (1-yr registration)
+- **`infraInboxCost`** = totalInboxes × tier_rate × 2 months
+- **Inbox tier rates:** 1–29 → $3.50 · 30–99 → $3.25 · 100+ → $3.00 (per inbox/mo)
+- **`infraIncludedCost`** = infraDomainCost + infraInboxCost — added to the total **after** volume discount + coupon
+  (it is never discounted), and rendered OUTSIDE `lineItems`. Surfaced in `CostBreakdown.tsx → InfraIncluded` and
+  `CampaignSetupSummary.tsx` as "included, yours to keep" with an on-demand breakdown.
 
 ---
 

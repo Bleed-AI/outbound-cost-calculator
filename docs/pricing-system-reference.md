@@ -45,7 +45,7 @@ Validated against `scripts/validate-pricing.ts` as of 2026-06-03.
 | Data source | `dfy_scrape` ($50/1k) | Most generic-applicable |
 | Enrichments | `standard` | |
 | Copywriting | `full_strategy` ($125 one-time) | |
-| Support | `slack_light` ($200/mo) | Switched from `email` ($100) — Slack signals real engagement |
+| Support | `slack_light` ($200/mo) | **Email support retired** — Slack-only now. The UI offers Standard Slack (default) and Full Slack + Calls only. See §8.2. |
 
 ### Add-ons (all unchecked by default, in Advanced Options)
 
@@ -60,21 +60,47 @@ Validated against `scripts/validate-pricing.ts` as of 2026-06-03.
 
 ### Setup baseline
 
-- Branded Domains & Inboxes setup: **$250** baseline + **$2 per extra inbox above 50 inboxes**.
+- Branded Domains & Inboxes setup (labour): **$250** baseline + **$2 per extra inbox above 50 inboxes**.
+
+### Sending-capacity model (`PRICING.capacity`) — added 2026-06-12
+
+Fixed **6-week** campaign, **no ramp** (see §8.17):
+
+| Constant | Value | Meaning |
+|---|---|---|
+| `emailsPerInboxPerDay` | 27 | full capacity per inbox per sending day, post-warmup |
+| `warmupDays` | 14 | 2 weeks warmup, zero sends |
+| `sendingWeeks` × `sendingDaysPerWeek` | 4 × 5 = 20 | weekday sending days → 540 emails/inbox/campaign |
+| `inboxesPerDomain` | 3 | inboxes per sending domain |
+| `backupDomainPerEmails` | 5,000 | +1 backup domain (3 inboxes) per 5k total emails (failover buffer) |
+
+Counts: `sendingInboxes = ceil(totalEmails / 540)`, `primaryDomains = ceil(sendingInboxes / 3)`, `backupDomains = floor(totalEmails / 5000)`. Helpers: `computeInfraCounts()`, `inboxMonthlyRate()`, `computeCampaignPhases()`, `computeMonthlyCapacity()` in `pricing.ts`.
+
+### Branded infra folded into the total (`PRICING.infraIncluded`) — added 2026-06-12
+
+Domains (1-yr) + inboxes (N months) are **added to the campaign total, NOT discounted**, framed as an included bonus the client keeps. See §8.17.
+
+| Constant | Value |
+|---|---|
+| `domainCostPerYear` | $12 / domain |
+| `monthsIncluded` | 2 months of inbox hosting |
+| inbox monthly rate | $3.50 (<30) / $3.25 (≥30) / $3.00 (≥100) per inbox |
 
 ---
 
 ## 3. Reference configurations
 
-Outputs from the validation harness (`npx tsx scripts/validate-pricing.ts`):
+Outputs from the validation harness (`npx tsx scripts/validate-pricing.ts`), **as of 2026-06-12** (new no-ramp + infra-included model):
 
-| Config | Total | Notes |
-|---|---|---|
-| Floor: 1,500 leads × 1 EPP × 1 campaign | ~$733 | Min volume |
-| Default: 4,000 × 2 × 1 | ~$1,263 | Just below the $1,500 package nudge threshold |
-| Mid: 10,000 × 2 × 1 | ~$2,204 | Banner suggests Growth |
-| High: 20,000 × 2 × 1 | ~$3,531 | Banner suggests Scale |
-| Ceiling: 40k × 3 × 5 experiments | ~$8,445 | At this point: route to Scale package |
+| Config | Total | Infra incl. | Inbox/Dom | Notes |
+|---|---|---|---|---|
+| Floor: 1,500 × 1 × 1 | ~$802 | $33 | 3 / 1 | Min volume |
+| Default: 4,000 × 2 × 1 | ~$1,461 | $198 | 18 / 6 | Just below the $1,500 nudge threshold |
+| Mid: 10,000 × 2 × 1 | ~$2,733 | $529 | 50 / 17 | Banner suggests Growth |
+| High: 20,000 × 2 × 1 | ~$4,609 | $1,040 | 99 / 33 | Banner suggests Scale |
+| Ceiling: 40k × 3 × 5 exp | ~$11,513 | $2,958 | 295 / 99 | Route to Scale package |
+
+Totals rose vs the pre-2026-06-12 model because branded domains+inboxes are now folded into the total (previously shown as a separate "pay your provider" estimate).
 
 ---
 
@@ -158,7 +184,7 @@ Banner is sticky (follows scroll) and dismissable per session (sessionStorage). 
 
 ---
 
-## 8. The 16 psychological design decisions
+## 8. The 17 psychological design decisions
 
 Each is a guardrail baked into the calculator code. Changing the calculator without considering these undoes intent.
 
@@ -170,11 +196,11 @@ Originally we billed for ramp-phase sends only. Switched to full-volume billing 
 - Charging only for ramp (~3,360 of 8,000 emails) silently breaks that expectation.
 - Honest pricing scales by ~25% but the customer trusts the math.
 
-The 4-phase timeline on the calculator (1 day setup + 14 days warmup + 15 days ramp + steady-state until full volume sent, ~40 days total) surfaces exactly when emails go out.
+**Updated 2026-06-12 — no more ramp.** The timeline is now a fixed **6 weeks**: 2 weeks inbox warmup (zero sends) → 4 weeks of **full-capacity** sending (27 emails/inbox/day on weekdays, no ramp). Inbox count flexes to deliver the selected volume inside the 4-week window. We still bill every send. See §8.17.
 
-### 8.2 Slack support is the default ($200/mo)
+### 8.2 Slack support only ($200/mo default) — email support retired (2026-06-12)
 
-Email support ($100) was the original default. Switched because email = no real iteration; for real engagement during a campaign you need same-day Slack. Defaulting to Email signaled no-touch. $200 is the cost of "we're available when you need us".
+Email support was the original default, then a non-default option. **As of 2026-06-12 it's removed from the UI entirely** — every campaign includes a dedicated Slack channel; the only choice is how much access (Standard Slack $200/mo default, or Full Slack + Calls $375/mo). Email-only signalled a no-touch engagement we don't actually offer. (The `email` key remains in `pricing.config.ts → support` for backward-compat but is not selectable.)
 
 ### 8.3 Package nudge fires at $1,500 (not $2,200)
 
@@ -258,7 +284,24 @@ The original `/packages` page bolded email volume as the headline differentiator
 
 **Signals are included across all tiers** — Scale doesn't *unlock* signals, it *leverages more of them, harder*. On the page each card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume is demoted to a small muted side-line ("scales to fit the play… want fewer? we size it down"), plus a page footnote stating volume is never a reason on its own to size up. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) adds premium credibility without leaning on volume. The packages hero subtitle and intro now state the effort-not-volume thesis outright; the one-off / trial cross-links were rephrased to drop diminishing language ("just need a single send").
 
-Encoded in `src/components/PackagesView.tsx` (`PackageTier.headline` / `.effort` / `.volumeNote`, `EffortMeter`, `SourcingStack`) and `src/components/Header.tsx` (packages subtitle).
+Encoded in `src/components/PackagesView.tsx` (`PackageTier.headline` / `.effort` / `.volumeNote`, `EffortMeter`) and `src/components/Header.tsx` (packages subtitle).
+
+### 8.17 Calculator: one-off framing, no-ramp capacity, infra folded in (2026-06-12)
+
+A cluster of changes to make the one-off calculator read as a one-off and to make the infrastructure feel like included value:
+
+- **Drop "/month" everywhere.** It's a one-off campaign. "Leads per Month" → "Total Leads"; the prominent number is now **Total Emails This Campaign**; the old "Monthly Email Capacity" is demoted to a small "system capacity ≈ X/mo (side info)" note. The standing capacity and the campaign's total sends genuinely differ (campaign is 4 weeks; a month is ~4.3), so we show both but lead with the campaign total.
+- **No-ramp 6-week model.** 2 weeks warmup + 4 weeks full-capacity sending at 27 emails/inbox/day (weekdays). Inboxes = `ceil(totalEmails / 540)`; 3 inboxes/domain; +1 backup domain per 5k emails (failover buffer). Replaces the old setup+warmup+15-day-ramp+steady model. Duration is now fixed regardless of volume — inbox count scales instead.
+- **Branded domains + inboxes folded INTO the total, not discounted.** Previously shown as a separate "≈$X paid to your provider" estimate. Now: domains (1 yr) + inboxes (2 mo) are added to the campaign total at cost, framed as **"included, yours to keep"**, with an on-demand dropdown breakdown. Volume discount + coupons apply to *services only*, never to this infra. The `$35/1k` line was relabelled **Managed Sending & Deliverability** (the service of running sends) so it doesn't read as a double-charge against the physical assets.
+- **"What You Get" → icons not checkmarks, larger font, Slack support** (was "Email support"). Reads as a richer deliverable set.
+- **Coupon box restored** behind a "Have a coupon code?" toggle below the total (was URL-only).
+
+Encoded in `pricing.config.ts` (`capacity`, `infraIncluded`), `pricing.ts` (`computeInfraCounts`, `inboxMonthlyRate`, `computeCampaignPhases`, `infraIncludedCost` in `calculateTotal`), `CostBreakdown.tsx` (`InfraIncluded`, `CouponToggle`), `CampaignVolumeSection.tsx`, `CampaignSetupSummary.tsx`, `SupportSection.tsx`, and the order email (`api/send-order/route.ts`).
+
+### 8.18 Packages/Trials: real tool stack + trial price anchoring (2026-06-12)
+
+- **Real categorized tool stack** on `/packages` and `/trials` (`ToolStack.tsx`): Sourcing / Email-finding / Enrichment / Orchestration / Sending, with official vector marks where available (Google Maps, Claude, n8n, Supabase, Cloudflare — baked into `src/lib/brand-icons.ts` from simple-icons) and clean named tiles for the rest. Gentle float + hover accent. Signals "real operation, not a freelancer." (It's **Clay**, not Claygent — Claygent is Clay's AI agent feature.)
+- **Trial price anchoring**: each trial shows a struck-through "real" value ($1,800 / $3,600) above the subsidized fee + a "Save X%" badge + "trials are subsidized to prove fit" line. Frames the loss-leader explicitly: *we'd normally charge a lot; this is deliberately cheap to earn the package*.
 
 ---
 
