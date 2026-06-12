@@ -3,10 +3,9 @@
 import { useState } from 'react'
 
 /**
- * Compact, premium tool-stack strip. Logos render muted (grayscale, low
- * opacity) so the row reads as one cohesive material, then bloom into full
- * colour on hover. No app-icon tiles, no big competing panel — just tight
- * categorised rows that sit above the pricing cards. Real logos live in
+ * Compact tool-stack showcase. Five category groups laid out as a 3-then-2
+ * grid (headings on top of each group, not a left column) so it stays short
+ * and the pricing cards sit high on the page. Real colour logos live in
  * /public/logos; a text-initial fallback renders if an image is missing.
  */
 
@@ -42,7 +41,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    label: 'Orchestration & AI',
+    label: 'Orchestration, Signals & AI',
     tools: [
       { name: 'Clay', logo: 'clay' },
       { name: 'Claude Code', logo: 'claude' },
@@ -54,8 +53,10 @@ const CATEGORIES: Category[] = [
     label: 'Sending & Infra',
     tools: [
       { name: 'Instantly', logo: 'instantly' },
+      { name: 'ZapMail', logo: 'zapmail' },
+      { name: 'Google Workspace', logo: 'gmail' },
+      { name: 'Microsoft', logo: 'outlook' },
       { name: 'Supabase', logo: 'supabase' },
-      { name: 'Cloudflare', logo: 'cloudflare' },
     ],
   },
 ]
@@ -63,18 +64,18 @@ const CATEGORIES: Category[] = [
 export function ToolStack() {
   return (
     <section aria-label="Our tool stack">
-      <div className="flex items-baseline gap-2.5 mb-4">
+      <div className="flex items-baseline gap-2.5 mb-5">
         <span className="h-px w-6 bg-[var(--color-brand)]" />
         <h3 className="text-[var(--color-text-muted)] text-[11px] font-semibold uppercase tracking-[0.18em]">The machine we run for you</h3>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-[150px_1fr] gap-x-5 gap-y-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5">
         {CATEGORIES.map((cat) => (
-          <div key={cat.label} className="contents">
-            <div className="self-center text-[9.5px] font-semibold uppercase tracking-[0.13em] text-[var(--color-text-ghost)]">
+          <div key={cat.label}>
+            <div className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-text-ghost)] mb-2.5">
               {cat.label}
             </div>
-            <div className="flex flex-wrap gap-2 pb-2.5 sm:pb-3.5 border-b border-[var(--color-border)]/60">
+            <div className="flex flex-wrap gap-2">
               {cat.tools.map((tool) => (
                 <ToolChip key={tool.name} tool={tool} />
               ))}
@@ -92,10 +93,10 @@ function ToolChip({ tool }: { tool: Tool }) {
   return (
     <span
       title={tool.name}
-      className="group/chip relative inline-flex h-7 w-7 items-center justify-center rounded-[8px] bg-[#ececed] ring-1 ring-inset ring-black/[0.08] transition-all duration-200 hover:-translate-y-[3px] hover:bg-white hover:ring-black/15 cursor-default"
+      className="group/chip relative inline-flex h-8 w-8 items-center justify-center rounded-[9px] bg-white ring-1 ring-inset ring-black/[0.06] shadow-[0_1px_2px_rgba(0,0,0,0.25)] transition-all duration-200 hover:-translate-y-[3px] hover:shadow-[0_8px_20px_-6px_rgba(0,0,0,0.55)] cursor-default"
     >
       {tool.glyph === 'directory' ? (
-        <svg className="h-3.5 w-3.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7h18M3 12h18M3 17h10" />
         </svg>
       ) : failed ? (
@@ -109,7 +110,7 @@ function ToolChip({ tool }: { tool: Tool }) {
           alt={tool.name}
           loading="lazy"
           onError={() => setFailed(true)}
-          className="h-[18px] w-[18px] object-contain grayscale opacity-85 transition-all duration-300 group-hover/chip:grayscale-0 group-hover/chip:opacity-100"
+          className="h-[19px] w-[19px] object-contain"
         />
       )}
       <span className="pointer-events-none absolute -bottom-[26px] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[var(--color-surface-0)] px-2 py-1 text-[9px] text-[var(--color-text-muted)] ring-1 ring-white/10 opacity-0 group-hover/chip:opacity-100 transition-opacity z-20">

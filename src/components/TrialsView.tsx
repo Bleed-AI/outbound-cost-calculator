@@ -242,7 +242,6 @@ function TrialCard({ pkg, priceTier, onInquire }: {
         </div>
 
         <div className="flex items-baseline gap-1.5 mb-3">
-          <span className="text-[var(--color-text-ghost)] text-xs">trial price</span>
           <motion.span
             key={priceTier}
             initial={{ opacity: 0, y: -4 }}

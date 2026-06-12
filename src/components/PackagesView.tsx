@@ -38,7 +38,7 @@ const TIERS: PackageTier[] = [
       'All associated costs, prospecting, system & infrastructure',
       'Your branded domains & inboxes',
       'One **sharp campaign** against a single core ICP, run steady',
-      'Full **DFY sourcing** — Claygent, Prospeo & our directory stack',
+      'Full **DFY sourcing** — Clay, Prospeo & our directory stack',
       'Automated client responses with AI agents',
       'Follow-up strategy for hot leads',
       'Dedicated Slack support throughout',
@@ -92,9 +92,9 @@ export function PackagesView() {
 
         {/* Lead-in after the hero — frames the off-ramps and leads into the tiers */}
         <p className="max-w-2xl mb-7 text-[var(--color-text-dim)] text-sm leading-relaxed">
-          Most teams reach a package through a{' '}
-          <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">trial campaign</a>{' '}or a{' '}
-          <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">single one-off</a>{' '}first — validate the model on our infrastructure, then move to a monthly tier once it&rsquo;s working. Already know it works? Pick your level of effort below.
+          You can{' '}
+          <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">try a trial campaign</a>{' '}or a{' '}
+          <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">single one-off</a>{' '}first to validate the model — then move to a monthly tier once it&rsquo;s working. Already sure? Pick your level of effort below.
         </p>
 
         {/* Compact tool stack — sits ABOVE the cards so the stack and all
