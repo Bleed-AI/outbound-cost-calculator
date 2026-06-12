@@ -230,15 +230,9 @@ function TrialCard({ pkg, priceTier, onInquire }: {
 
         {/* Anchor — the ORIGINAL price is the emphasized, struck-through number;
             the subsidized trial price sits smaller beneath it. */}
-        <div className="mb-0.5 flex items-baseline gap-2">
-          <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--color-text-ghost)]">Normally</span>
-        </div>
-        <div className="relative inline-block mb-2">
-          <span className="text-[40px] leading-none font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text-dim)]">
-            ${pkg.anchor.toLocaleString()}
-          </span>
-          {/* hand-drawn-ish strike across the original */}
-          <span className="pointer-events-none absolute left-0 right-0 top-1/2 h-[3px] -translate-y-1/2 -rotate-[3deg] rounded-full bg-[var(--color-brand)]" />
+        <div className="mb-1 text-[10px] uppercase tracking-[0.16em] text-[var(--color-text-ghost)]">Normally</div>
+        <div className="mb-2 w-fit text-[38px] leading-none font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text-dim)] line-through decoration-[var(--color-brand)] decoration-[3px]">
+          ${pkg.anchor.toLocaleString()}
         </div>
 
         <div className="flex items-baseline gap-1.5 mb-3">
