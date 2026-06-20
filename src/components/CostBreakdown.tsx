@@ -452,7 +452,19 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
               )}
 
               <div>
-                <label className="text-[var(--color-text-dim)] text-[11px] block mb-1">Average deal / contract value</label>
+                <label className="text-[var(--color-text-dim)] text-[11px] mb-1 flex items-center gap-1.5">
+                  Lifetime Contract Value (LTV)
+                  <span className="group/ltv relative inline-flex items-center">
+                    <svg className="w-3 h-3 text-[var(--color-text-ghost)] hover:text-[var(--color-text-muted)] cursor-help transition-colors" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4">
+                      <circle cx="8" cy="8" r="6.5" />
+                      <path strokeLinecap="round" d="M8 7.3v3.4" />
+                      <circle cx="8" cy="4.9" r="0.6" fill="currentColor" stroke="none" />
+                    </svg>
+                    <span className="pointer-events-none absolute left-1/2 top-[calc(100%+7px)] -translate-x-1/2 w-60 rounded-md bg-[var(--color-surface-2)] px-2.5 py-2 text-[10px] leading-relaxed font-normal normal-case text-[var(--color-text-muted)] ring-1 ring-white/10 shadow-xl opacity-0 group-hover/ltv:opacity-100 transition-opacity duration-150 z-30">
+                      The total revenue one customer brings over the whole time they stay with you, not just the first sale. E.g. $2,000/mo for ~10 months is about $20,000.
+                    </span>
+                  </span>
+                </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] text-sm">$</span>
                   <input
@@ -521,7 +533,7 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                 )}
 
                 {dealValue === 0 && (
-                  <p className="text-[var(--color-text-ghost)] text-[10px] italic">Enter your average deal value above to see projected pipeline and revenue.</p>
+                  <p className="text-[var(--color-text-ghost)] text-[10px] italic">Enter your LTV above to see projected pipeline and revenue.</p>
                 )}
               </div>
             </div>
