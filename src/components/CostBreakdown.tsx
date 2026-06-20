@@ -461,7 +461,7 @@ function RoiEstimator({ totalEmails, campaignCost }: { totalEmails: number; camp
                       <circle cx="8" cy="4.9" r="0.6" fill="currentColor" stroke="none" />
                     </svg>
                     <span className="pointer-events-none absolute left-1/2 top-[calc(100%+7px)] -translate-x-1/2 w-60 rounded-md bg-[var(--color-surface-2)] px-2.5 py-2 text-[10px] leading-relaxed font-normal normal-case text-[var(--color-text-muted)] ring-1 ring-white/10 shadow-xl opacity-0 group-hover/ltv:opacity-100 transition-opacity duration-150 z-30">
-                      The total revenue one customer brings over the whole time they stay with you, not just the first sale. E.g. $2,000/mo for ~10 months is about $20,000.
+                      The total revenue one customer brings over the whole time they stay with you, not just the first sale. E.g. $2,000/mo for ~12 months is about $24,000.
                     </span>
                   </span>
                 </label>
