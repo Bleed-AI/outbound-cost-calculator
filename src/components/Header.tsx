@@ -11,13 +11,14 @@ interface HeaderProps {
    * 3-line title with a different word emphasized in brand red, and an
    * appropriate subtitle for the page.
    */
-  variant?: 'calculator' | 'trials' | 'packages'
+  variant?: 'calculator' | 'trials' | 'packages' | 'sprint'
 }
 
 const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   line1: string
   line2: { plain: string; accent: string; tail?: string; accentMode: 'plain' | 'black' | 'light' }
   subtitle: string
+  support?: string
 }> = {
   calculator: {
     line1: 'Price Your',
@@ -27,12 +28,18 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   trials: {
     line1: '',
     line2: { plain: '', accent: 'Trial', tail: 'Campaigns', accentMode: 'black' },
-    subtitle: 'We run multiple campaign experiments against different market segments — in parallel, on our pre-warmed infrastructure. End result: you know which campaigns hit in which market, and you walk away with a batch of high-quality leads.',
+    subtitle: 'We run multiple campaign experiments against different market segments, in parallel, on our pre-warmed infrastructure. End result: you know which campaigns hit in which market, and you walk away with a batch of high-quality leads.',
   },
   packages: {
     line1: '',
     line2: { plain: '', accent: 'Managed', tail: 'Outbound Packages', accentMode: 'black' },
-    subtitle: 'End-to-end monthly outbound, built and operated by us. Tiers scale by strategic depth and effort — not by email count. Pick the level your market needs.',
+    subtitle: 'End-to-end monthly outbound, built and operated by us. Tiers scale by strategic depth and effort, not by email count. Pick the level your market needs.',
+  },
+  sprint: {
+    line1: 'The Outbound',
+    line2: { plain: '', accent: 'Sprint', accentMode: 'black' },
+    subtitle: 'Up to 8 cold email experiments in 6 weeks. One fixed price. You keep everything.',
+    support: 'We map every outbound method and buying signal relevant to your market, then run them against each other until one wins.',
   },
 }
 
@@ -72,7 +79,35 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
         <TopNav current={variant} />
       </div>
 
-      {/* Asymmetric hero */}
+      {/* Compact sales-slide hero (sprint), deliberately small so the whole
+          pitch below fits one viewport on a screen-share. */}
+      {variant === 'sprint' ? (
+        <div className="relative max-w-6xl mx-auto px-4 pb-5 pt-5">
+          <motion.div
+            initial={mounted ? { opacity: 0, y: 12 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.05 }}
+          >
+            <h1 className="text-3xl sm:text-4xl lg:text-[2.9rem] font-black tracking-tight leading-none">
+              <span className="text-[var(--color-text)] font-light">{cfg.line1} </span>
+              <span className="relative text-[var(--color-brand)]">
+                {cfg.line2.accent}
+                <span className="absolute inset-0 text-[var(--color-brand)] blur-lg opacity-30 pointer-events-none select-none" aria-hidden="true">
+                  {cfg.line2.accent}
+                </span>
+              </span>
+            </h1>
+            <p className="text-[var(--color-text)] text-base sm:text-lg font-medium mt-3 leading-snug">
+              {cfg.subtitle}
+            </p>
+            {cfg.support && (
+              <p className="text-[var(--color-text-muted)] text-[13px] sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+                {cfg.support}
+              </p>
+            )}
+          </motion.div>
+        </div>
+      ) : (
       <div className="relative max-w-6xl mx-auto px-4 pb-12 pt-8">
         {mounted ? (
           <motion.div
@@ -116,8 +151,8 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
             {variant === 'calculator' && (
               <>
                 {' '}
-                <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Try a trial campaign →</a>
-                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">Note: We only run Trial Campaigns for select companies.</span>
+                <a href="/sprint" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Start with The Outbound Sprint →</a>
+                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">We run The Outbound Sprint for companies that want proof first.</span>
               </>
             )}
           </motion.p>
@@ -127,8 +162,8 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
             {variant === 'calculator' && (
               <>
                 {' '}
-                <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Try a trial campaign →</a>
-                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">Note: We only run Trial Campaigns for select companies.</span>
+                <a href="/sprint" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline transition-colors">Start with The Outbound Sprint →</a>
+                <span className="block mt-2 text-[var(--color-text-ghost)] text-xs italic">We run The Outbound Sprint for companies that want proof first.</span>
               </>
             )}
           </p>
@@ -151,6 +186,7 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
           </div>
         )}
       </div>
+      )}
     </header>
   )
 }

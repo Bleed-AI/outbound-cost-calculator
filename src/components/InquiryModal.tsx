@@ -6,7 +6,7 @@ import { spring, modalBackdrop, modalContent } from '@/lib/motion'
 
 const BOOK_CALL_URL = 'https://bleedai.com/book-call/'
 
-export type InquiryKind = 'package' | 'trial'
+export type InquiryKind = 'package' | 'trial' | 'sprint'
 
 export interface InquiryContext {
   kind: InquiryKind
@@ -33,26 +33,31 @@ function isValidDomain(value: string): boolean {
 const KIND_TITLES: Record<InquiryKind, string> = {
   package: 'Get Started',
   trial: 'Start Your Trial',
+  sprint: 'Start Your Sprint',
 }
 
 const KIND_SUBTITLES: Record<InquiryKind, string> = {
   package: "Tell us about your business so we can hit the ground running on your monthly outbound.",
-  trial: "Tell us about your business — we'll kick off with a short call to align on ICPs and offer, then launch experiments same day.",
+  trial: "Tell us about your business, we'll kick off with a short call to align on ICPs and offer, then launch experiments same day.",
+  sprint: "Tell us about your business. The order holds your build slot; the kickoff call finalizes scope and writes your success bar together.",
 }
 
 const KIND_SUBMIT_LABELS: Record<InquiryKind, string> = {
   package: 'Send Order & Continue →',
   trial: 'Place Order & Continue →',
+  sprint: 'Place Order & Continue →',
 }
 
 const KIND_SUCCESS_TITLES: Record<InquiryKind, string> = {
-  package: "Order received — let's kick this off",
-  trial: "Trial order received — let's launch",
+  package: "Order received, let's kick this off",
+  trial: "Trial order received, let's launch",
+  sprint: "Sprint order received, let's kick off",
 }
 
 const KIND_SUCCESS_BODIES: Record<InquiryKind, string> = {
   package: "Your details are in. Pick a time below and we'll be prepared with context on your business.",
-  trial: "Your trial order is in. Pick a kickoff time below — we usually launch the same day or next.",
+  trial: "Your trial order is in. Pick a kickoff time below, we usually launch the same day or next.",
+  sprint: "Your Sprint order is in. Pick a kickoff time below. Once the invoice clears we hold your build slot and start the warmup clock.",
 }
 
 export function InquiryModal({ context, onClose }: InquiryModalProps) {
@@ -61,6 +66,7 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
   const [companyDomain, setCompanyDomain] = useState('')
   const [email, setEmail] = useState('')
   const [description, setDescription] = useState('')
+  const [instantlyOwnership, setInstantlyOwnership] = useState(false)
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -85,7 +91,10 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
           kind: context.kind,
           tierLabel: context.tierLabel,
           priceLabel: context.priceLabel ?? '',
-          metadata: context.metadata ?? {},
+          metadata: {
+            ...(context.metadata ?? {}),
+            ...(context.kind === 'sprint' ? { instantlyOwnership } : {}),
+          },
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           companyDomain: companyDomain.trim(),
@@ -242,6 +251,21 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
                           className={`${inputClasses} resize-none`}
                         />
                       </div>
+
+                      {context.kind === 'sprint' && (
+                        <label className="flex items-start gap-2.5 cursor-pointer rounded-[var(--radius-inner)] border border-[var(--color-border-hover)] bg-[var(--color-bg)] px-3 py-2.5 hover:border-[var(--color-border-active)] transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={instantlyOwnership}
+                            onChange={(e) => setInstantlyOwnership(e.target.checked)}
+                            className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--color-brand)] cursor-pointer"
+                          />
+                          <span className="text-[var(--color-text-muted)] text-xs leading-relaxed">
+                            <span className="text-[var(--color-text)] font-medium">Set up my own Instantly.ai account (+$200)</span>
+                            <span className="block text-[var(--color-text-ghost)] mt-0.5">The sending system is built under your ownership. Optional, we can also finalize this on the kickoff call.</span>
+                          </span>
+                        </label>
+                      )}
 
                       {submitState === 'error' && (
                         <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-[var(--radius-inner)] px-3 py-2">

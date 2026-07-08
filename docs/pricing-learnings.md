@@ -36,6 +36,35 @@
 
 ## Learnings
 
+### 2026-07-09 — The Outbound Sprint becomes the lead offer; trials retired from public use
+**What changed:** Adopted a new flagship entry SKU: **The Outbound Sprint**, $2,950 one-time, 6 weeks, up to 8
+campaign experiments run as a tournament (map every relevant sourcing method + buying signal, kill losers,
+scale the winner), written success bar co-defined on the kickoff call and measured on client-approved inputs,
+conditional rollover into Growth ($2,450/mo) with a $500 fee credit, the "re-run promise" instead of money-back
+(no experiment hits the bar → one more round on us), client keeps every asset either way, optional own
+Instantly account +$200. New page at `/sprint` with an operator-only price toggle (low = $2,450). Trials
+($580/$1,100) removed from all public nav and references on calculator.bleedai.com AND bleedai.com (page stays
+live, operator-only). Pilot ($1,500/mo) repositioned as the budget fallback ("spread the cost monthly"), never
+the opener.
+**Why (the intuition):** Three evidence streams converged (20-competitor scan, expert-corpus mining, sales-call
+re-read; all in bleedai-campaign-master `clients/bleedai/growth-plan-2026-07-04/offer-2026-07-08/`). (1) At our
+stage retainer revenue is illusory anyway: no month-1 results = month-2 churn, so the bounded one-off is the
+same economics with the honesty turned into a feature, and it is mentally easier to buy (Hormozi: bounded
+one-time closes ~3x better at a higher price, then upsell recurring). (2) Taha improvised exactly this offer
+twice on live calls (~$2,600 one-time) and price was never the objection; fog was. (3) The $580 trial anchor
+demonstrably killed deals (buyers anchored on the cheapest visible number). (4) The competitive slot is empty:
+nobody credible leads with a paid $2-5k bounded first campaign, and nobody anywhere does a conditional
+rollover ("the retainer only starts if the bar is hit"), which doubles as the believable guarantee for burned,
+skeptical buyers without refund fights. (5) Cash-poor buyers (the Jazib case) do not need a cheaper Sprint,
+they need installments, which is what Pilot already is.
+**Where reflected:** philosophy.md (full routing rewrite, same date); `/sprint` page + nav + InquiryModal in
+this repo; bleedai.com trial references replaced; `pricing-structure.md` (campaign-master) resynced;
+walkthrough-proposal template (`sales-calls/synthesis/proposal-template.html`) rebuilt on the Sprint.
+**Triggered by:** the 2026-07-08/09 offer-decision session (growth-plan Bet B / open decision #1), Taha's
+adoption call 2026-07-09. Tuning dial going forward: 18-30% live-call close rate on ~10 Sprint pitches; under
+18% = overpriced for current authority, over 30% = raise. KPI that decides the strategy: Sprint → Growth
+conversion.
+
 ### 2026-06-08 — Log created; proposal generator now reads pricing centrally
 **What changed:** Stood up this central learnings log. The new `create-proposal` skill (in the Upwork Sales
 Agent repo) reads the central pricing docs at deal time and routes any pricing-philosophy-level learning

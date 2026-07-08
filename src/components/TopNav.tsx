@@ -1,13 +1,15 @@
 'use client'
 
-const NAV_ITEMS: { label: string; href: string; id: 'calculator' | 'trials' | 'packages' }[] = [
+const NAV_ITEMS: { label: string; href: string; id: 'calculator' | 'sprint' | 'packages' }[] = [
   { label: 'Calculator', href: '/', id: 'calculator' },
-  { label: 'Trials', href: '/trials', id: 'trials' },
+  { label: 'Sprint', href: '/sprint', id: 'sprint' },
   { label: 'Packages', href: '/packages', id: 'packages' },
 ]
 
 interface TopNavProps {
-  current: 'calculator' | 'trials' | 'packages'
+  // 'trials' stays in the union: /trials is still live (operator-only) and its
+  // Header passes current="trials". It simply no longer appears in NAV_ITEMS.
+  current: 'calculator' | 'trials' | 'packages' | 'sprint'
 }
 
 export function TopNav({ current }: TopNavProps) {

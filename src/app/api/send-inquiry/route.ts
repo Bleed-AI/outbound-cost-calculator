@@ -16,7 +16,7 @@ function getResend(): Resend {
   return _resend
 }
 
-type InquiryKind = 'package' | 'trial'
+type InquiryKind = 'package' | 'trial' | 'sprint'
 
 interface InquiryPayload {
   kind: InquiryKind
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     description,
   } = payload
 
-  if (!kind || !['package', 'trial'].includes(kind)) {
+  if (!kind || !['package', 'trial', 'sprint'].includes(kind)) {
     return NextResponse.json({ error: 'Invalid inquiry kind' }, { status: 400 })
   }
   if (!firstName || !lastName || !companyDomain || !email || !tierLabel) {
@@ -62,18 +62,34 @@ export async function POST(req: NextRequest) {
   }
 
   const fullName = `${firstName} ${lastName}`
-  const kindLabel = kind === 'package' ? 'Managed Outbound Package' : 'Trial Campaign'
-  const subjectPrefix = kind === 'package' ? 'Package Order' : 'Trial Order'
+  const kindLabel =
+    kind === 'package' ? 'Managed Outbound Package'
+      : kind === 'sprint' ? 'The Outbound Sprint'
+        : 'Trial Campaign'
+  const subjectPrefix =
+    kind === 'package' ? 'Package Order'
+      : kind === 'sprint' ? 'Outbound Sprint Order'
+        : 'Trial Order'
 
-  const ctaCopy = kind === 'trial'
-    ? 'Pick a kickoff time below — we usually launch the same day or next.'
-    : 'Pick a time below so we can kick off your monthly outbound.'
-  const introCopy = kind === 'trial'
-    ? `Thanks for placing your trial order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
-    : `Thanks for getting started with <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll use the kickoff call to align on goals and then start running monthly outbound for you.`
+  // Sprint-only: the optional +$200 own-Instantly add-on, surfaced from modal metadata.
+  const wantsInstantlyOwnership = metadata?.instantlyOwnership === true
+  const instantlyLine = wantsInstantlyOwnership
+    ? 'You opted to add your own Instantly.ai account (+$200), set up under your ownership.'
+    : 'Optional add-on available: your own Instantly.ai account, set up under your ownership (+$200). We can finalize this on the kickoff call.'
+
+  const ctaCopy =
+    kind === 'trial' ? 'Pick a kickoff time below, we usually launch the same day or next.'
+      : kind === 'sprint' ? 'Pick a kickoff time below. On the call we finalize scope and write your success bar together, in your numbers.'
+        : 'Pick a time below so we can kick off your monthly outbound.'
+  const introCopy =
+    kind === 'trial'
+      ? `Thanks for placing your trial order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
+      : kind === 'sprint'
+        ? `Thanks for placing your Outbound Sprint order${priceLabel ? ` (${priceLabel})` : ''}. Over 6 weeks we run up to 8 cold email experiments as a tournament: losers killed fast, the winner gets the volume. You sign off the exact lead list and every word of copy before anything sends. Once the invoice clears we hold your build slot and start the warmup clock, so we start now rather than later.`
+        : `Thanks for getting started with <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll use the kickoff call to align on goals and then start running monthly outbound for you.`
 
   const clientHtml = buildEmail({
-    title: `Your ${kindLabel} Order — Next Steps`,
+    title: kind === 'sprint' ? 'The Outbound Sprint: Next Steps' : `Your ${kindLabel} Order — Next Steps`,
     preheader: `${tierLabel}${priceLabel ? ` · ${priceLabel}` : ''} · ${ctaCopy}`,
     body: `
       <p style="color:#d2d2dc;font-size:15px;line-height:1.7;margin:0 0 12px;">
@@ -82,10 +98,12 @@ export async function POST(req: NextRequest) {
       <p style="color:#8b8b9e;font-size:14px;line-height:1.7;margin:0 0 24px;">
         ${introCopy}
       </p>
+      ${kind === 'sprint' ? `<p style="color:#8b8b9e;font-size:13px;line-height:1.7;margin:0 0 24px;">${instantlyLine}</p>` : ''}
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
         ${buildDetailRow('Selected', tierLabel)}
         ${priceLabel ? buildDetailRow('Reference price', priceLabel) : ''}
+        ${kind === 'sprint' ? buildDetailRow('Own Instantly account (+$200)', wantsInstantlyOwnership ? 'Yes, add it' : 'Not now (can add later)') : ''}
         ${buildDetailRow('Company', companyDomain)}
         ${description ? buildDetailRow('What you said', description) : ''}
       </table>
@@ -132,7 +150,7 @@ export async function POST(req: NextRequest) {
       getResend().emails.send({
         from: FROM_EMAIL,
         to: email,
-        subject: `Your ${kindLabel} Order — ${tierLabel}`,
+        subject: kind === 'sprint' ? 'Your Outbound Sprint Order' : `Your ${kindLabel} Order — ${tierLabel}`,
         html: clientHtml,
       }),
       getResend().emails.send({

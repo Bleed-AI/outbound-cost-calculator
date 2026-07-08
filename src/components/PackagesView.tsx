@@ -92,9 +92,9 @@ export function PackagesView() {
 
         {/* Lead-in after the hero — frames the off-ramps and leads into the tiers */}
         <p className="max-w-2xl mb-7 text-[var(--color-text-dim)] text-sm leading-relaxed">
-          You can{' '}
-          <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">try a trial campaign</a>{' '}or a{' '}
-          <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">single one-off</a>{' '}first to validate the model — then move to a monthly tier once it&rsquo;s working. Already sure? Pick your level of effort below.
+          You can prove it first with{' '}
+          <a href="/sprint" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">The Outbound Sprint</a>{' '}or a{' '}
+          <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">single one-off</a>, then move to a monthly tier once it&rsquo;s working. Already sure? Pick your level of effort below.
         </p>
 
         {/* Compact tool stack — sits ABOVE the cards so the stack and all
@@ -129,7 +129,7 @@ export function PackagesView() {
             Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
           </p>
           <p className="text-[var(--color-text-dim)] text-xs leading-relaxed">
-            Not ready for a monthly engagement? <a href="/trials" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Validate with a Trial Campaign</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.
+            Not ready for a monthly engagement? <a href="/sprint" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Prove it with The Outbound Sprint</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.
           </p>
         </div>
 
@@ -146,9 +146,9 @@ export function PackagesView() {
             <h3 className="text-[var(--color-text)] font-medium text-sm tracking-tight">How most clients get here</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-            <Step n="1" title="Trial Campaign" body="A short, focused test — we run experiments on our infrastructure to validate cold email works for your business." href="/trials" />
-            <Step n="2" title="We Find What Works" body="Pause when we hit results. Or pivot if early signals say no — no commitments either way." />
-            <Step n="3" title="Move to a Package" body="Once validated, move to a monthly package to run the winning playbook at scale, every month." />
+            <Step n="1" title="The Outbound Sprint" body="A fixed-fee, 6-week proof run: up to 8 experiments against your market, you own everything we build." href="/sprint" />
+            <Step n="2" title="We Find What Works" body="The tournament surfaces the winning angle. Losers die fast, the winner gets the volume." />
+            <Step n="3" title="Move to a Package" body="Once validated, roll into a monthly package to run the winning playbook at scale, every month." />
           </div>
         </motion.div>
       </div>

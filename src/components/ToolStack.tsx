@@ -9,7 +9,7 @@ import { useState } from 'react'
  * /public/logos; a text-initial fallback renders if an image is missing.
  */
 
-type Tool = { name: string; logo?: string; glyph?: 'directory' }
+export type Tool = { name: string; logo?: string; glyph?: 'directory' }
 type Category = { label: string; tools: Tool[] }
 
 const CATEGORIES: Category[] = [
@@ -87,7 +87,7 @@ export function ToolStack() {
   )
 }
 
-function ToolChip({ tool }: { tool: Tool }) {
+export function ToolChip({ tool }: { tool: Tool }) {
   const [failed, setFailed] = useState(false)
 
   return (

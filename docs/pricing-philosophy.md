@@ -1,26 +1,27 @@
 # BleedAI Pricing — Routing Philosophy
 
-> **Purpose**: when someone asks "how much do you charge?" or "what's the next step?", this doc tells you which of our three links to send them to and what to say. It is the routing brain — short on purpose.
+> **Purpose**: when someone asks "how much do you charge?" or "what's the next step?", this doc tells you which of our links to send them to and what to say. It is the routing brain — short on purpose.
 >
-> For underlying system mechanics (defaults, thresholds, file map, validation harness, the 15 psychological design decisions), see [`pricing-system-reference.md`](./pricing-system-reference.md).
+> For underlying system mechanics (defaults, thresholds, file map, validation harness, the psychological design decisions), see [`pricing-system-reference.md`](./pricing-system-reference.md).
 >
 > **Audience**: any human teammate or AI agent answering pricing questions on BleedAI's behalf.
 >
-> **Last updated**: 2026-06-12. This thinking will evolve — keep the date current when you revise.
+> **Last updated**: 2026-07-09. This thinking will evolve — keep the date current when you revise.
 
 ---
 
 ## TL;DR
 
-We have three links. We do not send all of them to everyone.
+We have four surfaces. We do not send all of them to everyone.
 
 | Link | URL | Who it is for | Verbal starting price |
 |---|---|---|---|
-| Cost Calculator | `calculator.bleedai.com/` | Anyone safely. Intended for one-off buyers and prospects who are not a long-term fit. | starts under $1k for a complete basic campaign |
-| Trial Campaigns | `calculator.bleedai.com/trials` | **Select fit prospects only.** A loss-leader we offer to companies we want as long-term clients. Never publicly. | $580 (1-2 trials) / $1,100 (3-5 trials) |
-| Managed Outbound Packages | `calculator.bleedai.com/packages` | Fit prospects ready to run monthly. | $1,500/mo (Pilot) → $3,450/mo (Scale) |
+| **The Outbound Sprint** | `calculator.bleedai.com/sprint` | **The default for every fit prospect.** One-time, 6-week proof engagement: up to 8 campaign experiments, written success bar, rolls into Growth. | $2,950 one-time |
+| Managed Outbound Packages | `calculator.bleedai.com/packages` | The destination (Growth) and the budget fallback (Pilot, "spread it monthly"). Also for committed buyers who want ongoing from day one. | $1,500/mo (Pilot) → $3,450/mo (Scale) |
+| Cost Calculator | `calculator.bleedai.com/` | Anyone safely. One-off scoping for prospects who are not a long-term fit. | starts under $1k for a basic campaign |
+| Trial Campaigns | `calculator.bleedai.com/trials` | **OPERATOR-ONLY as of 2026-07-09.** Removed from all public nav and site references. Never linked, never quoted; the Sprint's secret price toggle replaced its "select company we want to win" job. | (never volunteered) |
 
-**The default for a good-fit prospect is the packages link, plus a mention of trials as a low-cost validation option we run for select companies.** Calculator is the fallback for unfit, budget-constrained, or "let me scope this myself" prospects.
+**The default for a good-fit prospect is the Sprint link.** Growth ($2,450/mo) is anchored in the same breath as what the Sprint rolls into. Pilot ($1,500/mo) is the fallback when the one-time fee is the objection. Calculator is the catch-all for unfit or "let me scope it myself" prospects.
 
 ---
 
@@ -35,51 +36,53 @@ Open their company LinkedIn page. Look for:
 - **Product / service category is not over-saturated** — outbound can still cut through.
 - Website professionalism is a *weak* signal these days because AI lets anyone look polished. Do not over-weight it.
 
-More employees and stronger signals push the company up the fit ladder. Solo founders or 1-2 person shops are usually not fit (budget is shaky, retainers do not make sense for them).
+More employees and stronger signals push the company up the fit ladder. Solo founders or 1-2 person shops are usually not fit.
 
 ### Step 2 — Read intent and budget signals
 
-In their actual message and context, listen for:
-
 - **Budget-constrained**: "I don't have much budget", "what's the cheapest option", "just trying something small".
-- **Curious / qualifying themselves**: "Interested but want to test", "validate before committing", "do you have a smaller option".
+- **Proof-first / validating**: "want to test", "prove it works first", "we got burned by an agency before". This is the Sprint's home turf.
 - **Committed**: "We're looking to scale outbound", "ongoing program", clear intent to run cold email seriously.
 
 ### Step 3 — Route
 
 ```
-                           IS THE COMPANY FIT?
-              (LinkedIn + 4-5+ employees + B2B + non-saturated)
-                                   |
-              +--------------------+--------------------+
-              |                                         |
-             YES                                        NO
-              |                                         |
-      BUDGET / INTENT?                              CALCULATOR
-              |                                  ("scope your own campaign:
-   +----------+----------+                        pick leads + experiments,
-   |                     |                        get back to us")
- OK / committed     constrained /                 (Optionally mention packages
-   |                no commitment                  as our general monthly
-PACKAGES link        |                             option, or skip entirely)
-+ mention TRIALS   CALCULATOR
-  as low-cost      + optionally mention
-  validation         packages as the
-  for SELECT         monthly option
-  companies          if it fits
+                     IS THE COMPANY FIT?
+        (LinkedIn + 4-5+ employees + B2B + non-saturated)
+                             |
+              +--------------+---------------+
+              |                              |
+             YES                             NO
+              |                              |
+       BUDGET / INTENT?                  CALCULATOR
+              |                       ("scope your own one-off
+   +----------+-----------+            campaign, price computes live")
+   |          |           |
+ default   committed    "one-time fee
+ (incl.    to ongoing    is too much
+ proof-      |           right now"
+ first)    GROWTH          |
+   |       directly      PILOT $1,500/mo
+ SPRINT    (or Scale)    ("same winning play,
+ $2,950                   cost spread monthly")
+ + anchor
+ Growth $2,450
+ on the same call
 ```
 
 ### What to actually say
 
-**Fit + interested or committed → packages, mention trials:**
+**Fit prospect (default) → Sprint, Growth anchored:**
 
-> "We have three managed monthly packages — Pilot at $1.5k, Growth at $2.45k, Scale at $3.45k — full details here: calculator.bleedai.com/packages. If you want to validate first, we also run **trial campaigns** for select companies — a low-cost way to test if the experiments work for you. Happy to discuss fit on a quick call."
+> "The way we start with almost everyone is The Outbound Sprint: six weeks, one fixed price ($2,950), we map every outbound method and signal relevant to your market and run up to 8 campaign experiments against each other until one wins. We write the success bar together before anything sends, and if it hits, you roll into Growth at $2,450/mo, month to month. Everything we build is yours either way: calculator.bleedai.com/sprint"
 
-**Fit + budget-constrained, or "let me scope something small" → calculator (optional packages mention):**
+**Fit + the one-time fee is the objection → Pilot as installments:**
 
-> "You can scope a single one-off campaign here: calculator.bleedai.com/. Pick your lead volume and number of campaign experiments — the price computes live. Send over what you want to run.
->
-> *(Optional second line if it fits)* If you ever want to make this an ongoing program, our packages start at $1.5k/mo: calculator.bleedai.com/packages."
+> "If the upfront number is the issue, our Pilot plan runs the winning play at $1,500/mo, month to month, and we can move you to a Sprint-style multi-experiment push later. Details: calculator.bleedai.com/packages"
+
+**Fit + clearly committed to ongoing → Growth directly:**
+
+> "Sounds like you already know you want outbound running every month. Growth is $2,450/mo, month to month, multiple experiments tested monthly: calculator.bleedai.com/packages. Happy to walk you through it on a quick call."
 
 **Unfit (small / B2C / saturated / weak LinkedIn) → calculator only:**
 
@@ -87,75 +90,57 @@ PACKAGES link        |                             option, or skip entirely)
 
 **Cold inbound asking "how much?" with no context yet:**
 
-First check their LinkedIn. If you cannot, the safe verbal reply mentions trials with the caveat — never lead with the bare trial link:
-
-> "Depends on scope. We have **monthly managed packages** starting at $1.5k (calculator.bleedai.com/packages) and we also run **trial campaigns for select companies** that want to validate first — we determine fit on a quick call. For one-off scoping, our **cost calculator** lets you pick volume + experiments and see the price live (calculator.bleedai.com/). Which direction sounds closest?"
-
-If they then mention budget constraints → calculator. If they sound fit and interested → packages + trials mention.
+> "Depends on scope. Most companies start with The Outbound Sprint: a 6-week, fixed-price engagement (starts at $2,950) where we run up to 8 cold email experiments and you keep everything we build: calculator.bleedai.com/sprint. If you already know you want it running monthly, packages start at $1.5k/mo: calculator.bleedai.com/packages. Which direction sounds closest?"
 
 ---
 
 ## Why each product exists
 
-### Calculator — self-serve scope-and-quote
+### The Outbound Sprint — the lead offer (first contract)
 
-For prospects who:
+The paid, bounded proof engagement, and the answer to the two facts that kill deals: buyers cannot commit to "another monthly payment" for an unproven channel, and a retainer close without month-1 results churns anyway. The Sprint makes the honest economics the product: one fee, a written success bar co-defined on the kickoff call (measured on the client-approved list + copy), a conditional rollover into Growth (with $500 of the fee credited to month 1), and the re-run promise instead of money-back (no arm hits the bar → one more round on us). The client keeps every asset either way; optionally their own Instantly account for +$200.
 
-- Just want to buy a one-off campaign.
-- Are not a long-term fit (small, B2C, saturated category) but can still get value from a single targeted send.
-- Want to scope their own thing and tell us what they want.
+Never discount it live. The operator price toggle (`?p=low`, Shift+P → $2,450) exists for deliberate exceptions — that is the replacement for the old "trial for a select company we want."
 
-A basic complete campaign starts under $1k (1.5k leads, 1 email per prospect, 1 campaign experiment). Most realistic configs land in the low to mid four-figures. **In a verbal quote, lead with the starting price — do not anchor on the upper end. Let the tool reveal the ceiling when someone configures into it.**
+### Managed Outbound Packages — the destination and the fallback
 
-The calculator is the only link safe to share with absolutely anyone. No qualification required.
+Where Sprint winners land (**Growth**, $2,450/mo, emphasized) and where budget-constrained good fits start (**Pilot**, $1,500/mo, positioned as "the cost, spread monthly", never as the default pitch). **Scale** ($3,450/mo) for the heaviest strategic effort. Month-to-month, no minimum term, sold on strategic effort, not email volume. Above $3,450/mo is custom enterprise.
 
-### Trial Campaigns — the gatekept loss-leader
+### Cost Calculator — self-serve scope-and-quote
 
-**Trials are not for unqualified prospects.** They are a deliberate loss-leader we offer **only to companies we have decided we want as long-term clients** — fit prospects validating before committing to a package.
+The only link safe to share with absolutely anyone. For one-off buyers and prospects who are not a long-term fit. Never send it to a fit prospect first: its sub-$1k floor undercuts the Sprint story.
 
-- **$580** — 1-2 trials, capped at 2 weeks. For prospects with a clear ICP hypothesis. Fast validation.
-- **$1,100** — 3-5 trials, capped at 4 weeks. For prospects with multiple market hypotheses or less certain fit. Higher chance of finding a winner.
+### Trial Campaigns — RETIRED FROM PUBLIC USE (2026-07-09)
 
-We are not really making money on trials. The value is the conversion path: successful trial → package conversation. No-signal trial → honest debrief, possibly calculator as a contained alternative.
-
-**Operational rule**: do not send the trial link in cold outreach or to unqualified inbound. Always mention them as something we *do* for select companies, post-qualification call.
-
-### Managed Outbound Packages — the real product
-
-Where we want fit clients to land. Recurring monthly engagement, full ops, ongoing experiments.
-
-**Sell these on strategic effort/complexity, not email volume.** The tier differs by *how deep and how hard the campaign strategy goes* — not how many emails go out. Volume is a byproduct. (This directly defuses the #1 objection — "I don't need to send that many emails." They're right; sell the effort, not the send count. See system-reference §8.16.)
-
-- **Pilot** — $1,500/mo. One proven campaign against a single core ICP, run steady. Lowest effort, no monthly experimentation, email support. Fine for prospects who explicitly *don't* want high volume — we size the sending down.
-- **Growth** — $2,450/mo (emphasized). Multiple experiments across new market segments / directories / geographies, tested monthly; signal layers where they sharpen targeting; Slack 5 days/wk.
-- **Scale** — $3,450/mo. Highest effort — advanced multi-signal campaigns, reverse lead magnets, parallel value-prop testing. Signals are included at every tier; Scale just runs *more of them, harder*.
-
-Above $3,450/mo we drop into custom enterprise sales — not a packaged tier.
+The $580/$1,100 trials measurably damaged deals: buyers anchored on the cheapest visible number and treated everything above it as optional. The page stays live for operator use only. Never link it, never quote it, never volunteer it. The Sprint (plus its secret toggle) covers every job trials used to do.
 
 ---
 
 ## What this is NOT
 
-- **Do not blast the trial link.** Trials are gatekept. Sending publicly turns the loss-leader into a loss.
-- **Do not anchor on the calculator ceiling in a verbal quote.** Lead with the starting price. The tool reveals the upper end when someone configures into it.
-- **Do not pitch trials to clearly unfit prospects** (solo founder, B2C, no LinkedIn presence). Send calculator. Be honest about scope.
+- **Do not quote or link trials. Ever.** The Sprint is the entry.
+- **Do not lead a fit prospect with the calculator.** The $733 floor reads commodity-class and fights the premium story.
+- **Do not discount the Sprint on a call.** Fallback is Pilot monthly; deliberate exceptions use the operator toggle.
+- **Do not pitch Pilot proactively.** It is the budget fallback, not the opener.
 
 ---
 
 ## Mental model in one line
 
-> **Packages is what we want clients on. Trials are how we get fit prospects to packages. Calculator catches everyone else.**
+> **The Sprint earns the client. Growth is where they live. Pilot spreads the cost for the ones who need it. Calculator catches everyone else. Trials no longer exist publicly.**
 
 ---
 
 ## See also
 
-- [`pricing-system-reference.md`](./pricing-system-reference.md) — operational reference: every default, every threshold, all 15 psychological design decisions baked into the calculator, the file map, the validation harness, sales workflow tables.
-- [`pricing-learnings.md`](./pricing-learnings.md) — **central, evolving log** of how our pricing thinking changes over time (read this to stay current; append here when the thinking evolves). Read by pricing agents + the proposal generator.
-- `CLAUDE.md` (repo root) — links to both docs at the top.
+- [`pricing-system-reference.md`](./pricing-system-reference.md) — operational reference: defaults, thresholds, psychological design decisions, file map, sales workflow tables.
+- [`pricing-learnings.md`](./pricing-learnings.md) — **central, evolving log** of how our pricing thinking changes over time (the 2026-07-09 entry records this restructure).
+- `bleedai-campaign-master/clients/bleedai/growth-plan-2026-07-04/offer-2026-07-08/` — the full evidence base for the Sprint decision (OFFER-BLUEPRINT.md + SPRINT-SPEC.md + evidence/).
+- `CLAUDE.md` (repo root) — links to these docs at the top.
 
 ---
 
 ## Revision log
 
-- **2026-06-03** — Rewrote as a short routing-focused philosophy. Previous long version (which mixed philosophy with system mechanics) split: routing thinking lives here; defaults, decisions, file map, workflow tables moved to `pricing-system-reference.md`. Routing brain now centered on: fit signals (LinkedIn + 4-5+ employees + B2B + non-saturated category), default to packages for fit prospects, trials are gatekept and post-call only, calculator is the safe-for-anyone fallback.
+- **2026-07-09** — THE SPRINT RESTRUCTURE. The Outbound Sprint ($2,950 one-time, up to 8 experiments, 6 weeks, written success bar, conditional rollover into Growth, re-run promise) becomes the default lead offer for every fit prospect. Trials retired from all public surfaces (operator-only). Pilot repositioned as the budget fallback ("spread it monthly"). Routing diagram + scripts rewritten. Evidence + reasoning: bleedai-campaign-master `clients/bleedai/growth-plan-2026-07-04/offer-2026-07-08/`.
+- **2026-06-03** — Rewrote as a short routing-focused philosophy. Previous long version split: routing thinking lives here; defaults, decisions, file map, workflow tables moved to `pricing-system-reference.md`.
