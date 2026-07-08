@@ -82,7 +82,7 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
       {/* Compact sales-slide hero (sprint), deliberately small so the whole
           pitch below fits one viewport on a screen-share. */}
       {variant === 'sprint' ? (
-        <div className="relative max-w-6xl mx-auto px-4 pb-5 pt-5">
+        <div className="relative max-w-6xl mx-auto px-4 pb-4 pt-4 sprint-hero">
           <motion.div
             initial={mounted ? { opacity: 0, y: 12 } : false}
             animate={{ opacity: 1, y: 0 }}
@@ -97,7 +97,7 @@ export function Header({ variant = 'calculator' }: HeaderProps) {
                 </span>
               </span>
             </h1>
-            <p className="text-[var(--color-text)] text-base sm:text-lg font-medium mt-3 leading-snug">
+            <p className="text-[var(--color-text)] text-base sm:text-lg font-medium mt-2 leading-snug">
               {cfg.subtitle}
             </p>
             {cfg.support && (

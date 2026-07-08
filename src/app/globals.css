@@ -188,3 +188,16 @@ input[type="range"]::-moz-range-track {
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
 }
+
+/* Sprint hero: the sales-call slide must fit one viewport even on short
+   screens (1080p at 125% Windows scaling gives ~684px CSS height).
+   Scale the slide proportionally instead of reflowing it. */
+@media (max-height: 800px) {
+  .sprint-hero { zoom: 0.87; }
+}
+@media (max-height: 690px) {
+  .sprint-hero { zoom: 0.78; }
+}
+@media (max-height: 600px) {
+  .sprint-hero { zoom: 0.7; }
+}

@@ -152,7 +152,9 @@ export function SprintView() {
     <LazyMotion features={domAnimation}>
       <div className="max-w-6xl mx-auto px-4 pt-4 pb-16">
 
-        {/* HERO SLIDE (must fit one viewport on a screen-share) */}
+        {/* HERO SLIDE (must fit one viewport on a screen-share; .sprint-hero
+            scales it down on short viewports via globals.css) */}
+        <div className="sprint-hero">
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 items-stretch">
 
           {/* Pricing card (left ~1/3) */}
@@ -212,6 +214,7 @@ export function SprintView() {
             ))}
           </div>
         </motion.div>
+        </div>
 
         {/* ── BELOW THE FOLD ── */}
 
