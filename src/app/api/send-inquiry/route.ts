@@ -71,12 +71,6 @@ export async function POST(req: NextRequest) {
       : kind === 'sprint' ? 'Outbound Sprint Order'
         : 'Trial Order'
 
-  // Sprint-only: the optional +$200 own-Instantly add-on, surfaced from modal metadata.
-  const wantsInstantlyOwnership = metadata?.instantlyOwnership === true
-  const instantlyLine = wantsInstantlyOwnership
-    ? 'You opted to add your own Instantly.ai account (+$200), set up under your ownership.'
-    : 'Optional add-on available: your own Instantly.ai account, set up under your ownership (+$200). We can finalize this on the kickoff call.'
-
   const ctaCopy =
     kind === 'trial' ? 'Pick a kickoff time below, we usually launch the same day or next.'
       : kind === 'sprint' ? 'Pick a kickoff time below. On the call we finalize scope and write your success bar together, in your numbers.'
@@ -85,7 +79,7 @@ export async function POST(req: NextRequest) {
     kind === 'trial'
       ? `Thanks for placing your trial order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
       : kind === 'sprint'
-        ? `Thanks for placing your Outbound Sprint order${priceLabel ? ` (${priceLabel})` : ''}. Over 6 weeks we run up to 8 cold email experiments as a tournament: losers killed fast, the winner gets the volume. You sign off the exact lead list and every word of copy before anything sends. Once the invoice clears we hold your build slot and start the warmup clock, so we start now rather than later.`
+        ? `Thanks for placing your Outbound Sprint order${priceLabel ? ` (${priceLabel})` : ''}. Over 6 weeks we test every method, niche directory and buying signal that fits your market as a tournament: losers killed fast, the winner gets the volume. You sign off the exact lead list and every word of copy before anything sends. Once the invoice clears we hold your build slot and start the warmup clock, so we start now rather than later. Everything we build is yours to keep.`
         : `Thanks for getting started with <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll use the kickoff call to align on goals and then start running monthly outbound for you.`
 
   const clientHtml = buildEmail({
@@ -98,12 +92,9 @@ export async function POST(req: NextRequest) {
       <p style="color:#8b8b9e;font-size:14px;line-height:1.7;margin:0 0 24px;">
         ${introCopy}
       </p>
-      ${kind === 'sprint' ? `<p style="color:#8b8b9e;font-size:13px;line-height:1.7;margin:0 0 24px;">${instantlyLine}</p>` : ''}
-
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
         ${buildDetailRow('Selected', tierLabel)}
         ${priceLabel ? buildDetailRow('Reference price', priceLabel) : ''}
-        ${kind === 'sprint' ? buildDetailRow('Own Instantly account (+$200)', wantsInstantlyOwnership ? 'Yes, add it' : 'Not now (can add later)') : ''}
         ${buildDetailRow('Company', companyDomain)}
         ${description ? buildDetailRow('What you said', description) : ''}
       </table>

@@ -38,8 +38,8 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   sprint: {
     line1: 'The Outbound',
     line2: { plain: '', accent: 'Sprint', accentMode: 'black' },
-    subtitle: 'Up to 8 cold email experiments in 6 weeks. One fixed price. You keep everything.',
-    support: 'We map every outbound method and buying signal relevant to your market, then run them against each other until one wins.',
+    subtitle: "The last time you'll ever figure out cold outreach.",
+    support: 'One fixed price. In 6 weeks we test every method, niche directory and buying signal that fits your market, keep what books meetings, and hand you the machine that runs it. You own all of it.',
   },
 }
 

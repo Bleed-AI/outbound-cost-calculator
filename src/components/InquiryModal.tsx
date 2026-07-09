@@ -66,7 +66,6 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
   const [companyDomain, setCompanyDomain] = useState('')
   const [email, setEmail] = useState('')
   const [description, setDescription] = useState('')
-  const [instantlyOwnership, setInstantlyOwnership] = useState(false)
   const [submitState, setSubmitState] = useState<SubmitState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -91,10 +90,7 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
           kind: context.kind,
           tierLabel: context.tierLabel,
           priceLabel: context.priceLabel ?? '',
-          metadata: {
-            ...(context.metadata ?? {}),
-            ...(context.kind === 'sprint' ? { instantlyOwnership } : {}),
-          },
+          metadata: context.metadata ?? {},
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           companyDomain: companyDomain.trim(),
@@ -251,21 +247,6 @@ export function InquiryModal({ context, onClose }: InquiryModalProps) {
                           className={`${inputClasses} resize-none`}
                         />
                       </div>
-
-                      {context.kind === 'sprint' && (
-                        <label className="flex items-start gap-2.5 cursor-pointer rounded-[var(--radius-inner)] border border-[var(--color-border-hover)] bg-[var(--color-bg)] px-3 py-2.5 hover:border-[var(--color-border-active)] transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={instantlyOwnership}
-                            onChange={(e) => setInstantlyOwnership(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[var(--color-brand)] cursor-pointer"
-                          />
-                          <span className="text-[var(--color-text-muted)] text-xs leading-relaxed">
-                            <span className="text-[var(--color-text)] font-medium">Set up my own Instantly.ai account (+$200)</span>
-                            <span className="block text-[var(--color-text-ghost)] mt-0.5">The sending system is built under your ownership. Optional, we can also finalize this on the kickoff call.</span>
-                          </span>
-                        </label>
-                      )}
 
                       {submitState === 'error' && (
                         <p className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-[var(--radius-inner)] px-3 py-2">

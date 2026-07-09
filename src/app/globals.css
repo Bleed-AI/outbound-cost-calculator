@@ -193,11 +193,58 @@ input[type="range"]::-moz-range-track {
    screens (1080p at 125% Windows scaling gives ~684px CSS height).
    Scale the slide proportionally instead of reflowing it. */
 @media (max-height: 800px) {
-  .sprint-hero { zoom: 0.87; }
+  .sprint-hero { zoom: 0.9; }
 }
-@media (max-height: 690px) {
-  .sprint-hero { zoom: 0.78; }
+@media (max-height: 720px) {
+  .sprint-hero { zoom: 0.82; }
 }
-@media (max-height: 600px) {
-  .sprint-hero { zoom: 0.7; }
+@media (max-height: 640px) {
+  .sprint-hero { zoom: 0.74; }
+}
+
+/* ── Sprint card micro-animations ──────────────────────────
+   Each feature card carries one slow, subtle motif so the slide stays
+   alive while Taha talks over it live. Deliberately gentle + staggered
+   (never six loops pulsing in unison). Motion is fully opt-out. */
+@media (prefers-reduced-motion: no-preference) {
+  /* 1. Signal map: dots breathe in a staggered wave */
+  @keyframes sprint-dot {
+    0%, 100% { opacity: 0.14; transform: scale(0.82); }
+    50%      { opacity: 1;    transform: scale(1); }
+  }
+  .sprint-dot { animation: sprint-dot 3.2s ease-in-out infinite; }
+
+  /* 2. Tournament: one bar grows to win, the rest recede */
+  @keyframes sprint-bar-win  { 0% { width: 34%; } 55%, 100% { width: 100%; } }
+  @keyframes sprint-bar-lose { 0% { width: 60%; opacity: .55; } 55%, 100% { width: 20%; opacity: .25; } }
+  .sprint-bar-win  { animation: sprint-bar-win  4.4s cubic-bezier(0.16,1,0.3,1) infinite alternate; }
+  .sprint-bar-lose { animation: sprint-bar-lose 4.4s cubic-bezier(0.16,1,0.3,1) infinite alternate; }
+
+  /* 4. Copy: typing dots bounce */
+  @keyframes sprint-type {
+    0%, 62%, 100% { transform: translateY(0);    opacity: .35; }
+    31%           { transform: translateY(-3px); opacity: 1; }
+  }
+  .sprint-type { animation: sprint-type 1.5s ease-in-out infinite; }
+
+  /* 5. Reply agent: an expanding ping ring */
+  @keyframes sprint-ping {
+    0%   { transform: scale(0.5); opacity: .7; }
+    100% { transform: scale(2.3); opacity: 0; }
+  }
+  .sprint-ping { animation: sprint-ping 2.6s ease-out infinite; }
+
+  /* 6. Checklist: checks glow on in sequence */
+  @keyframes sprint-check {
+    0%, 100% { opacity: 0.28; }
+    50%      { opacity: 1; }
+  }
+  .sprint-check { animation: sprint-check 3.4s ease-in-out infinite; }
+
+  /* Ambient hero backdrop: a slow red glow drifting behind the slide */
+  @keyframes sprint-bg-drift {
+    0%, 100% { transform: translate(0, 0) scale(1);      opacity: .5; }
+    50%      { transform: translate(3%, 2%) scale(1.18); opacity: .85; }
+  }
+  .sprint-bg-drift { animation: sprint-bg-drift 16s ease-in-out infinite; }
 }

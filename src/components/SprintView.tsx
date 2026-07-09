@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, type ReactNode } from 'react'
+import { useState, useEffect, useCallback, type ReactNode, type CSSProperties } from 'react'
 import { motion, LazyMotion, domAnimation } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
@@ -17,44 +17,136 @@ function isPriceTier(s: string | null): s is PriceTier {
   return s === 'high' || s === 'low'
 }
 
-/* ── Content ─────────────────────────────────────────────── */
+/* ── Card micro-animations ───────────────────────────────
+   Each capability card carries one slow, subtle motif (CSS-driven, defined
+   in globals.css) so the slide stays alive while it is talked over live. */
 
-const CREDIT_LINES: string[] = [
-  '$500 of your Sprint fee credits toward Growth month 1',
-  'Optional: your own Instantly.ai account, set up under your ownership (+$200)',
+function SignalMap() {
+  // A grid of buying-signal dots breathing in a staggered wave; a few "hit"
+  // in brand red to read as detected signal.
+  const hits = new Set([2, 6, 9, 13])
+  return (
+    <div className="grid grid-cols-5 gap-x-2 gap-y-1.5 w-fit">
+      {Array.from({ length: 15 }).map((_, i) => (
+        <span
+          key={i}
+          className={`sprint-dot w-1.5 h-1.5 rounded-full ${hits.has(i) ? 'bg-[var(--color-brand)]' : 'bg-[var(--color-text-dim)]'}`}
+          style={{ animationDelay: `${(i % 5) * 0.18 + Math.floor(i / 5) * 0.12}s` }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function TournamentBars() {
+  // Four experiments running; one pulls ahead to full width and turns red.
+  const rows = [
+    { win: false, delay: '0.1s', w: '52%' },
+    { win: true, delay: '0s', w: '40%' },
+    { win: false, delay: '0.25s', w: '46%' },
+    { win: false, delay: '0.4s', w: '58%' },
+  ]
+  return (
+    <div className="flex flex-col gap-1.5 w-full max-w-[130px]">
+      {rows.map((r, i) => (
+        <div key={i} className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
+          <div
+            className={`h-full rounded-full ${r.win ? 'sprint-bar-win bg-[var(--color-brand)]' : 'sprint-bar-lose bg-[var(--color-text-dim)]'}`}
+            style={{ width: r.w, animationDelay: r.delay }}
+          />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ListRows() {
+  // Verified contact rows: always present, each check glows on in sequence so
+  // the card never blanks out during a live pitch.
+  return (
+    <div className="flex flex-col gap-1.5 w-full max-w-[140px]">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span
+            className="sprint-check w-3 h-3 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
+            style={{ animationDelay: `${i * 0.6}s` }}
+          >
+            <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <span className="h-1.5 rounded-full bg-[var(--color-text-dim)]" style={{ width: `${70 - i * 12}%` }} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TypingCopy() {
+  // A reply bubble with the classic typing dots, then a booked slot.
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 rounded-full rounded-bl-sm bg-[var(--color-surface-2)] px-2 py-1.5">
+        {[0, 1, 2].map((i) => (
+          <span key={i} className="sprint-type w-1 h-1 rounded-full bg-[var(--color-text-muted)]" style={{ animationDelay: `${i * 0.18}s` }} />
+        ))}
+      </div>
+      <svg className="w-3 h-3 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+      <div className="w-8 h-2 rounded-full bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.3)]" />
+    </div>
+  )
+}
+
+function ReplyPing() {
+  // A live inbox ping firing outward from a red core.
+  return (
+    <div className="relative w-10 h-10 flex items-center justify-center">
+      <span className="sprint-ping absolute inset-0 m-auto w-5 h-5 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '0s' }} />
+      <span className="sprint-ping absolute inset-0 m-auto w-5 h-5 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '1.3s' }} />
+      <span className="relative w-3 h-3 rounded-full bg-[var(--color-brand)]" />
+    </div>
+  )
+}
+
+const CAPABILITIES: { title: string; body: string; canvas: ReactNode }[] = [
+  {
+    title: 'Your whole market, mapped',
+    body: 'Every sourcing method and buying signal that fits you, from 30+ plays and a live signal catalog.',
+    canvas: <SignalMap />,
+  },
+  {
+    title: '8 experiments, one tournament',
+    body: 'Angles and segments run in parallel. Losers die fast. The winner takes the volume.',
+    canvas: <TournamentBars />,
+  },
+  {
+    title: 'Lists nobody else has',
+    body: 'ICP and 4-provider email waterfalls, every contact verified. Yours, and they feed your ads too.',
+    canvas: <ListRows />,
+  },
+  {
+    title: 'Copy built to get replies',
+    body: 'Full strategy, A/B variants, and subsequences that turn positive replies into booked calls.',
+    canvas: <TypingCopy />,
+  },
+  {
+    title: 'An AI agent on your inbox',
+    body: 'Positive replies answered in minutes and pushed to your calendar, not found next week.',
+    canvas: <ReplyPing />,
+  },
 ]
 
-const FEATURES: { title: string; body: string; icon: ReactNode }[] = [
-  {
-    title: 'Your whole outbound surface, mapped.',
-    body: 'Every sourcing method and buying signal relevant to your TAM. We maintain 30+ list-building methods and a live signal catalog; your Sprint starts by picking the ones with real coverage for you.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />,
-  },
-  {
-    title: 'Up to 8 experiments, run as a tournament.',
-    body: 'Different segments, angles and signals in parallel. Losers die fast. The winner gets the volume.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4zM17 5h2a2 2 0 010 4h-.5M7 5H5a2 2 0 000 4h.5" />,
-  },
-  {
-    title: 'Lists nobody else has.',
-    body: 'ICP waterfalls across providers for maximum coverage, a 4-provider email waterfall, every contact verified before a single send. The lists are yours, and they work for your ads too.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M4 7c0 1.657 3.582 3 8 3s8-1.343 8-3-3.582-3-8-3-8 1.343-8 3zM4 7v5c0 1.657 3.582 3 8 3s8-1.343 8-3V7M4 12v5c0 1.657 3.582 3 8 3s8-1.343 8-3v-5" />,
-  },
-  {
-    title: 'Copy built for replies, then meetings.',
-    body: 'Full copy strategy with A/B variants, plus subsequences that push positive replies to a booked call instead of letting them go cold.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z" />,
-  },
-  {
-    title: 'An AI reply agent working your inbox.',
-    body: 'Positive replies get answered in minutes and steered to your calendar, not discovered next Tuesday.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M13 10V3L4 14h7v7l9-11h-7z" />,
-  },
-  {
-    title: 'You own the machine.',
-    body: 'Domains, inboxes, workflows, lists, copy, data. When the Sprint ends, the system stays with you.',
-    icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.7} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />,
-  },
+// The 6th card: the tangible inventory the client keeps. Checks glow on in
+// sequence. This carries ownership + reinforces the "solve it once" hook.
+const OWN_ITEMS: string[] = [
+  'Domains + warmed inboxes',
+  'Every lead list, from every experiment',
+  'Full copy + subsequences',
+  'The AI reply agent',
+  'All workflows + data',
+  'The winning playbook',
 ]
 
 const TOOLS: Tool[] = [
@@ -79,15 +171,6 @@ const HOW_STEPS: { n: string; title: string; body: string }[] = [
   { n: '2', title: 'We build, you approve', body: 'You sign off the exact lead list and every word of copy before launch.' },
   { n: '3', title: 'The tournament runs', body: 'Up to 8 experiments live, losers killed, weekly readouts you can actually read.' },
   { n: '4', title: 'The decision', body: 'Winner scaled, readout delivered, and if the bar is hit you roll into Growth.' },
-]
-
-const KEEP: { title: string; note: string }[] = [
-  { title: 'Sending infrastructure', note: 'Domains and inboxes, yours.' },
-  { title: 'Every lead list from every experiment', note: 'Ads-ready, and they work for your ads too.' },
-  { title: 'Full copy strategy + subsequences', note: 'The angles, variants and follow-ups that ran.' },
-  { title: 'The AI reply agent', note: 'Steering positive replies to your calendar.' },
-  { title: 'The tournament readout', note: 'What won, what died, and why.' },
-  { title: 'Optional: your own Instantly account', note: 'Set up under your ownership (+$200).' },
 ]
 
 const BURNED: { title: string; body: string }[] = [
@@ -150,76 +233,87 @@ export function SprintView() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="max-w-6xl mx-auto px-4 pt-4 pb-16">
+      <div className="relative max-w-6xl mx-auto px-4 pt-4 pb-16">
+
+        {/* Ambient drifting backdrop, barely there. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="sprint-bg-drift absolute -top-10 left-1/4 w-[520px] h-[520px] rounded-full bg-[var(--color-brand)] opacity-[0.06] blur-[120px]" />
+        </div>
 
         {/* HERO SLIDE (must fit one viewport on a screen-share; .sprint-hero
             scales it down on short viewports via globals.css) */}
-        <div className="sprint-hero">
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 items-stretch">
+        <div className="sprint-hero relative">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
 
           {/* Pricing card (left ~1/3) */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-1"
+            className="lg:col-span-4"
           >
             <PriceCard priceTier={priceTier} price={price} onInquire={openInquiry} />
           </motion.div>
 
-          {/* Feature grid (right ~2/3) */}
+          {/* Capability grid (right ~2/3): 5 animated cards + ownership checklist */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"
+            className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"
           >
-            {FEATURES.map((f) => (
-              <FeatureTile key={f.title} title={f.title} body={f.body} icon={f.icon} />
+            {CAPABILITIES.map((c) => (
+              <CapabilityCard key={c.title} title={c.title} body={c.body} canvas={c.canvas} />
             ))}
+            <OwnCard items={OWN_ITEMS} />
           </motion.div>
         </section>
 
-        {/* Tool strip + mini timeline (bottom of hero) */}
+        {/* Tool strip (bottom of hero) */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-4 rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3.5 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:gap-6"
+          className="mt-4 rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3 flex items-center gap-3 flex-wrap"
         >
-          {/* Tools */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <span className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-ghost)] hidden sm:inline">Your stack</span>
-            <div className="flex flex-wrap gap-2">
-              {TOOLS.map((t) => <ToolChip key={t.name} tool={t} />)}
-            </div>
+          <span className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-ghost)] hidden sm:inline">Built on your own stack</span>
+          <div className="flex flex-wrap gap-2">
+            {TOOLS.map((t) => <ToolChip key={t.name} tool={t} />)}
           </div>
-
-          <span className="hidden lg:block h-8 w-px bg-[var(--color-border)]" />
-
-          {/* Timeline */}
-          <div className="flex-1 flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-0">
-            {TIMELINE.map((step, i) => (
-              <div key={step.label} className="flex items-center gap-2 sm:flex-1 min-w-0">
-                <div className="min-w-0">
-                  <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-brand)]">{step.label}</div>
-                  <div className="text-[11px] leading-snug text-[var(--color-text-dim)]">{step.text}</div>
-                </div>
-                {i < TIMELINE.length - 1 && (
-                  <svg className="hidden sm:block w-3.5 h-3.5 shrink-0 text-[var(--color-text-ghost)] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                )}
-              </div>
-            ))}
-          </div>
+          <span className="hidden lg:block h-6 w-px bg-[var(--color-border)] mx-1" />
+          <span className="text-[11px] text-[var(--color-text-dim)] leading-snug hidden lg:inline">
+            The whole system is built under your name, and it stays with you.
+          </span>
         </motion.div>
         </div>
 
         {/* ── BELOW THE FOLD ── */}
 
+        {/* Timeline band */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-14 rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-5 py-4 flex flex-col sm:flex-row sm:items-stretch gap-3 sm:gap-0"
+        >
+          {TIMELINE.map((step, i) => (
+            <div key={step.label} className="flex items-center gap-3 sm:flex-1 min-w-0">
+              <div className="min-w-0">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--color-brand)]">{step.label}</div>
+                <div className="text-xs leading-snug text-[var(--color-text-dim)] mt-0.5">{step.text}</div>
+              </div>
+              {i < TIMELINE.length - 1 && (
+                <svg className="hidden sm:block w-4 h-4 shrink-0 text-[var(--color-text-ghost)] ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </motion.div>
+
         {/* 1. How it works */}
-        <Section title="How the Sprint works" className="mt-14">
+        <Section title="How the Sprint works" className="mt-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {HOW_STEPS.map((s) => (
               <div key={s.n} className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-4">
@@ -231,24 +325,7 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 2. What you keep */}
-        <Section title="What you keep, either way" className="mt-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {KEEP.map((k) => (
-              <div key={k.title} className="flex gap-2.5 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-3.5">
-                <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-                <div>
-                  <div className="text-[var(--color-text)] text-sm font-medium leading-snug">{k.title}</div>
-                  <div className="text-[var(--color-text-dim)] text-xs mt-0.5 leading-relaxed">{k.note}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
-
-        {/* 3. The success bar */}
+        {/* 2. The success bar */}
         <Section title="The success bar" className="mt-10">
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-brand-muted)] to-[var(--color-surface-1)] px-6 py-6">
             <p className="text-[var(--color-text-muted)] text-sm leading-relaxed max-w-3xl">
@@ -258,7 +335,7 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 4. Been burned before? */}
+        {/* 3. Been burned before? */}
         <Section title="Been burned before?" className="mt-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {BURNED.map((b) => (
@@ -270,13 +347,13 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 5. After the Sprint */}
+        {/* 4. After the Sprint (Growth + credit + Pilot live here, off the card) */}
         <Section title="After the Sprint" className="mt-10">
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="max-w-2xl">
               <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-                <span className="text-[var(--color-text)] font-medium">Growth, $2,450/mo, month to month, no lock-in.</span>{' '}
-                You already own the system, and $500 of your Sprint fee credits toward month 1.
+                <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth, $2,450/mo, month to month, no lock-in.</span>{' '}
+                You already own the system, and $500 of your Sprint fee credits toward month 1. No pressure to continue, the Sprint stands on its own.
               </p>
               <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mt-2">
                 Prefer to spread the cost? Our monthly Pilot plan runs the winning play at $1,500/mo.
@@ -294,7 +371,7 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 6. FAQ */}
+        {/* 5. FAQ */}
         <Section title="Questions" className="mt-10">
           <Faq items={FAQ} />
         </Section>
@@ -359,26 +436,17 @@ function PriceCard({ priceTier, price, onInquire }: {
             </span>
           </div>
         )}
-        <div className="text-[var(--color-text-dim)] text-xs mb-3">one-time</div>
+        <div className="text-[var(--color-text-dim)] text-xs mb-4">one-time</div>
 
-        <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-3">
-          6 weeks · up to 8 campaign experiments · sized to your market (up to 20k emails/mo capacity)
+        {/* Lean supporting line: bounded + fully owned. The finality hook lives
+            in the hero headline above; the card stays decluttered. */}
+        <p className="text-[var(--color-text-muted)] text-[13px] leading-relaxed mb-4">
+          Everything you see here, built and run end to end. One payment, no retainer to start, and the whole system is yours to keep.
         </p>
 
-        <p className="text-[var(--color-text-muted)] text-xs leading-relaxed mb-4">
-          If an experiment hits the bar we write together, you roll into Growth at $2,450/mo, month to month. If nothing hits, we run another round on us. Either way, everything we build is yours.
+        <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-5">
+          6 weeks · up to 8 experiments in parallel · sized to your market (up to 20k emails/mo)
         </p>
-
-        <ul className="space-y-2 mb-4">
-          {CREDIT_LINES.map((line) => (
-            <li key={line} className="flex gap-2 text-[11.5px] leading-relaxed text-[var(--color-text-muted)]">
-              <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
 
         <div className="mt-auto">
           <button
@@ -388,7 +456,7 @@ function PriceCard({ priceTier, price, onInquire }: {
             Start Your Sprint →
           </button>
           <p className="text-[var(--color-text-ghost)] text-[10.5px] leading-relaxed mt-2.5">
-            We take on a couple of Sprint builds per week. The order form holds your build slot; the kickoff call finalizes scope.
+            We take on a couple of Sprint builds a week. Your order holds the build slot; the kickoff call finalizes scope.
           </p>
         </div>
       </div>
@@ -396,18 +464,41 @@ function PriceCard({ priceTier, price, onInquire }: {
   )
 }
 
-/* ── Feature tile ────────────────────────────────────────── */
+/* ── Capability card (animated) ──────────────────────────── */
 
-function FeatureTile({ title, body, icon }: { title: string; body: string; icon: ReactNode }) {
+function CapabilityCard({ title, body, canvas }: { title: string; body: string; canvas: ReactNode }) {
   return (
-    <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3.5 py-3.5 flex flex-col transition-colors hover:border-[var(--color-border-hover)]">
-      <div className="flex items-center justify-center w-8 h-8 rounded-[9px] bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.25)] mb-2.5">
-        <svg className="w-4 h-4 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          {icon}
-        </svg>
+    <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3.5 py-3 flex flex-col transition-colors hover:border-[var(--color-border-hover)]">
+      <div className="h-11 flex items-center mb-2">
+        {canvas}
       </div>
       <div className="text-[var(--color-text)] text-[13px] font-semibold leading-snug mb-1">{title}</div>
       <p className="text-[var(--color-text-dim)] text-[11px] leading-relaxed">{body}</p>
+    </div>
+  )
+}
+
+/* ── Ownership checklist card (the "final card") ─────────── */
+
+function OwnCard({ items }: { items: string[] }) {
+  return (
+    <div className="rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.3)] bg-gradient-to-br from-[var(--color-brand-muted)] to-[var(--color-surface-0)] px-3.5 py-3 flex flex-col">
+      <div className="text-[var(--color-text)] text-[13px] font-semibold leading-snug mb-2">You keep the whole machine</div>
+      <ul className="flex flex-col gap-1.5">
+        {items.map((it, i) => (
+          <li key={it} className="flex items-center gap-1.5 text-[10.5px] leading-tight text-[var(--color-text-muted)]">
+            <span
+              className="sprint-check w-3 h-3 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
+              style={{ animationDelay: `${i * 0.4}s` } as CSSProperties}
+            >
+              <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <span>{it}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
