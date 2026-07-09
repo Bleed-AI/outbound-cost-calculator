@@ -24,14 +24,14 @@ function isPriceTier(s: string | null): s is PriceTier {
 function SignalMap() {
   // A grid of buying-signal dots breathing in a staggered wave; a few "hit"
   // in brand red to read as detected signal.
-  const hits = new Set([2, 6, 9, 13])
+  const hits = new Set([2, 6, 9, 13, 16, 21])
   return (
-    <div className="grid grid-cols-5 gap-x-2 gap-y-1.5 w-fit">
-      {Array.from({ length: 15 }).map((_, i) => (
+    <div className="grid grid-cols-7 gap-x-2.5 gap-y-2 w-fit">
+      {Array.from({ length: 21 }).map((_, i) => (
         <span
           key={i}
-          className={`sprint-dot w-1.5 h-1.5 rounded-full ${hits.has(i) ? 'bg-[var(--color-brand)]' : 'bg-[var(--color-text-dim)]'}`}
-          style={{ animationDelay: `${(i % 5) * 0.18 + Math.floor(i / 5) * 0.12}s` }}
+          className={`sprint-dot w-2 h-2 rounded-full ${hits.has(i) ? 'bg-[var(--color-brand)]' : 'bg-[var(--color-text-dim)]'}`}
+          style={{ animationDelay: `${(i % 7) * 0.14 + Math.floor(i / 7) * 0.12}s` }}
         />
       ))}
     </div>
@@ -47,9 +47,9 @@ function TournamentBars() {
     { win: false, delay: '0.4s', w: '58%' },
   ]
   return (
-    <div className="flex flex-col gap-1.5 w-full max-w-[130px]">
+    <div className="flex flex-col gap-2 w-full max-w-[170px]">
       {rows.map((r, i) => (
-        <div key={i} className="h-1.5 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
+        <div key={i} className="h-2 rounded-full bg-[var(--color-surface-2)] overflow-hidden">
           <div
             className={`h-full rounded-full ${r.win ? 'sprint-bar-win bg-[var(--color-brand)]' : 'sprint-bar-lose bg-[var(--color-text-dim)]'}`}
             style={{ width: r.w, animationDelay: r.delay }}
@@ -64,18 +64,18 @@ function ListRows() {
   // Verified contact rows: always present, each check glows on in sequence so
   // the card never blanks out during a live pitch.
   return (
-    <div className="flex flex-col gap-1.5 w-full max-w-[140px]">
+    <div className="flex flex-col gap-2 w-full max-w-[160px]">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="flex items-center gap-1.5">
+        <div key={i} className="flex items-center gap-2">
           <span
-            className="sprint-check w-3 h-3 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
+            className="sprint-check w-4 h-4 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
             style={{ animationDelay: `${i * 0.6}s` }}
           >
-            <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
             </svg>
           </span>
-          <span className="h-1.5 rounded-full bg-[var(--color-text-dim)]" style={{ width: `${70 - i * 12}%` }} />
+          <span className="h-2 rounded-full bg-[var(--color-text-dim)]" style={{ width: `${70 - i * 12}%` }} />
         </div>
       ))}
     </div>
@@ -85,16 +85,21 @@ function ListRows() {
 function TypingCopy() {
   // A reply bubble with the classic typing dots, then a booked slot.
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-1 rounded-full rounded-bl-sm bg-[var(--color-surface-2)] px-2 py-1.5">
+    <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-1.5 rounded-lg rounded-bl-sm bg-[var(--color-surface-2)] px-3 py-2.5">
         {[0, 1, 2].map((i) => (
-          <span key={i} className="sprint-type w-1 h-1 rounded-full bg-[var(--color-text-muted)]" style={{ animationDelay: `${i * 0.18}s` }} />
+          <span key={i} className="sprint-type w-1.5 h-1.5 rounded-full bg-[var(--color-text-muted)]" style={{ animationDelay: `${i * 0.18}s` }} />
         ))}
       </div>
-      <svg className="w-3 h-3 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg className="w-4 h-4 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
       </svg>
-      <div className="w-8 h-2 rounded-full bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.3)]" />
+      <div className="flex items-center gap-1.5 rounded-lg bg-[var(--color-brand-muted)] border border-[rgba(177,19,15,0.3)] px-2.5 py-1.5">
+        <svg className="w-3 h-3 text-[var(--color-brand)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7V3m8 4V3M4 11h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z" />
+        </svg>
+        <span className="w-6 h-1.5 rounded-full bg-[var(--color-brand)] opacity-60" />
+      </div>
     </div>
   )
 }
@@ -102,10 +107,10 @@ function TypingCopy() {
 function ReplyPing() {
   // A live inbox ping firing outward from a red core.
   return (
-    <div className="relative w-10 h-10 flex items-center justify-center">
-      <span className="sprint-ping absolute inset-0 m-auto w-5 h-5 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '0s' }} />
-      <span className="sprint-ping absolute inset-0 m-auto w-5 h-5 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '1.3s' }} />
-      <span className="relative w-3 h-3 rounded-full bg-[var(--color-brand)]" />
+    <div className="relative w-12 h-12 flex items-center justify-center">
+      <span className="sprint-ping absolute inset-0 m-auto w-6 h-6 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '0s' }} />
+      <span className="sprint-ping absolute inset-0 m-auto w-6 h-6 rounded-full border border-[var(--color-brand)]" style={{ animationDelay: '1.3s' }} />
+      <span className="relative w-3.5 h-3.5 rounded-full bg-[var(--color-brand)]" />
     </div>
   )
 }
@@ -255,17 +260,23 @@ export function SprintView() {
             <PriceCard priceTier={priceTier} price={price} onInquire={openInquiry} />
           </motion.div>
 
-          {/* Capability grid (right ~2/3): 5 animated cards + ownership checklist */}
+          {/* Capability grid (right ~2/3): 5 animated cards, 3-up then 2-up wider.
+              The ownership checklist now lives inside the pricing card. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3"
+            className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3"
           >
-            {CAPABILITIES.map((c) => (
-              <CapabilityCard key={c.title} title={c.title} body={c.body} canvas={c.canvas} />
+            {CAPABILITIES.map((c, i) => (
+              <CapabilityCard
+                key={c.title}
+                title={c.title}
+                body={c.body}
+                canvas={c.canvas}
+                span={i < 3 ? 'xl:col-span-2' : 'xl:col-span-3'}
+              />
             ))}
-            <OwnCard items={OWN_ITEMS} />
           </motion.div>
         </section>
 
@@ -276,13 +287,13 @@ export function SprintView() {
           transition={{ duration: 0.5, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
           className="mt-4 rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-4 py-3 flex items-center gap-3 flex-wrap"
         >
-          <span className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-ghost)] hidden sm:inline">Built on your own stack</span>
+          <span className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-ghost)] hidden sm:inline">The GTM stack</span>
           <div className="flex flex-wrap gap-2">
             {TOOLS.map((t) => <ToolChip key={t.name} tool={t} />)}
           </div>
           <span className="hidden lg:block h-6 w-px bg-[var(--color-border)] mx-1" />
-          <span className="text-[11px] text-[var(--color-text-dim)] leading-snug hidden lg:inline">
-            The whole system is built under your name, and it stays with you.
+          <span className="text-[12px] text-[var(--color-text-dim)] leading-snug hidden lg:inline">
+            We build your pipeline on a best-in-class GTM stack, the same tooling the top outbound teams run on.
           </span>
         </motion.div>
         </div>
@@ -438,15 +449,36 @@ function PriceCard({ priceTier, price, onInquire }: {
         )}
         <div className="text-[var(--color-text-dim)] text-xs mb-4">one-time</div>
 
-        {/* Lean supporting line: bounded + fully owned. The finality hook lives
-            in the hero headline above; the card stays decluttered. */}
+        {/* Power-stat band: the "8 experiments in parallel" is the headline stat. */}
+        <div className="grid grid-cols-3 mb-4 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] divide-x divide-[var(--color-border)] py-2.5">
+          <Stat big="8" sub="experiments in parallel" prefix="up to" accent />
+          <Stat big="6" sub="weeks, start to scale" />
+          <Stat big="20k" sub="emails / mo" prefix="up to" />
+        </div>
+
         <p className="text-[var(--color-text-muted)] text-[13px] leading-relaxed mb-4">
-          Everything you see here, built and run end to end. One payment, no retainer to start, and the whole system is yours to keep.
+          Everything on the right, built and run end to end. One payment, no retainer to start.
         </p>
 
-        <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-5">
-          6 weeks · up to 8 experiments in parallel · sized to your market (up to 20k emails/mo)
-        </p>
+        {/* What you keep: value sitting right next to the price. */}
+        <div className="mb-5">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-text-ghost)] mb-2.5">Yours to keep, either way</div>
+          <ul className="flex flex-col gap-1.5">
+            {OWN_ITEMS.map((it, i) => (
+              <li key={it} className="flex items-center gap-2 text-[12px] leading-tight text-[var(--color-text-muted)]">
+                <span
+                  className="sprint-check w-4 h-4 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
+                  style={{ animationDelay: `${i * 0.4}s` } as CSSProperties}
+                >
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <span>{it}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
         <div className="mt-auto">
           <button
@@ -466,39 +498,26 @@ function PriceCard({ priceTier, price, onInquire }: {
 
 /* ── Capability card (animated) ──────────────────────────── */
 
-function CapabilityCard({ title, body, canvas }: { title: string; body: string; canvas: ReactNode }) {
+function CapabilityCard({ title, body, canvas, span }: { title: string; body: string; canvas: ReactNode; span?: string }) {
   return (
-    <div className="rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-3.5 py-3 flex flex-col transition-colors hover:border-[var(--color-border-hover)]">
-      <div className="h-11 flex items-center mb-2">
+    <div className={`${span ?? ''} rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] px-4 py-4 flex flex-col justify-center transition-colors hover:border-[var(--color-border-hover)]`}>
+      <div className="flex items-center min-h-[3.25rem] mb-3">
         {canvas}
       </div>
-      <div className="text-[var(--color-text)] text-[13px] font-semibold leading-snug mb-1">{title}</div>
-      <p className="text-[var(--color-text-dim)] text-[11px] leading-relaxed">{body}</p>
+      <div className="text-[var(--color-text)] text-[15px] font-semibold leading-snug mb-1">{title}</div>
+      <p className="text-[var(--color-text-dim)] text-[12.5px] leading-relaxed">{body}</p>
     </div>
   )
 }
 
-/* ── Ownership checklist card (the "final card") ─────────── */
+/* ── Stat (the highlighted power-stat band in the price card) ─── */
 
-function OwnCard({ items }: { items: string[] }) {
+function Stat({ big, sub, prefix, accent }: { big: string; sub: string; prefix?: string; accent?: boolean }) {
   return (
-    <div className="rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.3)] bg-gradient-to-br from-[var(--color-brand-muted)] to-[var(--color-surface-0)] px-3.5 py-3 flex flex-col">
-      <div className="text-[var(--color-text)] text-[13px] font-semibold leading-snug mb-2">You keep the whole machine</div>
-      <ul className="flex flex-col gap-1.5">
-        {items.map((it, i) => (
-          <li key={it} className="flex items-center gap-1.5 text-[10.5px] leading-tight text-[var(--color-text-muted)]">
-            <span
-              className="sprint-check w-3 h-3 rounded-full bg-[var(--color-brand)] flex items-center justify-center flex-shrink-0"
-              style={{ animationDelay: `${i * 0.4}s` } as CSSProperties}
-            >
-              <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-            <span>{it}</span>
-          </li>
-        ))}
-      </ul>
+    <div className="text-center px-1">
+      <div className="text-[8px] uppercase tracking-wide text-[var(--color-text-ghost)] leading-none mb-1 h-2">{prefix ?? ''}</div>
+      <div className={`text-[26px] font-bold tabular-nums font-[family-name:var(--font-mono)] leading-none ${accent ? 'text-[var(--color-brand)]' : 'text-[var(--color-text)]'}`}>{big}</div>
+      <div className="text-[9.5px] text-[var(--color-text-dim)] leading-tight mt-1.5">{sub}</div>
     </div>
   )
 }
