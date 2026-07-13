@@ -12,7 +12,7 @@ export interface InquiryContext {
   kind: InquiryKind
   /** Human-readable tier identifier — shown to the user + included in the email. */
   tierLabel: string
-  /** Optional price reference — e.g. "$2,450/mo" — shown in the modal header. */
+  /** Optional price reference, e.g. "$3,350/mo", shown in the modal header. */
   priceLabel?: string
   /** Optional extra context shipped to the email (e.g. {tier: 'standard'}). */
   metadata?: Record<string, string | number | boolean>

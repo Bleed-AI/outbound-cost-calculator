@@ -7,7 +7,7 @@ import { ResultsGallery } from '@/components/ResultsGallery'
 import { ToolStack } from '@/components/ToolStack'
 
 interface PackageTier {
-  id: 'pilot' | 'growth' | 'scale'
+  id: 'growth' | 'scale'
   name: string
   price: string
   priceNote: string
@@ -27,59 +27,44 @@ interface PackageTier {
 
 const TIERS: PackageTier[] = [
   {
-    id: 'pilot',
-    name: 'Pilot',
-    price: '$1,500',
-    priceNote: '/ month',
-    headline: 'One proven campaign, dialed in and run for you.',
-    effort: 1,
-    positioning: 'For teams who want a real outbound machine running against one core market — focused and steady, no constant experimentation.',
-    features: [
-      'All associated costs, prospecting, system & infrastructure',
-      'Your branded domains & inboxes',
-      'One **sharp campaign** against a single core ICP, run steady',
-      'Full **DFY sourcing** — Clay, Prospeo & our directory stack',
-      'Automated client responses with AI agents',
-      'Follow-up strategy for hot leads',
-      'Dedicated Slack support throughout',
-    ],
-    volumeNote: 'Sending scales to fit the play — up to ~10k emails / mo. Want fewer? We size it down.',
-  },
-  {
     id: 'growth',
     name: 'Growth',
-    price: '$2,450',
+    price: '$3,350',
     priceNote: '/ month',
     headline: 'Multiple segments and angles, tested every month.',
     effort: 2,
-    positioning: 'For teams who want us actively hunting — new markets, directories and geographies probed monthly to find what wins.',
+    positioning: 'For teams who want us actively hunting, new markets, directories and geographies probed every month to find what wins, with the whole outbound machine run for you.',
     features: [
-      'Everything in Pilot',
-      'Test **new market segments** for your offer every month',
-      '**Multiple experiments** across directories, niches & geographies',
+      '**All domains and inbox fees covered**: every cost, prospecting & infrastructure included, nothing billed on top',
+      'Full **DFY sourcing** across Clay, Prospeo & our directory stack',
+      'AI reply agent working every inbound reply',
+      '**Multiple experiments** every month across new segments, directories & geographies',
       '**Signal layers** added wherever they sharpen targeting',
-      'Scale winning campaigns aggressively',
-      'Slack support, 5 days a week',
+      'Engineered, **context-based sub-sequences** that warm interested leads into booked calls',
+      'Winning campaigns scaled aggressively',
+      'Dedicated Slack support, 5 days a week',
     ],
-    volumeNote: 'More plays in flight naturally means more sending — typically ~20k–30k emails / mo.',
+    volumeNote: 'More plays in flight naturally means more sending, typically ~30k-40k emails / mo.',
     emphasis: true,
   },
   {
     id: 'scale',
     name: 'Scale',
-    price: '$3,450',
+    price: '$5,300',
     priceNote: '/ month',
-    headline: 'High-effort, multi-signal campaigns at full strategic depth.',
+    headline: 'Multi-channel campaigns at full strategic depth.',
     effort: 3,
-    positioning: 'For teams who want the hardest, most strategic plays run in parallel — fresh intent signals, advanced targeting, and reverse lead magnets where a campaign calls for one.',
+    positioning: 'For teams who want every channel working in parallel: the hardest strategic plays, fresh intent signals, advanced targeting, and reverse lead magnets where a campaign calls for one.',
     features: [
       'Everything in Growth',
-      '**Advanced signal-based campaigns** — multiple intent signals layered per play',
+      '**Multi-touch across channels**: LinkedIn connection requests, SMS touchpoints and optional call integrations, orchestrated at the CRM level',
+      '**LinkedIn touchpoints** on your interested leads, not just email',
+      '**Advanced signal-based campaigns**, multiple intent signals layered per play',
       'Help building **advanced reverse lead magnets** where they fit',
       '**New value props** pressure-tested in new markets, in parallel',
       'The most build time and strategic effort we put in, every month',
     ],
-    volumeNote: 'Capacity for up to ~50k–60k emails / mo when a play calls for it — never the reason to be here.',
+    volumeNote: 'Capacity for up to ~50k-75k emails / mo when a play calls for it, never the reason to be here.',
   },
 ]
 
@@ -104,7 +89,7 @@ export function PackagesView() {
         </div>
 
         {/* Tier grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-5 items-stretch max-w-3xl mx-auto">
           {TIERS.map((tier, idx) => (
             <motion.div
               key={tier.id}
@@ -126,7 +111,7 @@ export function PackagesView() {
         {/* Footnote + off-ramps — cleanly grouped below the cards */}
         <div className="mt-6 max-w-3xl space-y-2.5">
           <p className="text-[var(--color-text-ghost)] text-xs leading-relaxed">
-            Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns — never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
+            Email volume rises with each tier, but it&rsquo;s a consequence of running more and harder campaigns, never a reason on its own to size up. Tell us the markets you want hit and we&rsquo;ll right-size the sending.
           </p>
           <p className="text-[var(--color-text-dim)] text-xs leading-relaxed">
             Not ready for a monthly engagement? <a href="/sprint" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">Prove it with The Outbound Sprint</a>, or <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">scope a single targeted campaign</a>.

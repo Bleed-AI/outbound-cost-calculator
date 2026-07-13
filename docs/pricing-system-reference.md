@@ -4,7 +4,7 @@
 >
 > For *who* gets which link and *why* (routing thinking), see [`pricing-philosophy.md`](./pricing-philosophy.md). This doc answers "where is X encoded?" not "should we offer X?".
 >
-> **Last updated**: 2026-06-12.
+> **Last updated**: 2026-07-13.
 
 ---
 
@@ -14,7 +14,7 @@
 |---|---|---|---|
 | Cost Calculator (One-Time Campaigns) | `/` | ~$733 floor → ~$8,445 ceiling | `src/lib/pricing.config.ts` + `src/lib/pricing.ts` |
 | Trial Campaigns | `/trials` | $350 → $1,100 | `src/components/TrialsView.tsx` |
-| Managed Outbound Packages | `/packages` | $1,500/mo → $3,450/mo | `src/components/PackagesView.tsx` |
+| Managed Outbound Packages | `/packages` | $3,350/mo → $5,300/mo | `src/components/PackagesView.tsx` |
 
 ---
 
@@ -95,9 +95,9 @@ Outputs from the validation harness (`npx tsx scripts/validate-pricing.ts`), **a
 | Config | Total | Infra incl. | Inbox/Dom | Notes |
 |---|---|---|---|---|
 | Floor: 1,500 × 1 × 1 | ~$802 | $33 | 3 / 1 | Min volume |
-| Default: 4,000 × 2 × 1 | ~$1,461 | $198 | 18 / 6 | Just below the $1,500 nudge threshold |
-| Mid: 10,000 × 2 × 1 | ~$2,733 | $529 | 50 / 17 | Banner suggests Growth |
-| High: 20,000 × 2 × 1 | ~$4,609 | $1,040 | 99 / 33 | Banner suggests Scale |
+| Default: 4,000 × 2 × 1 | ~$1,461 | $198 | 18 / 6 | Well below the $3,350 nudge threshold (no banner) |
+| Mid: 10,000 × 2 × 1 | ~$2,733 | $529 | 50 / 17 | Below the $3,350 nudge threshold (no banner) |
+| High: 20,000 × 2 × 1 | ~$4,609 | $1,040 | 99 / 33 | Banner suggests Growth (≥$3,350, <$5,300) |
 | Ceiling: 40k × 3 × 5 exp | ~$11,513 | $2,958 | 295 / 99 | Route to Scale package |
 
 Totals rose vs the pre-2026-06-12 model because branded domains+inboxes are now folded into the total (previously shown as a separate "pay your provider" estimate).
@@ -125,17 +125,18 @@ A mid tier was tried and removed — no psychological purpose.
 
 ## 5. Packages pricing
 
-**Primary axis is strategic effort / complexity — NOT email volume.** Tiers are positioned (and sold) by how deep and how hard the campaign strategy goes. Email volume is a *byproduct* of running more and harder campaigns, deliberately demoted on the page to a muted side-line. See §8.16.
+**Primary axis is strategic effort / complexity, NOT email volume.** Tiers are positioned (and sold) by how deep and how hard the campaign strategy goes. Email volume is a *byproduct* of running more and harder campaigns, deliberately demoted on the page to a muted side-line. See §8.16.
+
+Two tiers as of 2026-07-13 (**Pilot retired**: the old $1,500/mo single-campaign entry tier is gone; budget-constrained fits scope a smaller one-off in the calculator instead, and Growth absorbed Pilot's foundational deliverables):
 
 | Tier | Price | Effort level | Strategic differentiator (primary) | Volume (byproduct, secondary) |
 |---|---|---|---|---|
-| Pilot | $1,500/mo | ▰▱▱ | One proven campaign against a single core ICP, run steady; no monthly experimentation; email support | up to ~10k emails/mo (sizes down on request) |
-| Growth (emphasized) | $2,450/mo | ▰▰▱ | Multiple experiments across new market segments / directories / geographies, tested monthly; signal layers where they sharpen targeting; Slack 5 days/wk | ~20k–30k emails/mo |
-| Scale | $3,450/mo | ▰▰▰ | Advanced multi-signal campaigns + reverse lead magnets + parallel value-prop testing; the most build time and strategic effort | up to ~50k–60k emails/mo when a play calls for it |
+| Growth (emphasized, entry tier) | $3,350/mo | ▰▰▱ | The whole machine run for you (all domains + inbox fees covered, DFY sourcing, AI reply agent) + multiple experiments monthly across new segments / directories / geographies + signal layers + engineered context-based sub-sequences that warm interested leads into booked calls; Slack 5 days/wk | ~30k-40k emails/mo |
+| Scale | $5,300/mo | ▰▰▰ | Everything in Growth + **cross-channel multi-touch** (LinkedIn connection requests, SMS touchpoints, optional call integrations orchestrated at the CRM level, LinkedIn touchpoints on interested leads) + advanced multi-signal campaigns + reverse lead magnets + parallel value-prop testing | up to ~50k-75k emails/mo when a play calls for it |
 
-On `/packages` each tier card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume appears only as a small muted "side-detail" line, plus a page-level footnote stating volume is never a reason on its own to size up. Signals (Claygent, Prospeo, etc.) are *included across all tiers* — the higher tiers leverage **more** and **harder** strategy, they don't unlock a gated feature. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) sits above the grid for premium credibility.
+On `/packages` each tier card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume appears only as a small muted "side-detail" line, plus a page-level footnote stating volume is never a reason on its own to size up. Signals (Claygent, Prospeo, etc.) are *included across both tiers*, the higher tier leverages **more** and **harder** strategy plus the multi-channel layer, it doesn't unlock a gated feature. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) sits above the grid for premium credibility. The two cards render in a centered 2-column grid (`md:grid-cols-2 max-w-3xl`).
 
-A fourth tier (~$5,450 Premier) was tried and dropped — at that level, custom enterprise sales work better than a packaged tier.
+Above $5,300/mo is a custom enterprise conversation, not a packaged tier.
 
 ---
 
@@ -170,15 +171,14 @@ Handed out via personalized links. Never posted publicly.
 
 ## 7. Banner thresholds (tier-aware nudge)
 
-The top banner on `/` fires when calculator total ≥ $1,500 and recommends the tier whose monthly price is *just below* the user's current one-off total:
+The top banner on `/` fires when calculator total ≥ $3,350 and recommends the tier whose monthly price is *just below* the user's current one-off total:
 
 | Calculator total | Banner recommends |
 |---|---|
-| ≥ $3,450 | Scale |
-| ≥ $2,450 | Growth |
-| ≥ $1,500 | Pilot |
+| ≥ $5,300 | Scale |
+| ≥ $3,350 | Growth |
 
-Defined in `src/lib/pricing.config.ts → packageTiers` and `src/components/TopBannerNudge.tsx → recommendedTier()`.
+Defined in `src/lib/pricing.config.ts → packageTiers` and `src/components/TopBannerNudge.tsx → recommendedTier()`. (Pilot retired 2026-07-13; the nudge floor moved from $1,500 to $3,350, so one-offs between those figures no longer trigger a monthly-tier nudge.)
 
 Banner is sticky (follows scroll) and dismissable per session (sessionStorage). Once dismissed it does not reappear that session.
 
@@ -202,9 +202,9 @@ Originally we billed for ramp-phase sends only. Switched to full-volume billing 
 
 Email support was the original default, then a non-default option. **As of 2026-06-12 it's removed from the UI entirely** — every campaign includes a dedicated Slack channel; the only choice is how much access (Standard Slack $200/mo default, or Full Slack + Calls $375/mo). Email-only signalled a no-touch engagement we don't actually offer. (The `email` key remains in `pricing.config.ts → support` for backward-compat but is not selectable.)
 
-### 8.3 Package nudge fires at $1,500 (not $2,200)
+### 8.3 Package nudge fires at $3,350 (Growth, the entry monthly tier)
 
-Threshold matches Pilot price. Below $1,500 the "what about monthly?" pitch does not carry. At $1,500 the comparison is apt for the first time. Above $1,500 the customer is already in "I could be running this every month for less" territory.
+Threshold matches Growth's price, the lowest monthly tier since Pilot retired (2026-07-13). Below $3,350 the "what about monthly?" pitch does not carry (a one-off that cheap is genuinely cheaper as a one-off). At $3,350 the comparison to a monthly program is apt for the first time. (Historically this fired at $1,500 to match Pilot; it moved up with Pilot's retirement.)
 
 ### 8.4 Banner is tier-aware
 
@@ -276,13 +276,12 @@ Goal: customer feels the campaign price is a steal for what is included. Don't u
 
 ### 8.16 Packages are sold on strategic effort, not email volume
 
-The original `/packages` page bolded email volume as the headline differentiator (`**10k**`, `**20k–30k**`, `**50k–60k**`). This produced the #1 objection: *"I don't need to send that many emails."* — and the prospect was right. Some campaigns simply require more **effort and strategic complexity**, not more send volume. Repricing/repositioning the tiers on that axis:
+The original `/packages` page bolded email volume as the headline differentiator (`**10k**`, `**20k-30k**`, `**50k-60k**`). This produced the #1 objection: *"I don't need to send that many emails,"* and the prospect was right. Some campaigns simply require more **effort and strategic complexity**, not more send volume. The tiers are priced/positioned on that axis. Since 2026-07-13 there are two tiers (Pilot retired):
 
-- **Pilot** — a single proven play against one core ICP, run steady. Lowest effort. Available even to prospects who explicitly don't want high volume (we size sending down).
-- **Growth** — multiple market segments / directories / geographies tested every month; signal layers where they sharpen targeting. Medium effort.
-- **Scale** — advanced multi-signal campaigns, reverse lead magnets, parallel value-prop testing. Highest effort.
+- **Growth** (entry tier) — the whole machine run for you (all domains + inbox fees covered, DFY sourcing, AI reply agent, which it absorbed from the retired Pilot), plus multiple market segments / directories / geographies tested every month, signal layers where they sharpen targeting, and engineered context-based sub-sequences that warm interested leads into booked calls. Medium-high effort.
+- **Scale** — everything in Growth plus **cross-channel multi-touch** (LinkedIn connection requests, SMS touchpoints, optional call integrations orchestrated at the CRM level, LinkedIn touchpoints on interested leads), advanced multi-signal campaigns, reverse lead magnets, and parallel value-prop testing. Highest effort.
 
-**Signals are included across all tiers** — Scale doesn't *unlock* signals, it *leverages more of them, harder*. On the page each card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume is demoted to a small muted side-line ("scales to fit the play… want fewer? we size it down"), plus a page footnote stating volume is never a reason on its own to size up. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) adds premium credibility without leaning on volume. The packages hero subtitle and intro now state the effort-not-volume thesis outright; the one-off / trial cross-links were rephrased to drop diminishing language ("just need a single send").
+**Signals are included across both tiers**, Scale doesn't *unlock* signals, it *leverages more of them, harder*, and adds the multi-channel layer. On the page each card leads with a bold strategy **headline** + a 3-bar **effort meter**; volume is demoted to a small muted side-line, plus a page footnote stating volume is never a reason on its own to size up. A "Built on our sourcing stack" chip strip (Claygent · Prospeo · LinkedIn Sales Nav · Apollo · Google Maps · Niche Directories) adds premium credibility without leaning on volume. The two cards render in a centered 2-column grid. The packages hero subtitle and intro state the effort-not-volume thesis outright.
 
 Encoded in `src/components/PackagesView.tsx` (`PackageTier.headline` / `.effort` / `.volumeNote`, `EffortMeter`) and `src/components/Header.tsx` (packages subtitle).
 
@@ -344,7 +343,7 @@ Sales workflow assumes:
 | Decision | Why we said no |
 |---|---|
 | Take Stripe payments on the site | Wrong-fit customer commits before qualification. The sales call IS the qualification mechanism. Automate later once conversion volume + repeatability is proven. |
-| "Retainer" word in customer copy | Reads heavier than the actual Pilot ($1,500) commitment. "Package" sets the right expectation. |
+| "Retainer" word in customer copy | Reads heavier than the actual monthly commitment (Growth, $3,350). "Package" sets the right expectation. |
 | "Premium" branding | Cheesy without earning it. Show through scope, do not say. |
 | Force trial path on every package visitor | Some visitors arrive ready to commit. Forcing them through trials wastes their time and our conversion. Soft suggestion only. |
 | Public discount codes | Coupons exist but only via personal URL. Posting publicly destroys their meaning. |
@@ -404,4 +403,5 @@ The validation harness exercises floor / typical / ceiling configs, all 5 campai
 
 ## Revision log
 
+- **2026-07-13** — Price + tier restructure. Pilot retired (budget fallback is now a smaller one-off in the calculator). Growth $2,450 to $3,350/mo (entry tier, absorbed Pilot's foundational deliverables + gained context-based sub-sequences). Scale $3,450 to $5,300/mo (added cross-channel multi-touch: LinkedIn / SMS / optional calls, CRM-orchestrated). $500 Sprint credit removed. Nudge threshold $1,500 to $3,350; tier mins updated in `pricing.config.ts`. Volumes nudged up in place (Sprint 30k / Growth 30-40k / Scale 50-75k). Packages grid now 2-column. Updated §1, §5, §7, §8.3, §8.16, §11. Full reasoning in `pricing-learnings.md` (2026-07-13 entry).
 - **2026-06-03** — Initial extraction from the previous `pricing-philosophy.md`. System-mechanics content (defaults, decisions, file map, workflow tables, validation) moved here so the philosophy doc can stay short and routing-focused.

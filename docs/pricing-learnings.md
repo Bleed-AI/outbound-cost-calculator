@@ -18,7 +18,7 @@
 > learning is really about list price or routing, it belongs **here**; when it's about how to *frame/sell* a
 > deal, it belongs there. Cross-reference both ways.
 >
-> **Last updated**: 2026-06-12.
+> **Last updated**: 2026-07-13.
 
 ---
 
@@ -35,6 +35,12 @@
 ---
 
 ## Learnings
+
+### 2026-07-13 — Price + tier restructure: Pilot retired, Growth/Scale raised, Scale goes multi-channel
+**What changed:** Cut the packages ladder from three tiers to two and raised both. **Pilot ($1,500/mo) retired** entirely; the budget fallback for a fit prospect who balks at the one-time fee is now a smaller one-off scoped in the calculator, not a monthly plan. **Growth $2,450 to $3,350/mo** (now the entry monthly tier and the Sprint's rollover destination); it absorbed Pilot's foundational deliverables (all domains + inbox fees covered, DFY sourcing, AI reply agent) and gained **engineered, context-based sub-sequences that warm interested leads into booked calls**. **Scale $3,450 to $5,300/mo**, repositioned around **cross-channel multi-touch** on top of Growth: LinkedIn connection requests, SMS touchpoints, optional call integrations orchestrated at the CRM level, and LinkedIn touchpoints on interested leads. Removed the **$500 Sprint-to-Growth credit** everywhere. The `/sprint` page no longer shows or pre-anchors the Growth monthly price. Email volumes nudged up in place, kept muted (Sprint up to 30k, Growth ~30k-40k, Scale ~50k-75k). Calculator package-nudge floor moved $1,500 to $3,350; the `/packages` grid is now a centered 2-column layout.
+**Why (the intuition):** The Sprint proves value first, so the monthly number it rolls into can (and should) be a real one that actually funds scaling the company, not a soft $2,450 anchored pre-proof. Once Growth exceeds the $2,950 Sprint, pre-quoting the bigger recurring number on the sprint page works against the sale, so the rule flipped: de-anchor Growth, earn it on the post-Sprint call. Pilot was a discount tier competing with our own Sprint and the calculator; a fit buyer who truly can't do the Sprint fee is better served by a contained one-off they scope themselves (honest, self-serve, no cheap monthly anchor dragging the ladder down), and Growth absorbing Pilot's base means the entry monthly tier is now a complete machine, not a stripped one. The company's growth lever is upgrading proven clients: Sprint proves it, Growth runs it, and Scale is where we differentiate on **channel** (email is table stakes; LinkedIn + SMS + calls + CRM-orchestrated nurture is what a serious buyer pays $5,300 for). Volume stays muted per the 2026-06-12 effort-not-volume learning; the bumps just keep the side-detail numbers credible against the higher prices.
+**Where reflected:** philosophy.md (routing rewrite: budget branch Pilot to calculator, de-anchor Growth, mental model, scripts) + system-reference.md (§1/§5/§7/§8.3/§8.16/§11) + this repo's `/packages` + `/sprint` pages, `pricing.config.ts` (nudge threshold + `packageTiers` mins), `PackagesView.tsx`, `SprintView.tsx`, `TopBannerNudge.tsx` + campaign-master `pricing-structure.md` (reply-agent facts resync) and `SPRINT-SPEC.md` (revised note). Proposal generator + reply agents must quote $3,350 Growth / $5,300 Scale and never mention Pilot, the $500 credit, or a pre-Sprint Growth price.
+**Triggered by:** Taha, 2026-07-13 session, scaling-the-company pricing pass ("prove value with the Sprint, then get people onto a real monthly package"; Scale gets the engineered multi-channel warm-to-booked system, Growth gets context-based sub-sequences). Tuning dial: watch Sprint to Growth conversion at the new $3,350 and whether the removed sub-$3,350 nudge costs any calculator-to-monthly upsell.
 
 ### 2026-07-09 — The Outbound Sprint becomes the lead offer; trials retired from public use
 **What changed:** Adopted a new flagship entry SKU: **The Outbound Sprint**, $2,950 one-time, 6 weeks, up to 8

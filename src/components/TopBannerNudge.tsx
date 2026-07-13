@@ -16,11 +16,10 @@ interface TopBannerNudgeProps {
  * Plain CSS transitions — runs outside any LazyMotion context.
  */
 /** Returns the package tier whose monthly price is closest-without-exceeding the user's one-off total. */
-function recommendedTier(total: number): { name: 'Pilot' | 'Growth' | 'Scale'; tagline: string } {
-  const { growthMin, scaleMin } = PRICING.packageTiers
-  if (total >= scaleMin) return { name: 'Scale', tagline: 'serious volume + multi-segment experiments' }
-  if (total >= growthMin) return { name: 'Growth', tagline: 'ongoing experiments + full ops every month' }
-  return { name: 'Pilot', tagline: 'a working outbound machine, every month, from $1,500' }
+function recommendedTier(total: number): { name: 'Growth' | 'Scale'; tagline: string } {
+  const { scaleMin } = PRICING.packageTiers
+  if (total >= scaleMin) return { name: 'Scale', tagline: 'multi-channel campaigns + serious volume, every month' }
+  return { name: 'Growth', tagline: 'ongoing experiments + full ops every month' }
 }
 
 export function TopBannerNudge({ total }: TopBannerNudgeProps) {

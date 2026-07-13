@@ -358,16 +358,16 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 4. After the Sprint (Growth + credit + Pilot live here, off the card) */}
+        {/* 4. After the Sprint (Growth rollover; price stays off the page, earned on the call) */}
         <Section title="After the Sprint" className="mt-10">
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="max-w-2xl">
               <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-                <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth, $2,450/mo, month to month, no lock-in.</span>{' '}
-                You already own the system, and $500 of your Sprint fee credits toward month 1. No pressure to continue, the Sprint stands on its own.
+                <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth, month to month, no lock-in.</span>{' '}
+                You already own the whole system, so this just keeps the winning play running and hunting new markets every month. No pressure to continue, the Sprint stands on its own.
               </p>
               <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mt-2">
-                Prefer to spread the cost? Our monthly Pilot plan runs the winning play at $1,500/mo.
+                Want something smaller first? You can scope a single one-off campaign to your budget in the <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">calculator</a>.
               </p>
             </div>
             <a
@@ -453,7 +453,7 @@ function PriceCard({ priceTier, price, onInquire }: {
         <div className="grid grid-cols-3 mb-4 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] divide-x divide-[var(--color-border)] py-2.5">
           <Stat big="8" sub="experiments in parallel" prefix="up to" accent />
           <Stat big="6" sub="weeks, start to scale" />
-          <Stat big="20k" sub="emails / mo" prefix="up to" />
+          <Stat big="30k" sub="emails / mo" prefix="up to" />
         </div>
 
         <p className="text-[var(--color-text-muted)] text-[13px] leading-relaxed mb-4">

@@ -3,7 +3,7 @@ import { PackagesView } from '@/components/PackagesView'
 
 export const metadata = {
   title: 'BleedAI — Managed Outbound Packages',
-  description: 'Pilot, Growth, and Scale — end-to-end monthly outbound packages run by BleedAI.',
+  description: 'Growth and Scale, end-to-end monthly outbound packages run by BleedAI.',
 }
 
 export default function PackagesPage() {

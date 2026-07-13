@@ -59,18 +59,17 @@ export const PRICING = {
   pricePerAdditionalExperiment: 125,
 
   // Calculator-side package nudge: when total ≥ this, surface the top banner
-  // recommending the right package tier. Threshold matches Pilot ($1,500/mo)
-  // so the comparison feels apt the moment a one-off crosses that mark.
-  packageNudgeThreshold: 1500,
+  // recommending the right package tier. Threshold matches Growth ($3,350/mo),
+  // now the entry monthly tier, so the comparison feels apt the moment a one-off
+  // crosses into monthly-program territory. (Pilot retired 2026-07-13.)
+  packageNudgeThreshold: 3350,
 
   // Package tier thresholds — drives which tier the banner recommends.
-  // total in [pilotMin, growthMin)  → Pilot
   // total in [growthMin, scaleMin)  → Growth
   // total in [scaleMin, ∞)          → Scale
   packageTiers: {
-    pilotMin: 1500,
-    growthMin: 2450,
-    scaleMin: 3450,
+    growthMin: 3350,
+    scaleMin: 5300,
   } as const,
 
   replyHandling: {
