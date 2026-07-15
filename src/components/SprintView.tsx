@@ -165,22 +165,22 @@ const TOOLS: Tool[] = [
 ]
 
 const TIMELINE: { label: string; text: string }[] = [
-  { label: 'Week 1', text: 'Build + onboarding' },
-  { label: 'Weeks 2-3', text: 'Inbox warmup, experiments queued' },
+  { label: 'Week 1', text: 'Setup + discovery, warmup starts' },
+  { label: 'Weeks 1-2', text: 'Inbox warmup, campaigns built + queued' },
   { label: 'Weeks 3-6', text: 'Experiments live, weekly readouts' },
   { label: 'Final readout', text: 'Your winning campaign, scaled' },
 ]
 
 const HOW_STEPS: { n: string; title: string; body: string }[] = [
   { n: '1', title: 'Order + kickoff call', body: 'We finalize scope and write your success bar together, in your numbers.' },
-  { n: '2', title: 'We build, you approve', body: 'You sign off the exact lead list and every word of copy before launch.' },
+  { n: '2', title: 'We build, hands off', body: 'Full visibility on the exact lead list and every word of copy before launch. Sign off if you want, or leave it all to us.' },
   { n: '3', title: 'The tournament runs', body: 'Up to 8 experiments live, losers killed, weekly readouts you can actually read.' },
   { n: '4', title: 'The decision', body: 'Winner scaled, readout delivered, and if the bar is hit you roll into Growth.' },
 ]
 
 const BURNED: { title: string; body: string }[] = [
   { title: 'Most agencies bet your whole budget on one guess.', body: 'We assume most angles die. The Sprint is the process that finds the one that does not.' },
-  { title: 'You see everything.', body: 'The list, the copy, the live results. Nothing runs without your sign-off.' },
+  { title: 'You see everything.', body: 'The list, the copy, the live results. Want final sign-off before launch? It is yours.' },
   { title: 'Our incentives are honest.', body: 'The real money for us is the retainer that only starts if your Sprint hits the bar. We need this to work more than you do.' },
   { title: 'The re-run promise.', body: 'If no experiment hits the bar in 6 weeks, we build and run one more round on us. No refund theater, no fine print, one extra round, free.' },
 ]
@@ -189,7 +189,7 @@ const FAQ: { q: string; a: string }[] = [
   { q: 'Why one-time instead of a retainer?', a: 'You should not pay monthly for something unproven. We earn the retainer by proving the system works first.' },
   { q: 'Why not money-back?', a: 'Because some experiments are supposed to fail. The promise that matters is the extra round on us and the assets you keep, either way.' },
   { q: 'What if I already know I want ongoing?', a: 'We will happily start you on Growth. The Sprint is for proving it first.' },
-  { q: 'What do you need from me?', a: 'A kickoff call, list and copy approvals, and access to whoever answers meetings.' },
+  { q: 'What do you need from me?', a: 'A kickoff call and access to whoever answers meetings. List and copy sign-off is there if you want it; most of the Sprint runs fully hands off.' },
   { q: 'When does it start?', a: 'The invoice clears, your build slot is held, and the warmup clock starts. Inboxes take about 2 weeks to warm, which is why we start now, not later.' },
   { q: 'Who is this NOT for?', a: 'Pre-revenue with no budget, anyone wanting 3-5 hand-picked intros instead of volume, or channels we do not run like paid ads and SEO.' },
 ]
@@ -341,7 +341,7 @@ export function SprintView() {
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-gradient-to-br from-[var(--color-brand-muted)] to-[var(--color-surface-1)] px-6 py-6">
             <p className="text-[var(--color-text-muted)] text-sm leading-relaxed max-w-3xl">
               <span className="text-[var(--color-text)] font-medium">Written before we send a single email.</span>{' '}
-              On the kickoff call we define the bar together and translate it into your numbers. Example: 12+ qualified positive replies from your exact target segment. It is measured on the list and the copy you approved, so it means what it says.
+              On the kickoff call we define the bar together and translate it into your numbers. Example: 12+ qualified positive replies from your exact target segment. You see the list and the copy before a single email goes out, so it means what it says.
             </p>
           </div>
         </Section>
