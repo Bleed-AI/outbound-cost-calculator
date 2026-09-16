@@ -5,6 +5,7 @@ import { motion, LazyMotion, domAnimation } from 'framer-motion'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { InquiryModal, type InquiryContext } from '@/components/InquiryModal'
 import { ToolChip, type Tool } from '@/components/ToolStack'
+import { PRICING } from '@/lib/pricing.config'
 
 /* ── Secret operator price tier (mirrors the /trials pattern) ── */
 
@@ -16,8 +17,9 @@ const TIER_LABEL: Record<PriceTier, string> = { high: 'standard', low: 'low' }
 /* The Sprint is deliberately priced AT one month of Growth (2026-09-16, Taha),
    which reverses the 2026-07-13 "de-anchor Growth on the Sprint page" rule:
    the bonus only reads if the reader can see the monthly number it matches.
-   Keep GROWTH_MONTHLY in step with PackagesView. */
-const GROWTH_MONTHLY = 3350
+   Read from the pricing config rather than restated, so the two can never
+   drift and quietly turn the bonus into a lie. */
+const GROWTH_MONTHLY = PRICING.packageTiers.growthMin
 
 function isPriceTier(s: string | null): s is PriceTier {
   return s === 'high' || s === 'low'
