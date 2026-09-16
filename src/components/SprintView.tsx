@@ -10,8 +10,14 @@ import { ToolChip, type Tool } from '@/components/ToolStack'
 
 type PriceTier = 'high' | 'low'
 const TIER_CYCLE: PriceTier[] = ['high', 'low']
-const PRICES: Record<PriceTier, number> = { high: 2950, low: 2450 }
+const PRICES: Record<PriceTier, number> = { high: 3350, low: 2950 }
 const TIER_LABEL: Record<PriceTier, string> = { high: 'standard', low: 'low' }
+
+/* The Sprint is deliberately priced AT one month of Growth (2026-09-16, Taha),
+   which reverses the 2026-07-13 "de-anchor Growth on the Sprint page" rule:
+   the bonus only reads if the reader can see the monthly number it matches.
+   Keep GROWTH_MONTHLY in step with PackagesView. */
+const GROWTH_MONTHLY = 3350
 
 function isPriceTier(s: string | null): s is PriceTier {
   return s === 'high' || s === 'low'
@@ -186,6 +192,7 @@ const BURNED: { title: string; body: string }[] = [
 ]
 
 const FAQ: { q: string; a: string }[] = [
+  { q: 'Why is the Sprint the same price as a month of Growth?', a: 'So the decision is not about money. It is the same number you would pay for one month on Growth, except it buys six weeks instead of four, the full build, and everything you keep. Pay once, see it work, then decide whether the monthly makes sense.' },
   { q: 'Why one-time instead of a retainer?', a: 'You should not pay monthly for something unproven. We earn the retainer by proving the system works first.' },
   { q: 'Why not money-back?', a: 'Because some experiments are supposed to fail. The promise that matters is the extra round on us and the assets you keep, either way.' },
   { q: 'What if I already know I want ongoing?', a: 'We will happily start you on Growth. The Sprint is for proving it first.' },
@@ -358,13 +365,15 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 4. After the Sprint (Growth rollover; price stays off the page, earned on the call) */}
+        {/* 4. After the Sprint. The Growth price IS on the page now (2026-09-16),
+            because the Sprint is priced at it and the half month only reads as a
+            bonus next to the monthly number it matches. */}
         <Section title="After the Sprint" className="mt-10">
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="max-w-2xl">
               <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
-                <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth, month to month, no lock-in.</span>{' '}
-                You already own the whole system, so this just keeps the winning play running and hunting new markets every month. No pressure to continue, the Sprint stands on its own.
+                <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth at ${GROWTH_MONTHLY.toLocaleString()}/mo, month to month, no lock-in.</span>{' '}
+                Same number you already paid once, except the Sprint bought you six weeks of it instead of four. You already own the whole system, so this just keeps the winning play running and hunting new markets every month. No pressure to continue, the Sprint stands on its own.
               </p>
               <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mt-2">
                 Want something smaller first? You can scope a single one-off campaign to your budget in the <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">calculator</a>.
@@ -407,6 +416,25 @@ export function SprintView() {
   )
 }
 
+/* ── Mono amount ─────────────────────────────────────────────
+   --font-mono is a true monospace stack, so a comma or a decimal point gets a
+   full character cell and "$3,350" reads as "$3 , 350". Pull the separators in
+   so a number reads as one number, without giving up the monospace face. */
+
+function MonoAmount({ value }: { value: string }) {
+  return (
+    <>
+      {value.split(/([,.])/).map((part, i) =>
+        part === ',' || part === '.' ? (
+          <span key={i} className="inline-block mx-[-0.17em]">{part}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  )
+}
+
 /* ── Pricing card ────────────────────────────────────────── */
 
 function PriceCard({ priceTier, price, onInquire }: {
@@ -428,26 +456,30 @@ function PriceCard({ priceTier, price, onInquire }: {
         {priceTier === 'low' ? (
           <div className="flex items-end gap-2 mb-1">
             <span className="text-lg font-bold tabular-nums font-[family-name:var(--font-mono)] text-[var(--color-text-dim)] line-through decoration-[var(--color-brand)] decoration-2 leading-none">
-              ${PRICES.high.toLocaleString()}
+              $<MonoAmount value={PRICES.high.toLocaleString()} />
             </span>
             <motion.span
               key={priceTier}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="text-4xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none"
+              className="text-4xl font-bold font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none"
             >
-              ${price.toLocaleString()}
+              $<MonoAmount value={price.toLocaleString()} />
             </motion.span>
           </div>
         ) : (
           <div className="mb-1">
-            <span className="text-4xl font-bold tabular-nums font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none">
-              ${price.toLocaleString()}
+            <span className="text-4xl font-bold font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none">
+              $<MonoAmount value={price.toLocaleString()} />
             </span>
           </div>
         )}
-        <div className="text-[var(--color-text-dim)] text-xs mb-4">one-time</div>
+        <div className="text-[var(--color-text-dim)] text-xs mb-3.5">one-time</div>
+
+        {/* The bonus, directly under the number it is an argument about: the
+            Sprint costs exactly one month of Growth and runs 1.5 of them. */}
+        <BonusStrip price={price} />
 
         {/* Power-stat band: the "8 experiments in parallel" is the headline stat. */}
         <div className="grid grid-cols-3 mb-4 rounded-[var(--radius-inner)] border border-[var(--color-border)] bg-[var(--color-surface-0)] divide-x divide-[var(--color-border)] py-2.5">
@@ -489,6 +521,61 @@ function PriceCard({ priceTier, price, onInquire }: {
           </button>
           <p className="text-[var(--color-text-ghost)] text-[10.5px] leading-relaxed mt-2.5">
             We take on a couple of Sprint builds a week. Your order holds the build slot; the kickoff call finalizes scope.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Bonus strip (the half month on us) ──────────────────────
+   The Sprint is priced AT one month of Growth but runs six weeks. That gap is
+   the offer, so it gets its own band in the price card rather than a footnote:
+   brand rail, the 1.5 stated as a number, and the arithmetic in one sentence. */
+
+function BonusStrip({ price }: { price: number }) {
+  // The operator low tier prices UNDER Growth, so the sentence has to follow the
+  // number rather than assert parity it does not have.
+  const versusGrowth =
+    price === GROWTH_MONTHLY
+      ? 'The Sprint is that same number and runs six weeks.'
+      : price < GROWTH_MONTHLY
+        ? 'The Sprint is under that, and runs six weeks.'
+        : 'The Sprint runs six weeks.'
+
+  return (
+    <div className="relative mb-4 rounded-[var(--radius-inner)] border border-[rgba(177,19,15,0.42)] bg-[var(--color-brand-muted)] overflow-hidden">
+      <div className="absolute inset-y-0 left-0 w-[3px] bg-[var(--color-brand)]" />
+      <div
+        className="sprint-bonus-glow absolute -right-8 -top-8 w-24 h-24 rounded-full bg-[var(--color-brand)] opacity-[0.22] blur-[36px] pointer-events-none"
+        aria-hidden
+      />
+
+      <div className="relative flex items-center gap-3 pl-3.5 pr-3 py-2.5">
+        <div className="flex flex-col items-center leading-none shrink-0">
+          <span className="text-[26px] font-bold font-[family-name:var(--font-mono)] text-[var(--color-brand)] leading-none">
+            <MonoAmount value="1.5" />
+          </span>
+          <span className="text-[8px] uppercase tracking-[0.14em] text-[var(--color-brand)] mt-1">
+            months
+          </span>
+        </div>
+
+        <div className="w-px self-stretch bg-[rgba(177,19,15,0.35)]" />
+
+        <div className="min-w-0">
+          <div className="text-[11px] font-bold uppercase tracking-[0.13em] text-[var(--color-text)] leading-none mb-1.5">
+            Half a month on us
+          </div>
+          <p className="text-[11.5px] leading-snug text-[var(--color-text-muted)]">
+            One month on{' '}
+            <a
+              href="/packages"
+              className="text-[var(--color-text)] font-medium underline-offset-2 hover:underline hover:text-[var(--color-brand)] transition-colors"
+            >
+              Growth
+            </a>{' '}
+            is ${GROWTH_MONTHLY.toLocaleString()}. {versusGrowth}
           </p>
         </div>
       </div>

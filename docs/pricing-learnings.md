@@ -18,7 +18,7 @@
 > learning is really about list price or routing, it belongs **here**; when it's about how to *frame/sell* a
 > deal, it belongs there. Cross-reference both ways.
 >
-> **Last updated**: 2026-07-13.
+> **Last updated**: 2026-09-16.
 
 ---
 
@@ -35,6 +35,12 @@
 ---
 
 ## Learnings
+
+### 2026-09-16 — The Sprint is priced AT one month of Growth, and the extra half month is the offer
+**What changed:** **Sprint $2,950 to $3,350 one-time**, which is exactly the Growth monthly price. The operator low tier moved $2,450 to $2,950 (the old standard), so the secret discount still lands a real step below list. The Sprint still runs **six weeks**, and that gap is now the headline: a **bonus band in the price card** ("Half a month on us", 1.5 stated as a number, the arithmetic in one sentence) plus a new FAQ answering why the two numbers match. **This reverses the 2026-07-13 "de-anchor Growth on the Sprint page" rule**: the Growth monthly price is back on `/sprint`, in the bonus band and in the After-the-Sprint section, because a bonus that is a comparison cannot be made without showing the number being compared to.
+**Why (the intuition):** At $2,950 against a $3,350 Growth, the Sprint was cheaper than the monthly but the buyer had no way to see it, so the one-time fee read as a standalone cost to be weighed on its own. Matching the two numbers turns the decision from "how much" into "which shape", and at that point the six-versus-four weeks is free upside rather than a detail. It also raises the first contract by $400 with no added delivery. The 2026-07-13 reasoning (anchoring a BIGGER recurring number pre-proof works against the sale) does not survive parity: an equal number is not an anchor, it is the comparison that makes the bonus legible.
+**Where reflected:** `SprintView.tsx` (`PRICES`, `GROWTH_MONTHLY`, `BonusStrip`, price card order, After-the-Sprint copy, new FAQ), `globals.css` (`sprint-bonus-glow`), philosophy.md (table, ladder, both scripts, changelog), system-reference.md (changelog) and campaign-master `pricing-structure.md` + `clients/bleedai/reply-agent/compose-system-prompt.cjs`. Proposal generator and every reply agent quote **$3,350 one-time for six weeks**, and may now say it equals one month of Growth.
+**Triggered by:** Taha, 2026-09-16 ("change the sprint pricing to the monthly plan pricing for the growth plan, mention the sprint is 1.5 month, in a way that looks like a bonus"). Tuning dial: watch whether Sprint close rate holds at the higher number, and whether naming Growth on `/sprint` changes Sprint to Growth rollover either way.
 
 ### 2026-07-13 — Price + tier restructure: Pilot retired, Growth/Scale raised, Scale goes multi-channel
 **What changed:** Cut the packages ladder from three tiers to two and raised both. **Pilot ($1,500/mo) retired** entirely; the budget fallback for a fit prospect who balks at the one-time fee is now a smaller one-off scoped in the calculator, not a monthly plan. **Growth $2,450 to $3,350/mo** (now the entry monthly tier and the Sprint's rollover destination); it absorbed Pilot's foundational deliverables (all domains + inbox fees covered, DFY sourcing, AI reply agent) and gained **engineered, context-based sub-sequences that warm interested leads into booked calls**. **Scale $3,450 to $5,300/mo**, repositioned around **cross-channel multi-touch** on top of Growth: LinkedIn connection requests, SMS touchpoints, optional call integrations orchestrated at the CRM level, and LinkedIn touchpoints on interested leads. Removed the **$500 Sprint-to-Growth credit** everywhere. The `/sprint` page no longer shows or pre-anchors the Growth monthly price. Email volumes nudged up in place, kept muted (Sprint up to 30k, Growth ~30k-40k, Scale ~50k-75k). Calculator package-nudge floor moved $1,500 to $3,350; the `/packages` grid is now a centered 2-column layout.

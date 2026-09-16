@@ -16,7 +16,7 @@ We have four surfaces. We do not send all of them to everyone.
 
 | Link | URL | Who it is for | Verbal starting price |
 |---|---|---|---|
-| **The Outbound Sprint** | `calculator.bleedai.com/sprint` | **The default for every fit prospect.** One-time, 6-week proof engagement: up to 8 campaign experiments, written success bar, rolls into Growth. | $2,950 one-time |
+| **The Outbound Sprint** | `calculator.bleedai.com/sprint` | **The default for every fit prospect.** One-time, 6-week proof engagement: up to 8 campaign experiments, written success bar, rolls into Growth. Priced AT one month of Growth, and it runs 1.5 months, which is the page's headline bonus. | $3,350 one-time |
 | Managed Outbound Packages | `calculator.bleedai.com/packages` | The destination (Growth) for Sprint winners, plus Scale for committed heavy users who want ongoing from day one. | $3,350/mo (Growth) to $5,300/mo (Scale) |
 | Cost Calculator | `calculator.bleedai.com/` | Anyone safely. One-off scoping for prospects who are not a long-term fit. | starts under $1k for a basic campaign |
 | Trial Campaigns | `calculator.bleedai.com/trials` | **OPERATOR-ONLY as of 2026-07-09.** Removed from all public nav and site references. Never linked, never quoted; the Sprint's secret price toggle replaced its "select company we want to win" job. | (never volunteered) |
@@ -64,14 +64,17 @@ More employees and stronger signals push the company up the fit ladder. Solo fou
  first)    GROWTH          |
    |       directly      CALCULATOR
  SPRINT    (or Scale)    (scope a smaller
- $2,950                   one-off to budget)
+ $3,350                   one-off to budget)
+ (= 1 mo
+  Growth,
+  runs 1.5)
 ```
 
 ### What to actually say
 
 **Fit prospect (default) → Sprint, Growth anchored:**
 
-> "The way we start with almost everyone is The Outbound Sprint: six weeks, one fixed price ($2,950), we map every outbound method and signal relevant to your market and run up to 8 campaign experiments against each other until one wins. We write the success bar together before anything sends, and if it hits, you roll into our monthly Growth program, month to month (we talk numbers once you have seen it work). Everything we build is yours either way: calculator.bleedai.com/sprint"
+> "The way we start with almost everyone is The Outbound Sprint: six weeks, one fixed price ($3,350), we map every outbound method and signal relevant to your market and run up to 8 campaign experiments against each other until one wins. That is the same number as one month on our Growth program, except it buys you six weeks instead of four plus the whole build, and you keep everything either way. We write the success bar together before anything sends, and if it hits you roll straight into Growth, month to month: calculator.bleedai.com/sprint"
 
 **Fit + the one-time fee is the objection → a smaller one-off in the calculator:**
 
@@ -83,11 +86,11 @@ More employees and stronger signals push the company up the fit ladder. Solo fou
 
 **Unfit (small / B2C / saturated / weak LinkedIn) → calculator only:**
 
-> "You can scope a single campaign here: calculator.bleedai.com/. Pick your lead volume and number of experiments — the price updates live. Send over what you'd like to run and we'll take it from there."
+> "You can scope a single campaign here: calculator.bleedai.com/. Pick your lead volume and number of experiments, the price updates live. Send over what you'd like to run and we'll take it from there."
 
 **Cold inbound asking "how much?" with no context yet:**
 
-> "Depends on scope. Most companies start with The Outbound Sprint: a 6-week, fixed-price engagement (starts at $2,950) where we run up to 8 cold email experiments and you keep everything we build: calculator.bleedai.com/sprint. If you already know you want it running monthly, our programs start at $3,350/mo: calculator.bleedai.com/packages. Which direction sounds closest?"
+> "Depends on scope. Most companies start with The Outbound Sprint: a 6-week, fixed-price engagement at $3,350 where we run up to 8 cold email experiments and you keep everything we build: calculator.bleedai.com/sprint. That is the same as one month of our Growth program, which is $3,350/mo month to month if you already know you want it running ongoing: calculator.bleedai.com/packages. Which direction sounds closest?"
 
 ---
 
@@ -139,6 +142,7 @@ The $580/$1,100 trials measurably damaged deals: buyers anchored on the cheapest
 
 ## Revision log
 
+- **2026-09-16** — SPRINT PRICED AT GROWTH. Sprint $2,950 to **$3,350 one-time**, which is exactly the Growth monthly price; operator low tier $2,450 to $2,950. Duration unchanged at six weeks, and that gap is now the offer: the `/sprint` price card carries a **bonus band** ("Half a month on us", 1.5 months, the arithmetic in one line) and a new FAQ. **Reverses the 2026-07-13 de-anchor rule** — the Growth price is back on `/sprint`, because a bonus stated as a comparison needs the number it compares to. Reasoning: `pricing-learnings.md` (2026-09-16 entry).
 - **2026-07-13** — PRICE + TIER RESTRUCTURE. Pilot ($1,500/mo) retired; the budget fallback is now a smaller one-off scoped in the calculator. Growth $2,450 to **$3,350/mo** (now the entry monthly tier and the Sprint's rollover destination). Scale $3,450 to **$5,300/mo**, repositioned around cross-channel multi-touch (LinkedIn connection requests, SMS, optional call integrations, CRM-orchestrated) on top of Growth. Growth gains engineered context-based sub-sequences that warm interested leads into booked calls. The $500 Sprint-to-Growth credit was removed. The Sprint page no longer shows or pre-anchors the Growth monthly price (Growth $3,350 now exceeds the $2,950 Sprint, so anchoring the bigger recurring number pre-proof is counterproductive; it is earned on the post-Sprint call). Email volumes nudged up in place (Sprint up to 30k, Growth ~30k-40k, Scale ~50k-75k), kept muted per the effort-not-volume rule. Rationale: prove value with the Sprint, then upgrade proven clients onto a real monthly number that funds scaling the company; multi-channel is the Scale differentiator. Reflected in `/packages` + `/sprint` pages, `pricing.config.ts` (nudge threshold + tier mins), system-reference.md, learnings.md, and campaign-master `pricing-structure.md` + `SPRINT-SPEC.md`.
 - **2026-07-09** — THE SPRINT RESTRUCTURE. The Outbound Sprint ($2,950 one-time, up to 8 experiments, 6 weeks, written success bar, conditional rollover into Growth, re-run promise) becomes the default lead offer for every fit prospect. Trials retired from all public surfaces (operator-only). Pilot repositioned as the budget fallback ("spread it monthly"). Routing diagram + scripts rewritten. Evidence + reasoning: bleedai-campaign-master `clients/bleedai/growth-plan-2026-07-04/offer-2026-07-08/`.
 - **2026-06-03** — Rewrote as a short routing-focused philosophy. Previous long version split: routing thinking lives here; defaults, decisions, file map, workflow tables moved to `pricing-system-reference.md`.

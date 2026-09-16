@@ -241,6 +241,14 @@ input[type="range"]::-moz-range-track {
   }
   .sprint-check { animation: sprint-check 3.4s ease-in-out infinite; }
 
+  /* 7. Bonus strip: the extra half month breathes so the eye lands on it.
+     Base opacity lives on the element, so motion-off still shows the glow. */
+  @keyframes sprint-bonus-glow {
+    0%, 100% { opacity: 0.16; transform: scale(0.92); }
+    50%      { opacity: 0.38; transform: scale(1.08); }
+  }
+  .sprint-bonus-glow { animation: sprint-bonus-glow 4.6s ease-in-out infinite; }
+
   /* Ambient hero backdrop: a slow red glow drifting behind the slide */
   @keyframes sprint-bg-drift {
     0%, 100% { transform: translate(0, 0) scale(1);      opacity: .5; }
