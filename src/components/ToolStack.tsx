@@ -9,7 +9,7 @@ import { useState } from 'react'
  * /public/logos; a text-initial fallback renders if an image is missing.
  */
 
-export type Tool = { name: string; logo?: string; glyph?: 'directory' }
+export type Tool = { name: string; logo?: string; glyph?: 'directory' | 'phone' | 'sms' }
 type Category = { label: string; tools: Tool[] }
 
 const CATEGORIES: Category[] = [
@@ -56,6 +56,9 @@ const CATEGORIES: Category[] = [
       { name: 'ZapMail', logo: 'zapmail' },
       { name: 'Google Workspace', logo: 'gmail' },
       { name: 'Microsoft', logo: 'outlook' },
+      { name: 'LinkedIn', logo: 'linkedin' },
+      { name: 'Phone', glyph: 'phone' },
+      { name: 'SMS', glyph: 'sms' },
       { name: 'Supabase', logo: 'supabase' },
     ],
   },
@@ -98,6 +101,15 @@ export function ToolChip({ tool }: { tool: Tool }) {
       {tool.glyph === 'directory' ? (
         <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7h18M3 12h18M3 17h10" />
+        </svg>
+      ) : tool.glyph === 'phone' ? (
+        <svg className="h-4 w-4 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M6.62 10.79a15.53 15.53 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.25 1.02l-2.2 2.21z" />
+        </svg>
+      ) : tool.glyph === 'sms' ? (
+        <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.9} d="M21 11.5a8.38 8.38 0 01-8.5 8.5 8.5 8.5 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8A8.5 8.5 0 0112.5 3 8.38 8.38 0 0121 11.5z" />
+          <path strokeLinecap="round" strokeWidth={2.2} d="M8.5 12h.01M12 12h.01M15.5 12h.01" />
         </svg>
       ) : failed ? (
         <span className="text-[10px] font-bold text-gray-600 leading-none">
