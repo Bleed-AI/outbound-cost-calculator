@@ -18,7 +18,7 @@
 > learning is really about list price or routing, it belongs **here**; when it's about how to *frame/sell* a
 > deal, it belongs there. Cross-reference both ways.
 >
-> **Last updated**: 2026-09-16.
+> **Last updated**: 2026-10-16.
 
 ---
 
@@ -35,6 +35,12 @@
 ---
 
 ## Learnings
+
+### 2026-10-16 - Sprint back to $2,950, a headline offer next to the trial
+**What changed:** The Sprint default drops from $3,350 back to **$2,950 one-time**. It is no longer priced at one month of Growth; it now sits clearly under it, as a headline offer next to the new trial on bleedai.com. Growth is unchanged at $3,350/mo. `SprintView.tsx` now defaults to the $2,950 tier and renders a single clean price (no struck $3,350 anchor). The "same price as a month of Growth" FAQ and the "same number you already paid once" line in After-the-Sprint are rewritten, since they are no longer true. `BonusStrip` needed no logic change: its `versusGrowth` sentence already branches to "the Sprint is under that" when the price is below Growth.
+**Why (the intuition):** 2026-10-16, Taha: Sprint back to $2,950, a headline offer next to the trial. A single confident number reads as a headline offer, and keeping the Sprint clearly under Growth removes the confusion of two products sharing the $3,350 figure.
+**Where reflected:** system-reference.md (revision log + products table), `SprintView.tsx`, `next.config.ts` (`/packages` now 301s to bleedai.com/pricing).
+**Triggered by:** Repositioning session, Taha.
 
 ### 2026-09-16 — The Sprint is priced AT one month of Growth, and the extra half month is the offer
 **What changed:** **Sprint $2,950 to $3,350 one-time**, which is exactly the Growth monthly price. The operator low tier moved $2,450 to $2,950 (the old standard), so the secret discount still lands a real step below list. The Sprint still runs **six weeks**, and that gap is now the headline: a **bonus band in the price card** ("Half a month on us", 1.5 stated as a number, the arithmetic in one sentence) plus a new FAQ answering why the two numbers match. **This reverses the 2026-07-13 "de-anchor Growth on the Sprint page" rule**: the Growth monthly price is back on `/sprint`, in the bonus band and in the After-the-Sprint section, because a bonus that is a comparison cannot be made without showing the number being compared to.

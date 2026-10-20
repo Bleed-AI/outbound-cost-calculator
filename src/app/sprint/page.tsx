@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 
 export const metadata = {
   title: 'The Outbound Sprint | BleedAI',
-  description: 'Up to 8 cold email experiments in 6 weeks. One fixed price. You keep everything.',
+  description: 'Up to 8 outbound experiments in 6 weeks. One fixed price. You keep everything.',
 }
 
 export default function SprintPage() {

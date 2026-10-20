@@ -14,11 +14,12 @@ const TIER_CYCLE: PriceTier[] = ['high', 'low']
 const PRICES: Record<PriceTier, number> = { high: 3350, low: 2950 }
 const TIER_LABEL: Record<PriceTier, string> = { high: 'standard', low: 'low' }
 
-/* The Sprint is deliberately priced AT one month of Growth (2026-09-16, Taha),
-   which reverses the 2026-07-13 "de-anchor Growth on the Sprint page" rule:
-   the bonus only reads if the reader can see the monthly number it matches.
-   Read from the pricing config rather than restated, so the two can never
-   drift and quietly turn the bonus into a lie. */
+/* The Sprint is a one-time headline offer priced UNDER one month of Growth
+   (2026-10-16, Taha: back to $2,950, sitting next to the trial). Growth's
+   monthly number still appears on the page, in the bonus band and the
+   After-the-Sprint section, so the reader can see the Sprint runs six weeks
+   for less than a single month of the retainer. Read from the pricing config
+   rather than restated, so the two can never drift. */
 const GROWTH_MONTHLY = PRICING.packageTiers.growthMin
 
 function isPriceTier(s: string | null): s is PriceTier {
@@ -194,7 +195,7 @@ const BURNED: { title: string; body: string }[] = [
 ]
 
 const FAQ: { q: string; a: string }[] = [
-  { q: 'Why is the Sprint the same price as a month of Growth?', a: 'So the decision is not about money. It is the same number you would pay for one month on Growth, except it buys six weeks instead of four, the full build, and everything you keep. Pay once, see it work, then decide whether the monthly makes sense.' },
+  { q: 'What does the one-time price get me?', a: 'Everything on this page, built and run end to end: the full market map, up to 8 experiments, the lists, the copy, the AI reply agent, and the assets you keep. It is less than a single month of Growth, and it buys six weeks instead of four. Pay once, see it work, then decide whether the monthly makes sense.' },
   { q: 'Why one-time instead of a retainer?', a: 'You should not pay monthly for something unproven. We earn the retainer by proving the system works first.' },
   { q: 'Why not money-back?', a: 'Because some experiments are supposed to fail. The promise that matters is the extra round on us and the assets you keep, either way.' },
   { q: 'What if I already know I want ongoing?', a: 'We will happily start you on Growth. The Sprint is for proving it first.' },
@@ -209,11 +210,11 @@ export function SprintView() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const initialTier: PriceTier = isPriceTier(searchParams.get('p')) ? (searchParams.get('p') as PriceTier) : 'high'
+  const initialTier: PriceTier = isPriceTier(searchParams.get('p')) ? (searchParams.get('p') as PriceTier) : 'low'
   const [priceTier, setPriceTier] = useState<PriceTier>(initialTier)
 
   useEffect(() => {
-    const newUrl = priceTier === 'high' ? '/sprint' : `/sprint?p=${priceTier}`
+    const newUrl = priceTier === 'low' ? '/sprint' : `/sprint?p=${priceTier}`
     router.replace(newUrl, { scroll: false })
   }, [priceTier, router])
 
@@ -367,22 +368,22 @@ export function SprintView() {
           </div>
         </Section>
 
-        {/* 4. After the Sprint. The Growth price IS on the page now (2026-09-16),
-            because the Sprint is priced at it and the half month only reads as a
-            bonus next to the monthly number it matches. */}
+        {/* 4. After the Sprint. Growth's monthly price stays on the page: the
+            Sprint is one-time and under it, so showing the monthly number is
+            what makes the six-week, lower one-time price read as the better deal. */}
         <Section title="After the Sprint" className="mt-10">
           <div className="rounded-[var(--radius-card)] border border-[var(--color-border)] bg-[var(--color-surface-1)] px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="max-w-2xl">
               <p className="text-[var(--color-text-muted)] text-sm leading-relaxed">
                 <span className="text-[var(--color-text)] font-medium">Hit the bar and you can roll into Growth at ${GROWTH_MONTHLY.toLocaleString()}/mo, month to month, no lock-in.</span>{' '}
-                Same number you already paid once, except the Sprint bought you six weeks of it instead of four. You already own the whole system, so this just keeps the winning play running and hunting new markets every month. No pressure to continue, the Sprint stands on its own.
+                You already own the whole system from the Sprint, so the monthly just keeps the winning play running and hunting new markets every month. No pressure to continue, the Sprint stands on its own.
               </p>
               <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mt-2">
                 Want something smaller first? You can scope a single one-off campaign to your budget in the <a href="/" className="text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-medium underline-offset-4 hover:underline">calculator</a>.
               </p>
             </div>
             <a
-              href="/packages"
+              href="https://bleedai.com/pricing"
               className="shrink-0 text-[var(--color-brand)] hover:text-[var(--color-brand-hover)] font-semibold text-sm inline-flex items-center gap-1 whitespace-nowrap"
             >
               See the monthly plans
@@ -454,33 +455,18 @@ function PriceCard({ priceTier, price, onInquire }: {
           The Outbound Sprint
         </div>
 
-        {/* Price */}
-        {priceTier === 'low' ? (
-          <div className="flex items-end gap-2 mb-1">
-            <span className="text-lg font-bold tabular-nums font-[family-name:var(--font-mono)] text-[var(--color-text-dim)] line-through decoration-[var(--color-brand)] decoration-2 leading-none">
-              $<MonoAmount value={PRICES.high.toLocaleString()} />
-            </span>
-            <motion.span
-              key={priceTier}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="text-4xl font-bold font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none"
-            >
-              $<MonoAmount value={price.toLocaleString()} />
-            </motion.span>
-          </div>
-        ) : (
-          <div className="mb-1">
-            <span className="text-4xl font-bold font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none">
-              $<MonoAmount value={price.toLocaleString()} />
-            </span>
-          </div>
-        )}
+        {/* Price. The Sprint reads a single clean $2,950, the public headline
+            offer. No struck anchor, so the only monthly number on the page is
+            Growth's, kept distinct in the bonus band below. */}
+        <div className="mb-1">
+          <span className="text-4xl font-bold font-[family-name:var(--font-mono)] tracking-tight text-[var(--color-text)] leading-none">
+            $<MonoAmount value={price.toLocaleString()} />
+          </span>
+        </div>
         <div className="text-[var(--color-text-dim)] text-xs mb-3.5">one-time</div>
 
         {/* The bonus, directly under the number it is an argument about: the
-            Sprint costs exactly one month of Growth and runs 1.5 of them. */}
+            Sprint runs 1.5 months for a one-time price under a month of Growth. */}
         <BonusStrip price={price} />
 
         {/* Power-stat band: the "8 experiments in parallel" is the headline stat. */}
@@ -531,13 +517,14 @@ function PriceCard({ priceTier, price, onInquire }: {
 }
 
 /* ── Bonus strip (the half month on us) ──────────────────────
-   The Sprint is priced AT one month of Growth but runs six weeks. That gap is
-   the offer, so it gets its own band in the price card rather than a footnote:
-   brand rail, the 1.5 stated as a number, and the arithmetic in one sentence. */
+   The Sprint is one-time and under a month of Growth, yet runs six weeks. That
+   gap is the offer, so it gets its own band in the price card rather than a
+   footnote: brand rail, the 1.5 stated as a number, the comparison in one
+   sentence (versusGrowth below branches on the actual numbers). */
 
 function BonusStrip({ price }: { price: number }) {
-  // The operator low tier prices UNDER Growth, so the sentence has to follow the
-  // number rather than assert parity it does not have.
+  // The Sprint now prices UNDER Growth by default, so the sentence has to follow
+  // the number rather than assert parity it does not have.
   const versusGrowth =
     price === GROWTH_MONTHLY
       ? 'The Sprint is that same number and runs six weeks.'
@@ -572,7 +559,7 @@ function BonusStrip({ price }: { price: number }) {
           <p className="text-[11.5px] leading-snug text-[var(--color-text-muted)]">
             One month on{' '}
             <a
-              href="/packages"
+              href="https://bleedai.com/pricing"
               className="text-[var(--color-text)] font-medium underline-offset-2 hover:underline hover:text-[var(--color-brand)] transition-colors"
             >
               Growth

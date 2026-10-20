@@ -65,11 +65,11 @@ export async function POST(req: NextRequest) {
   const kindLabel =
     kind === 'package' ? 'Managed Outbound Package'
       : kind === 'sprint' ? 'The Outbound Sprint'
-        : 'Trial Campaign'
+        : 'Paid Experiment'
   const subjectPrefix =
     kind === 'package' ? 'Package Order'
       : kind === 'sprint' ? 'Outbound Sprint Order'
-        : 'Trial Order'
+        : 'Paid Experiment Order'
 
   const ctaCopy =
     kind === 'trial' ? 'Pick a kickoff time below, we usually launch the same day or next.'
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
         : 'Pick a time below so we can kick off your monthly outbound.'
   const introCopy =
     kind === 'trial'
-      ? `Thanks for placing your trial order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
+      ? `Thanks for placing your paid experiment order for <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll align on ICPs and offer on the kickoff call, then launch experiments same day on our pre-warmed accounts.`
       : kind === 'sprint'
         ? `Thanks for placing your Outbound Sprint order${priceLabel ? ` (${priceLabel})` : ''}. Over 6 weeks we test every method, niche directory and buying signal that fits your market as a tournament: losers killed fast, the winner gets the volume. You sign off the exact lead list and every word of copy before anything sends. Once the invoice clears we hold your build slot and start the warmup clock, so we start now rather than later. Everything we build is yours to keep.`
         : `Thanks for getting started with <strong style="color:#f0f0f4;">${tierLabel}</strong>${priceLabel ? ` (${priceLabel})` : ''}. We&rsquo;ll use the kickoff call to align on goals and then start running monthly outbound for you.`

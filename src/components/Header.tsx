@@ -27,7 +27,7 @@ const VARIANT_CONFIG: Record<NonNullable<HeaderProps['variant']>, {
   },
   trials: {
     line1: '',
-    line2: { plain: '', accent: 'Trial', tail: 'Campaigns', accentMode: 'black' },
+    line2: { plain: '', accent: 'Paid', tail: 'Experiments', accentMode: 'black' },
     subtitle: 'We run multiple campaign experiments against different market segments, in parallel, on our pre-warmed infrastructure. End result: you know which campaigns hit in which market, and you walk away with a batch of high-quality leads.',
   },
   packages: {

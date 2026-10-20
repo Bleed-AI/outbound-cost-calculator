@@ -13,8 +13,9 @@
 | Product | URL | Price range | Live source of truth |
 |---|---|---|---|
 | Cost Calculator (One-Time Campaigns) | `/` | ~$733 floor → ~$8,445 ceiling | `src/lib/pricing.config.ts` + `src/lib/pricing.ts` |
-| Trial Campaigns | `/trials` | $350 → $1,100 | `src/components/TrialsView.tsx` |
-| Managed Outbound Packages | `/packages` | $3,350/mo → $5,300/mo | `src/components/PackagesView.tsx` |
+| The Outbound Sprint (one-time) | `/sprint` | **$2,950 one-time** | `src/components/SprintView.tsx` |
+| Paid Experiments (was "Trial Campaigns") | `/trials` | $350 → $1,100 | `src/components/TrialsView.tsx` |
+| Managed Outbound Packages | `/packages` (301s to bleedai.com/pricing) | $3,350/mo → $5,300/mo | `src/components/PackagesView.tsx` |
 
 ---
 
@@ -104,12 +105,12 @@ Totals rose vs the pre-2026-06-12 model because branded domains+inboxes are now 
 
 ---
 
-## 4. Trial Campaigns pricing
+## 4. Paid Experiments pricing (was "Trial Campaigns")
 
 | Package | Default (`?p=high`, public) | Discounted (`?p=low`, gated) | Duration cap |
 |---|---|---|---|
-| 1-2 Trial Campaigns | **$580** | **$350** | up to 2 weeks |
-| 3-5 Trial Campaigns | **$1,100** *(emphasized)* | **$900** | up to 4 weeks |
+| 1-2 Paid Experiments | **$580** | **$350** | up to 2 weeks |
+| 3-5 Paid Experiments | **$1,100** *(emphasized)* | **$900** | up to 4 weeks |
 
 **Tier toggle on `/trials`**:
 
@@ -214,9 +215,9 @@ We recommend the *right* tier based on the user's current total, not always the 
 
 We do not say premium; we show it through scope. "Managed Outbound Packages" describes the actual deliverable (we run it for you), reads professional, no hyperbole.
 
-### 8.6 "Trial Campaigns" not "Experiments" for the customer-facing product
+### 8.6 "Paid Experiments" (renamed from "Trial Campaigns" on 2026-10-21)
 
-A/B testing of hooks, subject lines, and offer angles is *included in every single campaign*. When we use "experiments" customer-side, we mean **parallel testing of fundamentally different ICPs or market segments**. The Campaign Experiments section description spells this out so customers do not undervalue what they are buying.
+Originally the customer-facing product was called "Trial Campaigns" to avoid confusing buyers (A/B testing of hooks is included in every campaign; customer-side "experiments" means **parallel testing of fundamentally different ICPs or market segments**). Reversed 2026-10-21: the page is now "Paid Experiments" because bleedai.com launched its own "trial", and two things both called "trial" would confuse prospects more than the experiments wording ever did. The route is still `/trials` and the internal order `kind` is still `'trial'`; only the customer-facing copy changed.
 
 ### 8.7 1-2 vs 3-5 trial differentiation
 
@@ -403,6 +404,7 @@ The validation harness exercises floor / typical / ceiling configs, all 5 campai
 
 ## Revision log
 
+- **2026-10-16** Sprint back to **$2,950** one-time (reverses the 2026-09-16 "priced at one month of Growth"). It is now a headline offer sitting under Growth, not at it. Growth unchanged at $3,350/mo. `SprintView.tsx` defaults to the $2,950 tier and renders a single clean price (no struck anchor); the "same price as Growth" FAQ and the "same number you already paid once" line are rewritten. `/packages` now 301 redirects to https://bleedai.com/pricing (`next.config.ts`). "cold email" dropped from the `/sprint` meta description. `/trials` renamed customer-side from "Trial Campaigns" to "Paid Experiments" (route still `/trials`, order `kind` still `'trial'`) so it does not clash with the new bleedai.com trial; see §8.6. Full reasoning in `pricing-learnings.md` (2026-10-16 entry).
 - **2026-09-16** — Sprint priced at Growth. `PRICES` in `SprintView.tsx` 2950/2450 to **3350/2950**; new `GROWTH_MONTHLY = 3350` constant (keep in step with `PackagesView`). Duration unchanged (six weeks). New `BonusStrip` in the price card states the 1.5 months and the parity, copy branches on tier so the operator low tier never claims parity it does not have. New `MonoAmount` helper pulls in the comma/decimal that the monospace face gives a full character cell. New FAQ row. `sprint-bonus-glow` keyframe in `globals.css`. The Growth price now appears on `/sprint` (reverses 2026-07-13). Full reasoning in `pricing-learnings.md` (2026-09-16 entry).
 - **2026-07-13** — Price + tier restructure. Pilot retired (budget fallback is now a smaller one-off in the calculator). Growth $2,450 to $3,350/mo (entry tier, absorbed Pilot's foundational deliverables + gained context-based sub-sequences). Scale $3,450 to $5,300/mo (added cross-channel multi-touch: LinkedIn / SMS / optional calls, CRM-orchestrated). $500 Sprint credit removed. Nudge threshold $1,500 to $3,350; tier mins updated in `pricing.config.ts`. Volumes nudged up in place (Sprint 30k / Growth 30-40k / Scale 50-75k). Packages grid now 2-column. Updated §1, §5, §7, §8.3, §8.16, §11. Full reasoning in `pricing-learnings.md` (2026-07-13 entry).
 - **2026-06-03** — Initial extraction from the previous `pricing-philosophy.md`. System-mechanics content (defaults, decisions, file map, workflow tables, validation) moved here so the philosophy doc can stay short and routing-focused.

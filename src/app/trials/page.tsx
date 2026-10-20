@@ -3,8 +3,8 @@ import { TrialsView } from '@/components/TrialsView'
 import { Suspense } from 'react'
 
 export const metadata = {
-  title: 'BleedAI — Trial Campaigns',
-  description: 'Parallel campaign experiments against different market segments — discover where your offer hits, walk away with leads.',
+  title: 'BleedAI - Paid Experiments',
+  description: 'Parallel paid experiments against different market segments, discover where your offer hits, walk away with leads.',
 }
 
 export default function TrialsPage() {

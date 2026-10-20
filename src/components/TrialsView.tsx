@@ -25,7 +25,7 @@ interface TrialPackage {
 const PACKAGES: TrialPackage[] = [
   {
     id: 'small',
-    name: '1–2 Trial Campaigns',
+    name: '1-2 Paid Experiments',
     duration: 'up to 2 weeks',
     experimentCountLabel: '1–2 experiments',
     positioning: 'For when you have a clear hypothesis about your best one or two ICPs — we validate them fast and confirm the signal.',
@@ -41,7 +41,7 @@ const PACKAGES: TrialPackage[] = [
   },
   {
     id: 'large',
-    name: '3–5 Trial Campaigns',
+    name: '3-5 Paid Experiments',
     duration: 'up to 4 weeks',
     experimentCountLabel: '3–5 experiments',
     positioning: 'Higher chance of finding a winner — we test multiple markets in parallel so you discover which segment actually responds.',
@@ -138,7 +138,7 @@ export function TrialsView() {
         >
           <div>
             <div className="text-[var(--color-text)] text-sm font-medium">Already know cold outreach works for you?</div>
-            <div className="text-[var(--color-text-dim)] text-xs mt-1">Skip trials — configure and price a complete one-off campaign instead.</div>
+            <div className="text-[var(--color-text-dim)] text-xs mt-1">Skip the experiments, configure and price a complete one-off campaign instead.</div>
           </div>
           <a
             href="/"
@@ -161,12 +161,12 @@ export function TrialsView() {
         >
           <div className="flex items-center gap-2 mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-brand)]" />
-            <h3 className="text-[var(--color-text)] font-medium text-sm tracking-tight">How a trial campaign runs</h3>
+            <h3 className="text-[var(--color-text)] font-medium text-sm tracking-tight">How a paid experiment runs</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <Step n="1" title="Kickoff call" body="We align on your ICPs, offer, and the angles we&apos;ll test. Then we launch — same day or next." />
             <Step n="2" title="Experiments run" body="Multiple campaigns in parallel on our pre-warmed accounts. Hot leads forwarded as they come in." />
-            <Step n="3" title="Report + next step" body="Clear data on what hit. Move to a monthly package, run more trials, or take your winning playbook elsewhere." href="/packages" />
+            <Step n="3" title="Report + next step" body="Clear data on what hit. Move to a monthly package, run more experiments, or take your winning playbook elsewhere." href="https://bleedai.com/pricing" />
           </div>
         </motion.div>
 
@@ -249,7 +249,7 @@ function TrialCard({ pkg, priceTier, onInquire }: {
         </div>
 
         <p className="text-[var(--color-text-ghost)] text-[11px] leading-relaxed mb-3">
-          Trials are deliberately subsidized — we take the hit to prove cold email works for you before you commit.
+          These experiments are deliberately subsidized, we take the hit to prove outbound works for you before you commit.
         </p>
 
         <p className="text-[var(--color-text-dim)] text-xs leading-relaxed mb-5 min-h-[3rem]">
@@ -281,7 +281,7 @@ function TrialCard({ pkg, priceTier, onInquire }: {
               : 'bg-[var(--color-bg)] hover:bg-[var(--color-brand-muted)] border border-[var(--color-border-hover)] hover:border-[var(--color-brand)] text-[var(--color-text)]'
           }`}
         >
-          Start Your Trial →
+          Start Your Experiment →
         </button>
       </div>
     </div>

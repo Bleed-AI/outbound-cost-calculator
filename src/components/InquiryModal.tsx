@@ -32,7 +32,7 @@ function isValidDomain(value: string): boolean {
 
 const KIND_TITLES: Record<InquiryKind, string> = {
   package: 'Get Started',
-  trial: 'Start Your Trial',
+  trial: 'Start Your Experiment',
   sprint: 'Start Your Sprint',
 }
 
@@ -50,13 +50,13 @@ const KIND_SUBMIT_LABELS: Record<InquiryKind, string> = {
 
 const KIND_SUCCESS_TITLES: Record<InquiryKind, string> = {
   package: "Order received, let's kick this off",
-  trial: "Trial order received, let's launch",
+  trial: "Experiment order received, let's launch",
   sprint: "Sprint order received, let's kick off",
 }
 
 const KIND_SUCCESS_BODIES: Record<InquiryKind, string> = {
   package: "Your details are in. Pick a time below and we'll be prepared with context on your business.",
-  trial: "Your trial order is in. Pick a kickoff time below, we usually launch the same day or next.",
+  trial: "Your experiment order is in. Pick a kickoff time below, we usually launch the same day or next.",
   sprint: "Your Sprint order is in. Pick a kickoff time below. Once the invoice clears we hold your build slot and start the warmup clock.",
 }
 
