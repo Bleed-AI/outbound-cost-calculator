@@ -12,7 +12,7 @@
 
 - Doppler project: `bleedai` | This config: `prd_outbound-cost-calculator` (cloned from shared `prd` — inherits 22+ common secrets, plus any repo-specific ones)
 - Add a new secret here: `doppler secrets set KEY=value --project bleedai --config prd_outbound-cost-calculator`
-- Add a secret shared by EVERY project: `doppler secrets set KEY=value --project bleedai --config prd` (then re-clone the branch configs to pull it down)
+- Add a secret shared by EVERY project: `doppler secrets set KEY=value --project bleedai --config prd` (branch configs inherit `prd` live, so every project sees it at once; no re-clone needed)
 
 **Google Drive = service account** (`bleedai-bot@…iam.gserviceaccount.com`). Use the **shared Drive root** — NOT "My Drive" (it has zero quota). Pass `supportsAllDrives=true` on every API call. The service account JSON is in Doppler as `GOOGLE_SERVICE_ACCOUNT_JSON`; `bin/onboard.ps1` writes it to `tmp/google-service-account.json` automatically.
 
@@ -25,20 +25,20 @@
 | Serper | `SERPER_API_KEY` | Google SERP, News, LinkedIn pages, /scrape | ~$0.001/call |
 | Parallel.ai | `PARALLEL_API_KEY` | Structured extraction, anti-bot scrape | lite ~$0.003 · pro ~$0.10 · ultra ~$0.30 |
 | Apify | `APIFY_TOKEN` | Specialty actors (LinkedIn, Google Maps, etc.) | varies per actor |
-| OpenWebNinja | `OPENWEBNINJA_API_KEY` | Local Business Data fallback | free tier |
-| Spider / ZenRows | `SPIDER_API_KEY` · `ZENROWS_API_KEY` | Heavy anti-bot fallback | varies |
 
-**Email & enrichment:** `PROSPEO_API_KEY` (DM finder + verification), `TRYKIT_API_KEY` (email verification — `valid-risky` is catch-all-deemed-valid, NOT a raw catch-all), `INSTANTLY_API_KEY` (cold email sending), `APOLLO_*` (when needed).
+(Full free-to-paid routing: `knowledge-base/operations/scraping-routing.md` in campaign-master. ZenRows / Spider / OpenWebNinja-direct were cut 2026-07-03 - dead keys, zero scripts.)
 
-**LLM:** `OPENAI_API_KEY` (default model: `OPENAI_DEFAULT_MODEL`). For Claygent inside Clay tables, BleedAI's OpenAI key is used directly — not Clay credits.
+**Email & enrichment:** `PROSPEO_API_KEY` (DM finder + verification), `TRYKIT_API_KEY` (email verification — `valid-risky` is catch-all-deemed-valid, NOT a raw catch-all), `INSTANTLY_API_KEY` (cold email sending).
 
-**Clay:** runs on the Legacy `$350` plan (grandfathered) → ~10K credits / billing period. Local bridge at `localhost:12306` (`Bleed-AI/clay-mcp-bridge`, auto-installed by `bin/onboard.ps1`). Tailscale Funnel `bleedai.tail913862.ts.net` is the HTTP API callback tunnel for Clay.
+**LLM:** `OPENAI_API_KEY` (default model: `OPENAI_DEFAULT_MODEL`).
+
+**Clay: decommissioned 2026-09-19.** The Clay plan, the `localhost:12306` bridge (`Bleed-AI/clay-mcp-bridge`) and the Tailscale Funnel callback tunnel are all gone. Do not propose or wire any of them.
 
 **First-run check.** `scripts/first-run-check.cjs` runs at every session start. On a fresh clone it auto-installs npm deps, wires the pre-commit hook, validates Doppler auth. Subsequent sessions: silent. To force re-check: delete `.claude/.first-run-complete`.
 
 **Team identity.** `.claude/team-roster.json` is the canonical roster. `bin/whoami.cjs` matches your `git config user.email` against it to tailor what Claude shows you. Onboard new teammates via `/onboard-team` in campaign-master (owner-only).
 
-**Slack:** bot user `ava` (`U0AM08T3GMT`) posts to `#bleedai-all` (`C0B2XJUQF5Y`) on protocol-class changes. `SLACK_BOT_TOKEN` + `SLACK_CHANNEL_ID` in Doppler.
+**Slack:** bot user `ava` (`U0AM08T3GMT`) posts to `SLACK_CHANNEL_ID` (currently `C0B2XJUQF5Y` = `#github-updates`; an earlier version of this line mislabeled that ID as #bleedai-all) on protocol-class changes. `SLACK_BOT_TOKEN` + `SLACK_CHANNEL_ID` in Doppler. Team-facing posts always go out as `ava`, never via the MCP connector as Taha (identity rule, Taha 2026-08-19).
 
 **Security:** `.githooks/pre-commit` blocks commits containing `Bearer <long-token>`, `sk-...`, `apify_api_...`, and three known-leaked keys. Bypass (legit case only): `git commit --no-verify`. The hook is auto-wired by first-run-check.
 <!-- BLEEDAI-SHARED-STACK:END -->
