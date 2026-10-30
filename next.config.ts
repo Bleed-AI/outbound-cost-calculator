@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+// Slot model (2026-10-30): the Sprint and the Growth/Scale packages are retired for new prospects.
+// Their public pages now point at the main site. Live from 2026-10-30 (Taha's go).
 const nextConfig: NextConfig = {
   async redirects() {
     return [
@@ -10,6 +12,7 @@ const nextConfig: NextConfig = {
         destination: "https://bleedai.com/pricing",
         statusCode: 301,
       },
+      { source: "/sprint", destination: "https://bleedai.com/outbound/#specialist", permanent: false },
     ];
   },
 };
